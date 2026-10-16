@@ -80,11 +80,13 @@ cd frontend && npm ci && npm run lint && npm run typecheck && npm test && npm ru
 
 Expected: all exit 0.
 
-## 8. CI (S4, SC-006)
+## 8. CI/CD (S4, SC-006)
 
 Push `001-setup` and open one PR into `main`. Expected: `changes`, `backend`,
 and `frontend` jobs green (backend and frontend in parallel, each building its
-image). Merge with a merge commit.
+image) and `publish` skipped. Merge with a merge commit; on `main`, `publish`
+runs and both images appear in GHCR
+(`ghcr.io/<owner>/pokemonapp-backend` and `-frontend`, tags `<sha>`, `latest`).
 
 ## 9. Docs (S5, SC-007)
 

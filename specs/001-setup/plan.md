@@ -9,7 +9,8 @@
 Deliver a green, runnable monorepo skeleton with no Pokémon capability:
 a Maven multi-module Spring Boot backend (Clean Architecture enforced by
 ArchUnit), a Vite/React/TypeScript placeholder frontend, Docker Compose
-(Postgres + backend + Nginx-served frontend), GitHub Actions CI, a
+(Postgres + backend + Nginx-served frontend), GitHub Actions CI/CD
+(images published to GHCR on merge to `main`), a
 `.env.example`, and a README skeleton. Acceptance: `docker compose up`,
 `GET :8080/actuator/health` → `UP` with `db` UP, UI on `:3000` with zero
 console warnings, `/api/**` proxied untouched, `mvn verify` green (Spotless,

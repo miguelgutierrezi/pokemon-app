@@ -20,7 +20,7 @@ are developer-facing setup scenarios (S1–S5), deliberately **not** labelled
 | Requirement ID (`docs/requirements.md`) | What 001 delivers | Completed by |
 |---|---|---|
 | TR-REPO | Public monorepo layout, `.gitignore`, no secrets committed | — |
-| DEL-DOCKER | Multi-stage Dockerfile for backend and frontend; root `docker-compose.yml` | — |
+| DEL-DOCKER | Multi-stage Dockerfile for backend and frontend; root `docker-compose.yml`; images published to GHCR on merge to `main` | — |
 | DEL-README / SUB-README | README skeleton: overview, run locally, run with Docker, run tests | Each later feature extends it |
 | EVAL-ARCH / TR-CORE (structure only) | Four Maven modules; ArchUnit rules enforcing inward-only dependencies | 002–005 add code |
 | TR-TESTS / TR-UNIT / EVAL-TEST (tooling only) | Test tooling, JaCoCo 80% line gate, CI | 002–007 add tests |
@@ -109,10 +109,11 @@ frontend project; all succeed.
 
 ---
 
-### Setup Scenario S4 - CI on a pull request (Priority: P2)
+### Setup Scenario S4 - CI/CD pipeline (Priority: P2)
 
 A developer opens a pull request and automated checks validate the backend,
-the frontend, and the container images.
+the frontend, and the container images; once merged to `main`, the images are
+published to a container registry.
 
 **Why this priority**: The constitution forbids merging without green CI.
 
@@ -129,6 +130,10 @@ the frontend, and the container images.
    parallel.
 4. **Given** a PR changing a project, **When** CI runs, **Then** that
    project's container image is built successfully.
+5. **Given** a push to `main` whose CI jobs passed, **When** the pipeline
+   finishes, **Then** backend and frontend images are published to GitHub
+   Container Registry tagged with the commit SHA and `latest`. Pull requests
+   never publish images.
 
 ---
 
@@ -204,6 +209,9 @@ suites.
   authentication, PokeAPI access, caching, error-handling advice, or API
   documentation; dependencies and configuration for those arrive with the
   feature that first uses them (constitution IX).
+- **FR-014**: On pushes to `main`, after the CI jobs pass, the pipeline MUST
+  publish the backend and frontend images to GitHub Container Registry using
+  only the workflow's built-in token (no additional secrets).
 
 ### Key Entities
 
@@ -229,7 +237,8 @@ suites.
   architecture checks, formatting, and the 80% line-coverage gate.
 - **SC-005**: Frontend lint, typecheck, tests, and build pass on a clean
   machine.
-- **SC-006**: The 001 pull request shows a green CI pipeline.
+- **SC-006**: The 001 pull request shows a green CI pipeline, and after its
+  merge both images are available in GitHub Container Registry.
 - **SC-007**: A new contributor can run the stack and the test suites using
   only the README.
 

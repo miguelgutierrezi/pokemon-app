@@ -121,7 +121,7 @@ they arrive in 007.
 proxied paths diverge, Swagger "Try it out" breaks, and actuator leaks through
 the UI origin.
 
-## R9. CI workflow
+## R9. CI/CD workflow
 
 **Decision**: `.github/workflows/ci.yml` on `pull_request` and `push` to
 `main`:
@@ -135,8 +135,24 @@ the UI origin.
    npm cache; `npm ci`, `lint`, `typecheck`, `test`, `build`; then
    `docker build frontend`.
 
-Jobs 2 and 3 run in parallel. Image build lives inside each job (no extra
-job, no push).
+4. `publish` — only on `push` to `main`; `needs: [backend, frontend]` with
+   `if: github.event_name == 'push' && !failure() && !cancelled()` (skipped
+   jobs are fine, failed ones block); `permissions: packages: write`;
+   `docker/login-action` to `ghcr.io` with `GITHUB_TOKEN`;
+   `docker/build-push-action` for both images, tags
+   `ghcr.io/<owner>/pokemonapp-backend|frontend:{sha,latest}`.
+
+Jobs 2 and 3 run in parallel. On PRs, images are built inside each job but
+never pushed.
+
+**Order of introduction**: the workflow is created right after Spotless
+(backend job only, `verify`), so a draft PR gates every push from then on. The
+frontend job is added with the frontend (S3); the `docker build` steps with
+each Dockerfile (S1); `publish` last (S4).
+
+**Alternatives considered**: deploying to a PaaS (Render/Fly) — rejected for
+time and secrets; the PDF only requires a Dockerfile. GHCR keeps CD to the
+registry with no extra credentials.
 
 ## R10. Formatting
 
