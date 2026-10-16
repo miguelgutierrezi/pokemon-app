@@ -49,8 +49,8 @@ HU-01..HU-04.
 **Purpose**: Repository hygiene and the empty Maven multi-module build.
 
 - [x] T001 Create root `.gitignore` covering `.env`, `backend/**/target/`, `frontend/node_modules/`, `frontend/dist/`, `.idea/`, `.vscode/`, `.DS_Store`. ⏸ Review — `chore: add root gitignore`
-- [ ] T002 Create parent POM `backend/pom.xml`: groupId `com.miguel`, artifactId `pokemonapp-parent`, packaging `pom`, parent `spring-boot-starter-parent` 4.1.1, `java.version` 21, modules `domain`, `application`, `infrastructure`, `web` (in that order). No dependencies yet.
-- [ ] T003 Create module POMs with inward-only dependencies (research R2): `backend/domain/pom.xml` (no deps), `backend/application/pom.xml` (→ domain), `backend/infrastructure/pom.xml` (→ application, domain), `backend/web/pom.xml` (→ infrastructure, application, domain). Add `package-info.java` with a one-line Javadoc describing each module's role in `com/miguel/pokemonapp/{domain,application,infrastructure,web}/`. Verify: `cd backend && mvn -B verify` succeeds. ⏸ Review — `chore(backend): add maven multi-module skeleton`
+- [x] T002 Create parent POM `backend/pom.xml`: groupId `com.miguel`, artifactId `pokemonapp-parent`, packaging `pom`, parent `spring-boot-starter-parent` 4.1.1, `java.version` 21, modules `domain`, `application`, `infrastructure`, `web` (in that order). No dependencies yet.
+- [x] T003 Create module POMs with inward-only dependencies (research R2): `backend/domain/pom.xml` (no deps), `backend/application/pom.xml` (→ domain), `backend/infrastructure/pom.xml` (→ application, domain), `backend/web/pom.xml` (→ infrastructure, application, domain). Add `package-info.java` with a one-line Javadoc describing each module's role in `com/miguel/pokemonapp/{domain,application,infrastructure,web}/`. Verify: `cd backend && mvn -B verify` succeeds. ⏸ Review — `chore(backend): add maven multi-module skeleton`
 - [ ] T004 Add the Maven wrapper (`backend/mvnw`, `backend/.mvn/wrapper/`) via `mvn wrapper:wrapper` so CI and README use `./mvnw`. ⏸ Review — `chore(backend): add maven wrapper`
 
 ---

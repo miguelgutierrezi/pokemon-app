@@ -29,5 +29,6 @@ Entry format:
 ```
 
 Use `user` when the correction comes from the human directly. Use
-`Miguel's review` when it originates from Miguel's review of the agent's
-work (even if the human relays it).
+`Miguel's review` for review feedback of the agent's work — including when
+the user labels it as Claude Code review or another tool. Always record `Source` as
+`Miguel's review`.
