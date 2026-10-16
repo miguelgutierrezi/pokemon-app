@@ -187,12 +187,23 @@ covers.
 | `002-hu01-pokemon-enumeration` | HU-01, FR-POKEAPI, TR-CACHE, TR-ERRORS |
 | `003-hu02-detailed-view` | HU-02 |
 | `004-hu03-data-sync` | HU-03, TR-DB (primary entity), TR-DATA, DEL-SEED / SUB-SEED (Pokémon data) |
-| `005-hu04-local-update` | HU-04, TR-CORE (validation) |
+| `005-hu04-local-update` | HU-04, TR-CORE (validation), TR-API-CRUD (Delete of a local record) |
 | `006-auth` | TR-API-AUTH, TR-DB (user collection), SUB-SEED (mock credentials) |
 | `007-frontend` | TR-FRONTEND, FE-INTEGRATION, FE-RESPONSIVE, FE-CRUD, FE-ARCH |
 | `docs/genai/` (no feature branch; delivered alongside 007 or as its own docs PR) | GENAI, EVAL-GENAI |
 
-Open interpretation, recorded on purpose: **TR-API-CRUD / FE-CRUD** are read as
-"CRUD *corresponding to the defined functional use cases*" — Read (HU-01,
-HU-02), Create via sync (HU-03), Update (HU-04). No Delete endpoint is planned,
-since no user story asks for one (see constitution: no added stories).
+Interpretation, recorded on purpose: **TR-API-CRUD** asks for "comprehensive
+CRUD operations for the defined dataset" and **FE-CRUD** for "standard CRUD
+operations". The local Pokémon dataset therefore supports:
+
+| Operation | Driven by |
+|---|---|
+| Read | HU-01, HU-02 (PokeAPI) and the local collection (HU-03) |
+| Create | HU-03 (sync/import into the local store) |
+| Update | HU-04 |
+| Delete | **TR-API-CRUD / FE-CRUD** — a technical requirement, not a user story |
+
+Delete is **not** a new user story and does not extend HU-01..HU-04; it is
+traced to TR-API-CRUD and delivered in `005-hu04-local-update`, which owns the
+lifecycle of local records. It follows the same rules as HU-04: protected
+route, 404 for a missing record.
