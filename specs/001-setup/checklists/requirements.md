@@ -43,4 +43,4 @@
   WireMock, TanStack Query, React Router, shadcn/ui; proxy no longer strips
   `/api`; health contract fixed (503 on DOWN).
 - `/speckit-analyze` needs `tasks.md`; run it right after `/speckit-tasks`.
-- Open item before tasks: confirm base Java package (proposal `com.pokemonapp`).
+- Base Java package confirmed: `com.miguel.pokemonapp` (2026-10-16).

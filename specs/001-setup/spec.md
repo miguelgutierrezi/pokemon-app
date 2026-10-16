@@ -240,7 +240,7 @@ suites.
   TypeScript + Vite + Tailwind, ESLint, Vitest + Testing Library; frontend
   served by Nginx.
 - Only dependencies exercised in this feature are added now (web, actuator,
-  data-jpa, Flyway, PostgreSQL driver; tests: JUnit 5, AssertJ,
+  JDBC, Flyway, PostgreSQL driver; tests: JUnit 5, AssertJ,
   Testcontainers, ArchUnit). Security/JWT (006), validation, springdoc,
   ProblemDetail advice, Caffeine, WireMock (002+), and TanStack Query, React
   Router, shadcn/ui (007) are deliberately deferred.

@@ -25,8 +25,9 @@ DEL-DOCKER, DEL-README, EVAL-ARCH, TR-TESTS tooling). No HU is delivered.
 
 **Primary Dependencies** (only what 001 exercises — constitution IX):
 - Backend: Spring Boot **4.1.1** (latest GA on Maven Central, verified
-  2026-10-15), `spring-boot-starter-web`, `-actuator`, `-data-jpa`,
-  `-flyway` + `flyway-database-postgresql`, PostgreSQL JDBC driver
+  2026-10-15), `spring-boot-starter-web`, `-actuator`, `-jdbc` (DataSource
+  for the DB health indicator), `-flyway` + `flyway-database-postgresql`,
+  PostgreSQL JDBC driver. `-data-jpa` is deferred to 004 (first entity).
 - Frontend: React 19, Vite, Tailwind CSS v4 (`@tailwindcss/vite`), ESLint
   (flat config)
 - Ops: Docker Compose, Nginx (frontend image), GitHub Actions
@@ -130,8 +131,9 @@ specs/001-setup/
 
 **Structure Decision**: Monorepo with Clean Architecture modules under
 `backend/`. `web` is the only Spring Boot application module. Compose, CI, and
-docs live at the root. Base Java package: to be confirmed before tasks
-(proposal: `com.pokemonapp`).
+docs live at the root. Base Java package: **`com.miguel.pokemonapp`**, with
+one sub-package per module (`com.miguel.pokemonapp.domain`, `.application`,
+`.infrastructure`, `.web`); ArchUnit rules are written against these.
 
 ## Complexity Tracking
 
