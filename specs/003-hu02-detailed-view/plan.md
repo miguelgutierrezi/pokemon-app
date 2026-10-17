@@ -135,22 +135,28 @@ Work red → green per slice (separate commits at implement time):
 2. **Application** — RED→GREEN: `GetPokemonDetailUseCase` with mocked port
    — **exactly three** calls: `fetchDetail` → `fetchEvolutionChain` →
    `fetchEntries`; `PokemonNotFoundException`; propagate
-   `CatalogUnavailableException`.
-3. **Infrastructure** — RED→GREEN: caches store detail types; list path
-   derives summaries; `fetchDetail` loads pokemon+species **concurrently**;
-   identity 404 → `PokemonNotFoundException`; evolution-chain cache
-   (`getIfPresent` → load → `put`); WireMock: happy path, Eevee, 404, chain
-   cache hit, **exactly one** `/pokemon/{id}` and `/pokemon-species/{id}`
-   per detail call (phase c reuses phase a), failures never cached; 002
-   list/cache tests stay green.
-4. **Web controller / DTOs / OpenAPI** — RED→GREEN: `GET /api/v1/pokemon/{id}`
+   `CatalogUnavailableException`; temporary
+   `UnsupportedOperationException` stubs on the adapter so `./mvnw verify`
+   stays green (T013).
+3. **Shared-cache REFACTOR (T014)** — **before** detail adapter work:
+   pokemon/species caches store `Catalog*Detail`; list path via
+   `toSummary()`; 002 list/cache tests stay green; leave T013 stubs in place.
+4. **Infrastructure detail adapter** — RED→GREEN: `fetchDetail` loads
+   pokemon+species **concurrently**; identity 404 →
+   `PokemonNotFoundException`; evolution-chain cache (`getIfPresent` → load
+   → `put`); WireMock: happy path, Eevee, 404, chain cache hit, **exactly
+   one** `/pokemon/{id}` and `/pokemon-species/{id}` per detail call (phase
+   c reuses phase a), failures never cached; 002 list/cache tests stay
+   green.
+5. **Web controller / DTOs / OpenAPI** — RED→GREEN: `GET /api/v1/pokemon/{id}`
    (`@Min(1)`), response DTOs, OpenAPI 200/400/404/502 (`@WebMvcTest` +
    mocked use case).
-5. **Web advice** — RED→GREEN: `PokemonNotFoundException` → 404 problem+json;
+6. **Web advice** — RED→GREEN: `PokemonNotFoundException` → 404 problem+json;
    re-add `handleTypeMismatch` with test for `/api/v1/pokemon/abc` → 400.
-6. **E2E IT** — RED→GREEN: WireMock-standalone IT (Eevee tree, single-stage,
-   404, optional cache zero-extra-calls).
-7. **Ops / polish** — README detail section; quickstart timings (manual
+7. **E2E IT** — RED→GREEN: WireMock-standalone IT (Eevee tree, single-stage,
+   404, WireMock 5xx on `/pokemon/{id}` → HTTP 502 problem+json without
+   upstream URL, optional cache zero-extra-calls).
+8. **Ops / polish** — README detail section; quickstart timings (manual
    SC-003/SC-004); no new env keys unless forced.
 
 ## Complexity Tracking

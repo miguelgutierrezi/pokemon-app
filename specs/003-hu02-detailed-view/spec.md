@@ -135,8 +135,9 @@ response succeeds quickly and produces zero additional catalog HTTP calls
   normalised English text.
 - Height from catalog decimetres → metres with one decimal (e.g. 7 dm →
   0.7 m).
-- Concurrent uncached detail requests for the same id do not return a
-  partial payload marked complete if the catalog fails mid-flight.
+- Concurrent uncached detail requests for the same id may duplicate
+  upstream calls on cache misses, but MUST never return a partial payload
+  marked complete if the catalog fails mid-flight.
 
 ## Requirements *(mandatory)*
 
@@ -174,11 +175,16 @@ response succeeds quickly and produces zero additional catalog HTTP calls
 - **FR-009**: Catalog unavailable, timeout, or malformed required payloads
   MUST yield HTTP **502** with a generic Problem Detail (no upstream URL or
   internal message leaks).
-- **FR-010**: Detail assembly MUST use at most **three sequential phases**,
-  each parallel and cached: (a) Pokémon + species in parallel; (b)
-  evolution chain (needs the species’ chain URL); (c) `fetchEntries` for
-  chain node ids (the requested Pokémon is already cached from phase a).
-  MUST NOT walk chain nodes with sequential per-node catalog calls.
+- **FR-010**: Detail assembly MUST use at most **three sequential phases**
+  (one port call per phase), with intra-phase parallelism in (a) and (c)
+  only: (a) **one** port operation `fetchDetail(id)` → `CatalogDetailEntry`
+  — the adapter loads `/pokemon/{id}` and `/pokemon-species/{id}`
+  concurrently (do **not** expose `fetchPokemonDetail` /
+  `fetchSpeciesDetail` on the port); (b) `fetchEvolutionChain` (needs the
+  species’ chain URL); (c) `fetchEntries` for chain node ids (the requested
+  Pokémon is already cached from phase a; adapter may fetch distinct ids in
+  parallel). MUST NOT walk chain nodes with sequential per-node catalog
+  calls.
 - **FR-011**: Successful catalog responses used by this feature MUST be
   cached in memory with bounded size and TTL; failures MUST never be cached
   (TR-CACHE).
@@ -197,8 +203,13 @@ response succeeds quickly and produces zero additional catalog HTTP calls
 - **FlavorText**: Normalised English narrative text and version slug
   (nullable as a pair when absent).
 - **EvolutionNode**: Tree node — national number, display name, image,
-  children (each child link carries trigger, min level, item slug — or all
-  null when `evolution_details` is empty).
+  **`isCurrent`** (true iff this node is the requested Pokémon), children
+  (each child link carries trigger, min level, item slug — or all null when
+  `evolution_details` is empty).
+- **Catalog detail records** (`CatalogPokemonDetail`, `CatalogSpeciesDetail`,
+  `CatalogDetailEntry`, evolution-chain catalog shapes): defined in
+  [data-model.md](./data-model.md); list types from 002 are derived via
+  `toSummary()`.
 - **AbilityRef / WeightKg / DisplayName / Category**: Reused from 002 where
   applicable.
 
@@ -232,16 +243,21 @@ response succeeds quickly and produces zero additional catalog HTTP calls
   (1..catalog species count). Public read; feature 006 keeps reads public.
   The backend owns `/api/v1`; Nginx forwards `/api/` unchanged.
 - **Reuse from 002**: Domain helpers (`WeightKg`, display name, category,
-  `AbilityRef`), `PokemonCatalogPort` / `PokeApiCatalogAdapter`, Caffeine
-  caches for species-list / pokemon / species, `ListPokemonUseCase` patterns,
-  `GlobalExceptionHandler`, springdoc, and `POKEAPI_BASE_URL` config — extend,
-  do not fork.
-- **Catalog resources / fetch phases**: At most three sequential phases, each
-  parallel and cached — (a) `/pokemon/{id}` + `/pokemon-species/{id}`
-  (names, genera, flavor_text_entries, generation, evolution_chain URL) in
-  parallel; (b) `/evolution-chain/{chainId}` (new cache key; needs the
-  species’ chain URL from a); (c) `fetchEntries` for all chain node ids
-  (requested Pokémon already cached from a). No sequential per-node walks.
+  `AbilityRef`), `PokemonCatalogPort` / `PokeApiCatalogAdapter`,
+  `ListPokemonUseCase` patterns, `GlobalExceptionHandler`, springdoc, and
+  `POKEAPI_BASE_URL` config — extend, do not fork.
+- **Caches (one per upstream URL)**: Caffeine caches hold rich detail
+  records — pokemon → `CatalogPokemonDetail`, species →
+  `CatalogSpeciesDetail`, plus species-list (002) and evolution-chain (new).
+  The list path derives 002 `CatalogPokemon` / `CatalogSpecies` via
+  `toSummary()` after cache hit or load. No second cache for the same URL.
+- **Port contract / fetch phases**: At most three sequential port calls —
+  (a) **one** `fetchDetail(id)` → `CatalogDetailEntry` (adapter fetches
+  `/pokemon/{id}` + `/pokemon-species/{id}` concurrently; do **not** put
+  `fetchPokemonDetail` / `fetchSpeciesDetail` on the port); (b)
+  `fetchEvolutionChain(chainId)` (new cache; needs chain URL from a); (c)
+  `fetchEntries` for all chain node ids (requested Pokémon already cached
+  from a; distinct ids may load in parallel). No sequential per-node walks.
 - **Chain node ids**: Evolution-chain nodes carry **species** ids. Node
   display name and image come from `fetchEntries` with that same id (002
   assumption: for National Dex 1–1025, species id == default Pokémon id).

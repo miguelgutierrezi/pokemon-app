@@ -342,3 +342,27 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   **derived** (`toSummary()` / equivalent). WireMock: for a detail call,
   `/pokemon/{id}` and `/pokemon-species/{id}` exactly once (phase c reuses
   phase a). Keep 002 list tests green.
+
+## 2026-10-16 — 003 tasks: stubs, OpenAPI, id=0 detail, acceptance IT
+- **Source**: Miguel's review
+- **Context**: Tasks review — port stubs timing, OpenAPI coverage, validation
+  problem detail, and acceptance IT skip rule.
+- **Correction**: T013 adds temporary `UnsupportedOperationException` stubs
+  for `fetchDetail` / `fetchEvolutionChain` on the adapter and verifies with
+  full `./mvnw -B verify` (Coverage: application; stubs compile-only). T014
+  does not invent stubs. T017/T018 extend `OpenApiDocsIntegrationTest` for
+  `/api/v1/pokemon/{id}` 200/400/404/502. T019 asserts `id=0` → 400
+  problem+json whose detail names the `id` parameter. T021/T022 are
+  acceptance ITs; if T021 passes with no production changes, commit as
+  `test(web): …` and skip T022.
+
+## 2026-10-16 — 003 analyze remediations (F1–F6, A1, C1)
+- **Source**: Miguel's review
+- **Context**: `/speckit-analyze` findings applied after Miguel validation.
+- **Correction**: Spec FR-010 / Assumptions state one `fetchDetail` port op,
+  sequential phases with intra-phase parallelism in (a)/(c), one cache per
+  URL holding detail records + `toSummary()` for list, Key Entities include
+  `isCurrent` and point to data-model; Edge Cases allow duplicate upstream
+  on concurrent misses but never partial success. Plan TDD ordering: shared-
+  cache REFACTOR (T014) before detail adapter. T021 asserts WireMock 5xx →
+  502 without upstream URL.

@@ -183,7 +183,8 @@ unavailable.
   `backend/infrastructure/src/main/java/com/miguel/pokemonapp/infrastructure/pokeapi/PokeApiCatalogAdapter.java`
   so the whole reactor compiles. Verify with full `./mvnw -B verify` (CI must
   stay green); 002 `ListPokemonUseCaseTest` stays green. Coverage:
-  **application** (stubs are compile-only; real behaviour arrives in T016).
+  **application**. Note: compile-only stubs in **infrastructure**, no
+  behaviour (real impl in T016).
   ⏸ Review — `feat(application): get pokemon detail use case (green)`
 
 **Checkpoint**: Use case green with mocked port (R6 for application).
@@ -307,11 +308,12 @@ Postgres Testcontainers; `POKEAPI_BASE_URL` → WireMock.
 - [ ] T021 [HU02] RED: write acceptance IT
   `backend/web/src/test/java/com/miguel/pokemonapp/web/pokemon/PokemonDetailIntegrationTest.java`
   — 200 for stubbed Bulbasaur/Eevee/single-stage shapes; **404** ProblemDetail
-  on identity upstream 404; assert `/pokemon/{id}` and
-  `/pokemon-species/{id}` **exactly once** for a detail call that also needs
-  phase (c); optional second identical detail → zero extra catalog hits.
-  Confirm fail (or note if already green — see T022). Do not push RED.
-  Coverage: **web** IT.
+  on identity upstream 404; WireMock **5xx** on `/pokemon/{id}` → HTTP
+  **502** problem+json on `GET /api/v1/pokemon/{id}` with **no upstream URL**
+  in the body; assert `/pokemon/{id}` and `/pokemon-species/{id}` **exactly
+  once** for a detail call that also needs phase (c); optional second
+  identical detail → zero extra catalog hits. Confirm fail (or note if
+  already green — see T022). Do not push RED. Coverage: **web** IT.
   ⏸ Review — `test(web): pokemon detail IT against wiremock (red)`
 
 - [ ] T022 [HU02] GREEN: finish wiring/fixes so T021 passes (reuse
