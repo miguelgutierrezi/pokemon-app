@@ -205,7 +205,7 @@ tests in the same task); fail-on-unknown (incl. POST import); `"tags": null`
   Coverage: **web**.
   ⏸ Review — `feat(web): collection update delete and response version (green)`
 
-- [ ] T010 [HU04] RED: extend
+- [x] T010 [HU04] RED: extend
   `backend/web/src/test/java/com/miguel/pokemonapp/web/error/GlobalExceptionHandlerTest.java`
   — `StaleLocalPokemonException` → **409** problem+json with
   `type` `urn:problem-type:stale-version` and detail
@@ -215,7 +215,7 @@ tests in the same task); fail-on-unknown (incl. POST import); `"tags": null`
   `com.fasterxml`. Confirm fail. Do not push RED. Coverage: **web**.
   ⏸ Review — `test(web): expect stale-version 409 problem detail (red)`
 
-- [ ] T011 [HU04] GREEN: extend
+- [x] T011 [HU04] GREEN: extend
   `backend/web/src/main/java/com/miguel/pokemonapp/web/error/GlobalExceptionHandler.java`
   for `StaleLocalPokemonException`. Advice tests pass. Coverage: **web**.
   ⏸ Review — `feat(web): stale-version 409 problem advice (green)`

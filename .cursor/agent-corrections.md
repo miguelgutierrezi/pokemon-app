@@ -631,3 +631,16 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `IllegalArgumentException` globally to 400. Document in `research.md` that
   edge `@Size` limits apply to the **raw (untrimmed)** value and are therefore
   slightly stricter than the domain (which trims/normalises first).
+
+## 2026-10-17 — Never branch on library exception message text
+- **Source**: Miguel's review
+- **Context**: T010/T011 — `missingRequiredPropertyName` inspected Jackson's
+  `getOriginalMessage()` for the prefix `"Missing required creator property"`.
+- **Correction**: Never branch on the text of a library's exception message
+  (fragile across versions/locales). For `HttpMessageNotReadableException`:
+  check `UnrecognizedPropertyException` first →
+  `Unknown or read-only property '{name}'`; otherwise any
+  `MismatchedInputException` whose path has a property name →
+  `Invalid or missing value for property '{name}'` (last path element);
+  else `Malformed request body`. Cover omit and wrong-type (e.g.
+  `"version": "abc"`) with the same detail shape.
