@@ -420,3 +420,13 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `ResourceAccessException` is `java.net.http.HttpTimeoutException`, do
   **not** retry — map straight to `CatalogUnavailableException`. WireMock:
   fixed delay > read timeout → unavailable and exactly **1** request.
+
+## 2026-10-16 — PokemonNotFoundException carries nationalId
+- **Source**: Miguel's review
+- **Context**: T019/T020 built the 404 problem detail via
+  `URI_TEMPLATE_VARIABLES` / `pathVariable("id")`, coupling the global
+  handler to a route variable name.
+- **Correction**: `PokemonNotFoundException` carries `int nationalId`
+  (constructor + accessor). Keep an internal message with the upstream
+  path for logs. Adapter passes the requested id; handler detail uses
+  `ex.nationalId()` only — no URI template lookup.

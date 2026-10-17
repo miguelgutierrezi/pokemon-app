@@ -197,7 +197,7 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
   }
 
   private CatalogPokemonDetail loadPokemon(int nationalId) {
-    JsonNode body = getIdentityJson("/pokemon/{id}", nationalId);
+    JsonNode body = getIdentityJson(nationalId, "/pokemon/{id}", nationalId);
     requireField(body, "id", "malformed pokemon payload for id " + nationalId);
     requireField(body, "name", "malformed pokemon payload for id " + nationalId);
     requireField(body, "weight", "malformed pokemon payload for id " + nationalId);
@@ -287,7 +287,7 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
   }
 
   private CatalogSpeciesDetail loadSpecies(int nationalId) {
-    JsonNode body = getIdentityJson("/pokemon-species/{id}", nationalId);
+    JsonNode body = getIdentityJson(nationalId, "/pokemon-species/{id}", nationalId);
     List<LocalizedText> names = new ArrayList<>();
     for (JsonNode nameNode : body.path("names")) {
       names.add(
@@ -330,23 +330,24 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     }
   }
 
-  private JsonNode getIdentityJson(String uriTemplate, Object... uriVariables) {
-    return getJson(uriTemplate, true, uriVariables);
+  private JsonNode getIdentityJson(int nationalId, String uriTemplate, Object... uriVariables) {
+    return exchangeWithRetry(uriTemplate, nationalId, uriVariables);
   }
 
   private JsonNode getJson(String uriTemplate, Object... uriVariables) {
-    return getJson(uriTemplate, false, uriVariables);
+    return exchangeWithRetry(uriTemplate, null, uriVariables);
   }
 
-  private JsonNode getJson(String uriTemplate, boolean identityResource, Object... uriVariables) {
+  private JsonNode exchangeWithRetry(
+      String uriTemplate, Integer notFoundNationalId, Object... uriVariables) {
     try {
-      return exchangeJson(uriTemplate, identityResource, uriVariables);
+      return exchangeJson(uriTemplate, notFoundNationalId, uriVariables);
     } catch (ResourceAccessException first) {
       if (isTimeout(first)) {
         throw new CatalogUnavailableException("catalog unavailable for " + uriTemplate, first);
       }
       try {
-        return exchangeJson(uriTemplate, identityResource, uriVariables);
+        return exchangeJson(uriTemplate, notFoundNationalId, uriVariables);
       } catch (CatalogUnavailableException | PokemonNotFoundException e) {
         throw e;
       } catch (RestClientException retry) {
@@ -371,7 +372,7 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
   }
 
   private JsonNode exchangeJson(
-      String uriTemplate, boolean identityResource, Object... uriVariables) {
+      String uriTemplate, Integer notFoundNationalId, Object... uriVariables) {
     JsonNode body =
         restClient
             .get()
@@ -380,8 +381,9 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
             .onStatus(
                 status -> status.isError(),
                 (request, response) -> {
-                  if (identityResource && response.getStatusCode().value() == 404) {
-                    throw new PokemonNotFoundException("catalog returned 404 for " + uriTemplate);
+                  if (notFoundNationalId != null && response.getStatusCode().value() == 404) {
+                    throw new PokemonNotFoundException(
+                        notFoundNationalId, "catalog returned 404 for " + uriTemplate);
                   }
                   throw new CatalogUnavailableException(
                       "catalog returned " + response.getStatusCode() + " for " + uriTemplate);

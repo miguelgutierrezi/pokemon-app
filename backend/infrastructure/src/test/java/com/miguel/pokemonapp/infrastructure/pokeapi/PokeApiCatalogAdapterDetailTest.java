@@ -129,7 +129,9 @@ class PokeApiCatalogAdapterDetailTest {
     stubSpecies(9999, minimalSpeciesBody(1));
 
     assertThatThrownBy(() -> adapter.fetchDetail(9999))
-        .isInstanceOf(PokemonNotFoundException.class);
+        .isInstanceOf(PokemonNotFoundException.class)
+        .extracting(ex -> ((PokemonNotFoundException) ex).nationalId())
+        .isEqualTo(9999);
   }
 
   @Test
@@ -139,7 +141,9 @@ class PokeApiCatalogAdapterDetailTest {
         get(urlEqualTo("/pokemon-species/9999")).willReturn(aResponse().withStatus(404)));
 
     assertThatThrownBy(() -> adapter.fetchDetail(9999))
-        .isInstanceOf(PokemonNotFoundException.class);
+        .isInstanceOf(PokemonNotFoundException.class)
+        .extracting(ex -> ((PokemonNotFoundException) ex).nationalId())
+        .isEqualTo(9999);
   }
 
   @Test

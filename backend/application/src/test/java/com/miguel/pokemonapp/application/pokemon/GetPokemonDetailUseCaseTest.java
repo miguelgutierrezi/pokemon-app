@@ -109,11 +109,13 @@ class GetPokemonDetailUseCaseTest {
 
   @Test
   void propagatesPokemonNotFoundExceptionFromFetchDetail() {
-    when(catalog.fetchDetail(9999)).thenThrow(new PokemonNotFoundException("missing"));
+    when(catalog.fetchDetail(9999)).thenThrow(new PokemonNotFoundException(9999, "missing"));
 
     assertThatThrownBy(() -> useCase.execute(9999))
         .isInstanceOf(PokemonNotFoundException.class)
-        .hasMessage("missing");
+        .hasMessage("missing")
+        .extracting(ex -> ((PokemonNotFoundException) ex).nationalId())
+        .isEqualTo(9999);
 
     verify(catalog, never()).fetchEvolutionChain(anyInt());
     verify(catalog, never()).fetchEntries(anyList());

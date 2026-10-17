@@ -279,7 +279,7 @@ JSON shape**; Problem Detail bodies in the advice pair.
   tests pass. Coverage: **web**.
   ⏸ Review — `feat(web): GET /api/v1/pokemon/{id} controller (green)`
 
-- [ ] T019 [HU02] RED: extend
+- [x] T019 [HU02] RED: extend
   `backend/web/src/test/java/com/miguel/pokemonapp/web/error/GlobalExceptionHandlerTest.java`
   — `PokemonNotFoundException` → **404** `application/problem+json` (RFC
   7807 fields, no stack trace); re-add type-mismatch coverage for
@@ -289,7 +289,7 @@ JSON shape**; Problem Detail bodies in the advice pair.
   fail. Do not push RED. Coverage: **web**.
   ⏸ Review — `test(web): expect 404 and type-mismatch problem details (red)`
 
-- [ ] T020 [HU02] GREEN: extend
+- [x] T020 [HU02] GREEN: extend
   `backend/web/src/main/java/com/miguel/pokemonapp/web/error/GlobalExceptionHandler.java`
   — map `PokemonNotFoundException` → 404; re-add `handleTypeMismatch` for
   path variables. Advice tests pass. Coverage: **web**.
