@@ -68,14 +68,14 @@ stated per task; `git status` before each task.
 **Independent Test**: `./mvnw -B -pl domain test` green; no Spring on domain
 test classpath. 002/003 domain tests stay green.
 
-- [ ] T001 [HU03] RED: write
+- [x] T001 [HU03] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/TagsTest.java`
   — trim / lowercase / dedupe; reject blank; each tag length ≤ **32**; at
   most **20** tags; empty set allowed. Confirm `./mvnw -B -pl domain test`
   fails (type missing). Do not push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect tags normalisation and limits (red)`
 
-- [ ] T002 [HU03] GREEN: implement
+- [x] T002 [HU03] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/Tags.java`.
   `./mvnw -B -pl domain test` passes. Coverage: **domain**.
   ⏸ Review — `feat(domain): tags value object (green)`
