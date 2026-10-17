@@ -91,7 +91,7 @@ renumbered.
 
 ### Flyway baseline (TDD)
 
-- [ ] T012 [S2] RED: add a test to `HealthEndpointIntegrationTest.java` (or a sibling `FlywayBaselineIntegrationTest.java` sharing the container setup) asserting via `JdbcTemplate` that `flyway_schema_history` contains a successful row with `version = '1'` and `description = 'baseline'`. Confirm it fails (table does not exist). Do not push the RED state. ⏸ Review — `test(infrastructure): expect flyway baseline v1 (red)`
+- [x] T012 [S2] RED: add a test to `HealthEndpointIntegrationTest.java` (or a sibling `FlywayBaselineIntegrationTest.java` sharing the container setup) asserting via `JdbcTemplate` that `flyway_schema_history` contains a successful row with `version = '1'` and `description = 'baseline'`. Confirm it fails (table does not exist). Do not push the RED state. ⏸ Review — `test(infrastructure): expect flyway baseline v1 (red)`
 - [ ] T013 [S2] GREEN: add `spring-boot-starter-flyway` and `org.flywaydb:flyway-database-postgresql` to `backend/infrastructure/pom.xml`; create `backend/infrastructure/src/main/resources/db/migration/V1__baseline.sql` containing only a comment (data-model "BaselineMigration": "creates no tables"). Test passes. ⏸ Review — `feat(infrastructure): add empty flyway baseline (green)`
 
 ### Coverage gate

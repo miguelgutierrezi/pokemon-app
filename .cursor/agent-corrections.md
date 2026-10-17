@@ -61,3 +61,13 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Correction**: Keep only a non-secret URL default. Require username and
   password from the environment (no defaults) so missing credentials fail
   fast at startup (constitution VI). Tests rely on `@ServiceConnection`.
+
+## 2026-10-16 — ImportTestcontainers lifecycle and IT webEnvironment (T012)
+- **Source**: Miguel's review
+- **Context**: Shared `PostgresContainers` kept `@Container` even though
+  `@ImportTestcontainers` (not the JUnit `@Testcontainers` extension)
+  manages lifecycle; `FlywayBaselineIntegrationTest` used `RANDOM_PORT`
+  despite using only `JdbcTemplate`.
+- **Correction**: On `@ImportTestcontainers` declaration classes, use
+  `@ServiceConnection` without `@Container`. Integration tests that do not
+  call HTTP should omit `webEnvironment` (default / no web server).
