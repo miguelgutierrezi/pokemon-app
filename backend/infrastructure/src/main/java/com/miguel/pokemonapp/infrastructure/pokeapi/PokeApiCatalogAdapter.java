@@ -4,12 +4,15 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
+import com.miguel.pokemonapp.application.PokemonNotFoundException;
 import com.miguel.pokemonapp.application.port.PokemonCatalogPort;
 import com.miguel.pokemonapp.application.port.SpeciesPage;
 import com.miguel.pokemonapp.domain.pokemon.CatalogAbility;
 import com.miguel.pokemonapp.domain.pokemon.CatalogDetailEntry;
 import com.miguel.pokemonapp.domain.pokemon.CatalogEntry;
 import com.miguel.pokemonapp.domain.pokemon.CatalogEvolutionChain;
+import com.miguel.pokemonapp.domain.pokemon.CatalogEvolutionDetail;
+import com.miguel.pokemonapp.domain.pokemon.CatalogEvolutionNode;
 import com.miguel.pokemonapp.domain.pokemon.CatalogPokemonDetail;
 import com.miguel.pokemonapp.domain.pokemon.CatalogSpeciesDetail;
 import com.miguel.pokemonapp.domain.pokemon.CatalogStat;
@@ -27,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import tools.jackson.databind.JsonNode;
@@ -44,6 +48,7 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
   private final Cache<String, SpeciesPage> speciesPageCache;
   private final Cache<Integer, CatalogPokemonDetail> pokemonCache;
   private final Cache<Integer, CatalogSpeciesDetail> speciesCache;
+  private final Cache<Integer, CatalogEvolutionChain> evolutionChainCache;
 
   public PokeApiCatalogAdapter(String baseUrl, Duration connectTimeout, Duration readTimeout) {
     this(
@@ -87,6 +92,12 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
             .maximumSize(idCacheMaxSize)
             .ticker(ticker)
             .build();
+    this.evolutionChainCache =
+        Caffeine.newBuilder()
+            .expireAfterWrite(cacheTtl)
+            .maximumSize(idCacheMaxSize)
+            .ticker(ticker)
+            .build();
   }
 
   @Override
@@ -116,18 +127,34 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
       return List.copyOf(entries);
     } catch (CompletionException e) {
       futures.forEach(future -> future.cancel(true));
-      throw toCatalogUnavailable(e, "catalog entries unavailable");
+      throw toListPortException(e, "catalog entries unavailable");
     }
   }
 
   @Override
   public CatalogDetailEntry fetchDetail(int nationalId) {
-    throw new UnsupportedOperationException("fetchDetail not implemented yet");
+    CompletableFuture<CatalogPokemonDetail> pokemon =
+        CompletableFuture.supplyAsync(() -> cachedPokemon(nationalId), executor);
+    CompletableFuture<CatalogSpeciesDetail> species =
+        CompletableFuture.supplyAsync(() -> cachedSpecies(nationalId), executor);
+    try {
+      return pokemon.thenCombine(species, CatalogDetailEntry::new).join();
+    } catch (CompletionException e) {
+      pokemon.cancel(true);
+      species.cancel(true);
+      throw toPortException(e, "catalog detail unavailable");
+    }
   }
 
   @Override
   public CatalogEvolutionChain fetchEvolutionChain(int chainId) {
-    throw new UnsupportedOperationException("fetchEvolutionChain not implemented yet");
+    CatalogEvolutionChain cached = evolutionChainCache.getIfPresent(chainId);
+    if (cached != null) {
+      return cached;
+    }
+    CatalogEvolutionChain loaded = loadEvolutionChain(chainId);
+    evolutionChainCache.put(chainId, loaded);
+    return loaded;
   }
 
   private CompletableFuture<CatalogEntry> fetchEntry(int nationalId) {
@@ -170,7 +197,7 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
   }
 
   private CatalogPokemonDetail loadPokemon(int nationalId) {
-    JsonNode body = getJson("/pokemon/{id}", nationalId);
+    JsonNode body = getIdentityJson("/pokemon/{id}", nationalId);
     requireField(body, "id", "malformed pokemon payload for id " + nationalId);
     requireField(body, "name", "malformed pokemon payload for id " + nationalId);
     requireField(body, "weight", "malformed pokemon payload for id " + nationalId);
@@ -227,8 +254,40 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     }
   }
 
+  private CatalogEvolutionChain loadEvolutionChain(int chainId) {
+    JsonNode body = getJson("/evolution-chain/{id}", chainId);
+    requireField(body, "chain", "malformed evolution-chain payload for id " + chainId);
+    try {
+      return new CatalogEvolutionChain(parseEvolutionNode(body.get("chain")));
+    } catch (IllegalArgumentException e) {
+      throw new CatalogUnavailableException(
+          "malformed evolution-chain payload for id " + chainId, e);
+    }
+  }
+
+  private CatalogEvolutionNode parseEvolutionNode(JsonNode node) {
+    String speciesUrl = textOrNull(node.path("species").path("url"));
+    if (speciesUrl == null) {
+      throw new CatalogUnavailableException("malformed evolution node: missing species url");
+    }
+    int speciesId = parseSpeciesId(speciesUrl);
+    List<CatalogEvolutionDetail> details = new ArrayList<>();
+    for (JsonNode detailNode : node.path("evolution_details")) {
+      details.add(
+          new CatalogEvolutionDetail(
+              textOrNull(detailNode.path("trigger").path("name")),
+              integerOrNull(detailNode.path("min_level")),
+              textOrNull(detailNode.path("item").path("name"))));
+    }
+    List<CatalogEvolutionNode> children = new ArrayList<>();
+    for (JsonNode child : node.path("evolves_to")) {
+      children.add(parseEvolutionNode(child));
+    }
+    return new CatalogEvolutionNode(speciesId, details, children);
+  }
+
   private CatalogSpeciesDetail loadSpecies(int nationalId) {
-    JsonNode body = getJson("/pokemon-species/{id}", nationalId);
+    JsonNode body = getIdentityJson("/pokemon-species/{id}", nationalId);
     List<LocalizedText> names = new ArrayList<>();
     for (JsonNode nameNode : body.path("names")) {
       names.add(
@@ -271,29 +330,67 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     }
   }
 
+  private JsonNode getIdentityJson(String uriTemplate, Object... uriVariables) {
+    return getJson(uriTemplate, true, uriVariables);
+  }
+
   private JsonNode getJson(String uriTemplate, Object... uriVariables) {
+    return getJson(uriTemplate, false, uriVariables);
+  }
+
+  private JsonNode getJson(String uriTemplate, boolean identityResource, Object... uriVariables) {
     try {
-      JsonNode body =
-          restClient
-              .get()
-              .uri(uriTemplate, uriVariables)
-              .retrieve()
-              .onStatus(
-                  status -> status.isError(),
-                  (request, response) -> {
-                    throw new CatalogUnavailableException(
-                        "catalog returned " + response.getStatusCode() + " for " + uriTemplate);
-                  })
-              .body(JsonNode.class);
-      if (body == null) {
-        throw new CatalogUnavailableException("empty catalog response for " + uriTemplate);
+      return exchangeJson(uriTemplate, identityResource, uriVariables);
+    } catch (ResourceAccessException first) {
+      if (isTimeout(first)) {
+        throw new CatalogUnavailableException("catalog unavailable for " + uriTemplate, first);
       }
-      return body;
-    } catch (CatalogUnavailableException e) {
+      try {
+        return exchangeJson(uriTemplate, identityResource, uriVariables);
+      } catch (CatalogUnavailableException | PokemonNotFoundException e) {
+        throw e;
+      } catch (RestClientException retry) {
+        throw new CatalogUnavailableException("catalog unavailable for " + uriTemplate, retry);
+      }
+    } catch (CatalogUnavailableException | PokemonNotFoundException e) {
       throw e;
     } catch (RestClientException e) {
       throw new CatalogUnavailableException("catalog unavailable for " + uriTemplate, e);
     }
+  }
+
+  private static boolean isTimeout(ResourceAccessException exception) {
+    Throwable cause = exception;
+    while (cause != null) {
+      if (cause instanceof java.net.http.HttpTimeoutException) {
+        return true;
+      }
+      cause = cause.getCause();
+    }
+    return false;
+  }
+
+  private JsonNode exchangeJson(
+      String uriTemplate, boolean identityResource, Object... uriVariables) {
+    JsonNode body =
+        restClient
+            .get()
+            .uri(uriTemplate, uriVariables)
+            .retrieve()
+            .onStatus(
+                status -> status.isError(),
+                (request, response) -> {
+                  if (identityResource && response.getStatusCode().value() == 404) {
+                    throw new PokemonNotFoundException("catalog returned 404 for " + uriTemplate);
+                  }
+                  throw new CatalogUnavailableException(
+                      "catalog returned " + response.getStatusCode() + " for " + uriTemplate);
+                })
+            .body(JsonNode.class);
+    if (body == null) {
+      throw new CatalogUnavailableException("empty catalog response for " + uriTemplate);
+    }
+    return body;
   }
 
   private static void requireField(JsonNode body, String field, String message) {
@@ -303,13 +400,33 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     }
   }
 
-  private static CatalogUnavailableException toCatalogUnavailable(
-      CompletionException e, String message) {
+  private static RuntimeException toPortException(CompletionException e, String message) {
     Throwable cause = e.getCause() != null ? e.getCause() : e;
     if (cause instanceof CatalogUnavailableException unavailable) {
       return unavailable;
     }
+    if (cause instanceof PokemonNotFoundException notFound) {
+      return notFound;
+    }
     return new CatalogUnavailableException(message, cause);
+  }
+
+  private static RuntimeException toListPortException(CompletionException e, String message) {
+    Throwable cause = e.getCause() != null ? e.getCause() : e;
+    if (cause instanceof CatalogUnavailableException unavailable) {
+      return unavailable;
+    }
+    if (cause instanceof PokemonNotFoundException notFound) {
+      return new CatalogUnavailableException(message, notFound);
+    }
+    return new CatalogUnavailableException(message, cause);
+  }
+
+  private static Integer integerOrNull(JsonNode node) {
+    if (node == null || node.isNull() || node.isMissingNode()) {
+      return null;
+    }
+    return node.asInt();
   }
 
   private static int parseSpeciesId(String url) {

@@ -155,3 +155,15 @@ via `fetchEntries`.
 
 **Rationale**: Proves one-cache-per-URL and that phase (c) does not re-fetch
 the identity pair.
+
+## R11. List path requires species `generation` + `evolution_chain`
+
+**Decision / note**: After T014, the shared species parse path (used by both
+list `fetchEntries` and detail `fetchDetail`) requires
+`generation.name` and `evolution_chain.url` on every species payload. Missing
+either yields `CatalogUnavailableException` (malformed catalog).
+
+**Verified**: Real PokeAPI `pokemon-species` responses include both fields for
+the National Dex species used by HU-01/HU-02. WireMock list fixtures were
+updated accordingly; no production list behaviour change beyond parsing those
+already-present fields into `CatalogSpeciesDetail`.

@@ -395,3 +395,28 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `nonNull` / `nonBlank` / `atLeast` and use it in domain records; unit-test
   Require thoroughly. Refactor only — no behaviour change beyond shared
   message wording for those helpers.
+
+## 2026-10-16 — List 404 → unavailable; retry once on ResourceAccessException
+- **Source**: Miguel's review
+- **Context**: T015/T016 mapped identity 404 to `PokemonNotFoundException`
+  for all callers; a flaky JDK HttpClient keep-alive close
+  (“HTTP/1.1 header parser received no bytes”) was observed once.
+- **Correction**: (1) `fetchEntries` (list path) must wrap
+  `PokemonNotFoundException` as `CatalogUnavailableException` — a
+  species-list id that 404s is catalog inconsistency (502), not “Pokémon
+  not found” for `GET /api/v1/pokemon/{id}`. Keep
+  `PokemonNotFoundException` only on `fetchDetail`. (2) In `getJson`,
+  retry **once** on `ResourceAccessException` for idempotent GETs; never
+  retry HTTP status errors. Cover both with WireMock (list 404 →
+  unavailable; `Fault.CONNECTION_RESET_BY_PEER` then 200 → exactly 2
+  requests; two faults → unavailable).
+
+## 2026-10-16 — Do not retry HttpTimeoutException in getJson
+- **Source**: Miguel's review
+- **Context**: Blind retry on every `ResourceAccessException` would also
+  retry read/connect timeouts, doubling wait (e.g. 5 s → ~10 s) and load.
+- **Correction**: Retry once only for connection-level failures (reset /
+  closed keep-alive). If the most specific cause of the
+  `ResourceAccessException` is `java.net.http.HttpTimeoutException`, do
+  **not** retry — map straight to `CatalogUnavailableException`. WireMock:
+  fixed delay > read timeout → unavailable and exactly **1** request.

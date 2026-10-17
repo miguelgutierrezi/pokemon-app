@@ -226,7 +226,7 @@ reuse (exactly-once identity GETs).
 
 **Independent Test**: `./mvnw -B -pl infrastructure test` green without Boot.
 
-- [ ] T015 [HU02] RED: extend
+- [x] T015 [HU02] RED: extend
   `backend/infrastructure/src/test/java/com/miguel/pokemonapp/infrastructure/pokeapi/PokeApiCatalogAdapterTest.java`
   (and/or a focused detail test class) — WireMock: happy-path
   `fetchDetail`; Eevee `fetchEvolutionChain` branching; identity upstream
@@ -238,7 +238,7 @@ reuse (exactly-once identity GETs).
   Coverage: **infrastructure**.
   ⏸ Review — `test(infrastructure): expect fetchDetail and evolution chain (red)`
 
-- [ ] T016 [HU02] GREEN: implement `fetchDetail` (adapter fetches pokemon +
+- [x] T016 [HU02] GREEN: implement `fetchDetail` (adapter fetches pokemon +
   species **concurrently**, writes both caches) and `fetchEvolutionChain`
   (`getIfPresent` → load → `put`; new chain cache) in
   `PokeApiCatalogAdapter.java`. Tests pass; 002 list/cache tests stay green.
