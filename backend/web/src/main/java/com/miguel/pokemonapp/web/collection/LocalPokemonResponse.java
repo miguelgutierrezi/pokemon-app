@@ -17,7 +17,8 @@ public record LocalPokemonResponse(
     Instant syncedAt,
     String localizedName,
     String location,
-    List<String> tags) {
+    List<String> tags,
+    long version) {
 
   static LocalPokemonResponse from(LocalPokemon pokemon) {
     return new LocalPokemonResponse(
@@ -32,6 +33,7 @@ public record LocalPokemonResponse(
         pokemon.syncedAt(),
         pokemon.localizedName(),
         pokemon.location(),
-        pokemon.tags().values());
+        pokemon.tags().values(),
+        pokemon.version());
   }
 }

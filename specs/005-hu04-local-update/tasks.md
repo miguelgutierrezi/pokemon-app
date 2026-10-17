@@ -179,7 +179,7 @@ tests in the same task); fail-on-unknown (incl. POST import); `"tags": null`
 
 **Independent Test**: `@WebMvcTest` in **web** with mocked use cases.
 
-- [ ] T008 [HU04] RED: extend
+- [x] T008 [HU04] RED: extend
   `backend/web/src/test/java/com/miguel/pokemonapp/web/collection/CollectionControllerTest.java`
   — PUT → **200** + body whose `version` matches what the **mocked** use
   case returns (real +1 is asserted in T006/T012); DELETE → **204**;
@@ -194,7 +194,7 @@ tests in the same task); fail-on-unknown (incl. POST import); `"tags": null`
   Confirm fail. Do not push RED. Coverage: **web**.
   ⏸ Review — `test(web): expect collection update delete and version (red)`
 
-- [ ] T009 [HU04] GREEN: implement PUT/DELETE on
+- [x] T009 [HU04] GREEN: implement PUT/DELETE on
   `CollectionController` + `UpdateLocalPokemonRequest` /
   `LocalPokemonResponse.version`;
   `@JsonProperty(required = true)` on all four update properties; set

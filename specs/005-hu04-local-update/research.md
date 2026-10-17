@@ -140,10 +140,15 @@ explicit POST test is simpler given the small JSON surface.
 (Spring default / advice if needed for problem+json shape). Bean
 Validation on request mirrors domain constants
 (`MAX_LOCALIZED_NAME_LENGTH`, `MAX_LOCATION_LENGTH`, `Tags.MAX_*`);
-`tags` non-null / array (null → 400 per R5). `LocalPokemonResponse` gains
-`version` (all collection endpoints). Register
-`UpdateLocalPokemonUseCase` / `DeleteLocalPokemonUseCase` beans in
-`CollectionConfiguration` (004 U1 pattern).
+`tags` non-null / array (null → 400 per R5). Each tag item uses
+`@NotBlank` + `@Size(max = Tags.MAX_TAG_LENGTH)` so blank/whitespace-only
+tags fail at the edge with **400** (do **not** map domain
+`IllegalArgumentException` globally to 400). Edge `@Size` applies to the
+**raw (untrimmed)** JSON string and is therefore slightly stricter than
+the domain, which trims/normalises before measuring length.
+`LocalPokemonResponse` gains `version` (all collection endpoints).
+Register `UpdateLocalPokemonUseCase` / `DeleteLocalPokemonUseCase` beans
+in `CollectionConfiguration` (004 U1 pattern).
 
 **Rationale**: Spec FR-010 / FR-004 additive contract.
 

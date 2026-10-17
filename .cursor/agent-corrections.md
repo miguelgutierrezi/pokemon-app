@@ -620,3 +620,14 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   lock until commit). Do not use probe/detach/force-increment locks or per-field dirty checks.
   `@Version` stays on the entity. Covered by a forced-concurrency test where both writers change
   only tags.
+
+## 2026-10-17 — Blank tags: edge @NotBlank, no global IllegalArgumentException→400
+- **Source**: Miguel's review
+- **Context**: T008/T009 — `"tags": ["  "]` passes Bean Validation `@Size` and
+  reaches `Tags.of`, which throws `IllegalArgumentException` → unhandled → 500.
+- **Correction**: Validate at the HTTP edge with
+  `List<@NotBlank @Size(max = Tags.MAX_TAG_LENGTH) String> tags` and cover with
+  a controller test (blank tag → 400). Do **not** map
+  `IllegalArgumentException` globally to 400. Document in `research.md` that
+  edge `@Size` limits apply to the **raw (untrimmed)** value and are therefore
+  slightly stricter than the domain (which trims/normalises first).
