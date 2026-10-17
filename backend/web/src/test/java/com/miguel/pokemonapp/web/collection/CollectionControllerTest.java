@@ -155,6 +155,7 @@ class CollectionControllerTest {
         SYNCED_AT,
         null,
         null,
-        Tags.of(List.of("forest")));
+        Tags.of(List.of("forest")),
+        0L);
   }
 }

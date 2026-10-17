@@ -92,7 +92,8 @@ class LocalPokemonJpaAdapterTest {
                 SYNCED_AT,
                 null,
                 null,
-                Tags.of(List.of(" Field-Notes ", "forest", "FOREST"))));
+                Tags.of(List.of(" Field-Notes ", "forest", "FOREST")),
+                0L));
 
     assertThat(saved.nationalNumber()).isEqualTo(25);
     assertThat(saved.types()).containsExactly("electric");
@@ -178,7 +179,8 @@ class LocalPokemonJpaAdapterTest {
                         SYNCED_AT,
                         null,
                         null,
-                        Tags.empty())))
+                        Tags.empty(),
+                        0L)))
         .isInstanceOf(DataIntegrityViolationException.class)
         .isNotInstanceOf(DuplicateLocalPokemonException.class);
 
@@ -202,7 +204,8 @@ class LocalPokemonJpaAdapterTest {
             SYNCED_AT,
             null,
             null,
-            Tags.empty());
+            Tags.empty(),
+            0L);
 
     CountDownLatch ready = new CountDownLatch(2);
     CountDownLatch start = new CountDownLatch(1);

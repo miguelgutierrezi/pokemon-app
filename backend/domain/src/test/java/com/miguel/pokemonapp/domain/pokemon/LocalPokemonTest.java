@@ -35,6 +35,7 @@ class LocalPokemonTest {
     assertThat(local.localizedName()).isNull();
     assertThat(local.location()).isNull();
     assertThat(local.tags().values()).isEmpty();
+    assertThat(local.version()).isZero();
   }
 
   @Test
@@ -123,7 +124,8 @@ class LocalPokemonTest {
             SYNCED_AT,
             "   ",
             "  ",
-            Tags.empty());
+            Tags.empty(),
+            0L);
 
     assertThat(local.localizedName()).isNull();
     assertThat(local.location()).isNull();
@@ -147,7 +149,8 @@ class LocalPokemonTest {
             SYNCED_AT,
             "  " + name100 + "  ",
             "  " + location200 + "  ",
-            Tags.of(List.of("forest")));
+            Tags.of(List.of("forest")),
+            0L);
 
     assertThat(ok.localizedName()).isEqualTo(name100);
     assertThat(ok.location()).isEqualTo(location200);
@@ -167,7 +170,8 @@ class LocalPokemonTest {
                     SYNCED_AT,
                     "x".repeat(101),
                     null,
-                    Tags.empty()))
+                    Tags.empty(),
+                    0L))
         .isInstanceOf(IllegalArgumentException.class);
 
     assertThatThrownBy(
@@ -184,8 +188,96 @@ class LocalPokemonTest {
                     SYNCED_AT,
                     null,
                     "y".repeat(201),
-                    Tags.empty()))
+                    Tags.empty(),
+                    0L))
         .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void withProprietaryUpdatesProprietaryFieldsPreservesSnapshotAndVersion() {
+    LocalPokemon original =
+        new LocalPokemon(
+            1,
+            "Bulbasaur",
+            "Seed Pokémon",
+            List.of("grass", "poison"),
+            new BigDecimal("0.7"),
+            new BigDecimal("6.9"),
+            ARTWORK_1,
+            "generation-i",
+            SYNCED_AT,
+            "old",
+            "pallet",
+            Tags.of(List.of("starter")),
+            3L);
+
+    LocalPokemon updated =
+        original.withProprietary(
+            "  My Name  ", "  Route 1  ", Tags.of(List.of(" Forest ", "FOREST", "grass")));
+
+    assertThat(updated).isNotSameAs(original);
+    assertThat(updated.localizedName()).isEqualTo("My Name");
+    assertThat(updated.location()).isEqualTo("Route 1");
+    assertThat(updated.tags().values()).containsExactly("forest", "grass");
+    assertThat(updated.version()).isEqualTo(3L);
+    assertThat(updated.nationalNumber()).isEqualTo(original.nationalNumber());
+    assertThat(updated.name()).isEqualTo(original.name());
+    assertThat(updated.category()).isEqualTo(original.category());
+    assertThat(updated.types()).isEqualTo(original.types());
+    assertThat(updated.heightM()).isEqualTo(original.heightM());
+    assertThat(updated.weightKg()).isEqualTo(original.weightKg());
+    assertThat(updated.imageUrl()).isEqualTo(original.imageUrl());
+    assertThat(updated.generation()).isEqualTo(original.generation());
+    assertThat(updated.syncedAt()).isEqualTo(original.syncedAt());
+  }
+
+  @Test
+  void withProprietaryBlankTextClearsToNullAndKeepsVersion() {
+    LocalPokemon original =
+        new LocalPokemon(
+            1,
+            "Bulbasaur",
+            "Seed Pokémon",
+            List.of("grass"),
+            new BigDecimal("0.7"),
+            new BigDecimal("6.9"),
+            ARTWORK_1,
+            "generation-i",
+            SYNCED_AT,
+            "named",
+            "somewhere",
+            Tags.of(List.of("a")),
+            1L);
+
+    LocalPokemon cleared = original.withProprietary("   ", "  ", Tags.empty());
+
+    assertThat(cleared.localizedName()).isNull();
+    assertThat(cleared.location()).isNull();
+    assertThat(cleared.tags().values()).isEmpty();
+    assertThat(cleared.version()).isEqualTo(1L);
+    assertThat(cleared.name()).isEqualTo("Bulbasaur");
+  }
+
+  @Test
+  void rejectsNegativeVersion() {
+    assertThatThrownBy(
+            () ->
+                new LocalPokemon(
+                    1,
+                    "Bulbasaur",
+                    null,
+                    List.of("grass"),
+                    new BigDecimal("0.7"),
+                    new BigDecimal("6.9"),
+                    null,
+                    "generation-i",
+                    SYNCED_AT,
+                    null,
+                    null,
+                    Tags.empty(),
+                    -1L))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("version");
   }
 
   @Test
@@ -204,7 +296,8 @@ class LocalPokemonTest {
                     SYNCED_AT,
                     null,
                     null,
-                    Tags.empty()))
+                    Tags.empty(),
+                    0L))
         .isInstanceOf(IllegalArgumentException.class);
 
     assertThatThrownBy(
@@ -230,7 +323,8 @@ class LocalPokemonTest {
                     SYNCED_AT,
                     null,
                     null,
-                    Tags.empty()))
+                    Tags.empty(),
+                    0L))
         .isInstanceOf(IllegalArgumentException.class);
 
     assertThatThrownBy(
@@ -247,7 +341,8 @@ class LocalPokemonTest {
                     SYNCED_AT,
                     null,
                     null,
-                    null))
+                    null,
+                    0L))
         .isInstanceOf(IllegalArgumentException.class);
   }
 }
