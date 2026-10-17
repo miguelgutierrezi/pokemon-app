@@ -164,7 +164,7 @@ context.
 
 **Independent Test**: `./mvnw -B -pl infrastructure test` green without Boot.
 
-- [ ] T014 [HU01] RED: add test-scoped `org.wiremock:wiremock` **3.13.2** to
+- [x] T014 [HU01] RED: add test-scoped `org.wiremock:wiremock` **3.13.2** to
   `backend/infrastructure/pom.xml` (and pin in parent
   `dependencyManagement` if not already). Write
   `backend/infrastructure/src/test/java/com/miguel/pokemonapp/infrastructure/pokeapi/PokeApiCatalogAdapterTest.java`
@@ -177,7 +177,7 @@ context.
   RED. Coverage: **infrastructure**.
   ⏸ Review — `test(infrastructure): expect pokeapi catalog adapter (red)`
 
-- [ ] T015 [HU01] GREEN: implement RestClient-based client +
+- [x] T015 [HU01] GREEN: implement RestClient-based client +
   `backend/infrastructure/src/main/java/com/miguel/pokemonapp/infrastructure/pokeapi/PokeApiCatalogAdapter.java`
   implementing `PokemonCatalogPort`; parallel per-id fetch with virtual
   threads; configurable base URL + connect/read timeouts (constructible in
