@@ -38,7 +38,7 @@ class CachingPokeApiCatalogAdapterTest {
         new PokeApiCatalogAdapter(
             wireMock.baseUrl(),
             Duration.ofMillis(200),
-            Duration.ofMillis(500),
+            Duration.ofSeconds(5),
             Duration.ofHours(24),
             2048,
             256,

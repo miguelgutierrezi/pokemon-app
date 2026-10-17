@@ -15,7 +15,6 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 public class LocalPokemonJpaAdapter implements LocalPokemonRepository {
@@ -39,7 +38,6 @@ public class LocalPokemonJpaAdapter implements LocalPokemonRepository {
   }
 
   @Override
-  @Transactional
   public LocalPokemon save(LocalPokemon pokemon) {
     return writeTx.execute(status -> doSave(pokemon));
   }
@@ -75,14 +73,12 @@ public class LocalPokemonJpaAdapter implements LocalPokemonRepository {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Optional<LocalPokemon> findByNationalNumber(int nationalNumber) {
     return readTx.execute(
         status -> repository.findByNationalNumber(nationalNumber).map(this::toDomain));
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Page<LocalPokemon> findPage(PageRequest request) {
     return readTx.execute(
         status -> {
@@ -97,7 +93,6 @@ public class LocalPokemonJpaAdapter implements LocalPokemonRepository {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public boolean existsByNationalNumber(int nationalNumber) {
     return Boolean.TRUE.equals(
         readTx.execute(status -> repository.existsByNationalNumber(nationalNumber)));

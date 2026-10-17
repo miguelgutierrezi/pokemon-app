@@ -5,7 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-interface PokemonRecordSpringDataRepository extends JpaRepository<PokemonRecordEntity, Long> {
+public interface PokemonRecordSpringDataRepository
+    extends JpaRepository<PokemonRecordEntity, Long> {
 
   Optional<PokemonRecordEntity> findByNationalNumber(int nationalNumber);
 
