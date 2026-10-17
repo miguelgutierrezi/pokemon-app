@@ -136,7 +136,7 @@ failures as `CatalogUnavailableException`.
 
 **Independent Test**: `./mvnw -B -pl application test` with Mockito; no Spring.
 
-- [ ] T012 [HU01] RED: write
+- [x] T012 [HU01] RED: write
   `backend/application/src/test/java/com/miguel/pokemonapp/application/pokemon/ListPokemonUseCaseTest.java`
   — mock `PokemonCatalogPort`: `speciesPage` returns ids+total; per-id fetches;
   maps to `Page<PokemonSummary>`; page-beyond-last surfaces domain exception;
@@ -144,7 +144,7 @@ failures as `CatalogUnavailableException`.
   Do not push RED. Coverage: **application**.
   ⏸ Review — `test(application): expect list pokemon use case (red)`
 
-- [ ] T013 [HU01] GREEN: implement
+- [x] T013 [HU01] GREEN: implement
   `backend/application/src/main/java/com/miguel/pokemonapp/application/port/PokemonCatalogPort.java`
   (`speciesPage(offset, limit)` → ids + total; `fetchPokemon`; `fetchSpecies`),
   `CatalogUnavailableException.java`,
