@@ -14,11 +14,13 @@ import com.miguel.pokemonapp.application.CatalogUnavailableException;
 import com.miguel.pokemonapp.application.DuplicateLocalPokemonException;
 import com.miguel.pokemonapp.application.LocalPokemonNotFoundException;
 import com.miguel.pokemonapp.application.PokemonNotFoundException;
+import com.miguel.pokemonapp.application.pokemon.DeleteLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.GetLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.GetPokemonDetailUseCase;
 import com.miguel.pokemonapp.application.pokemon.ImportPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.ListLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.ListPokemonUseCase;
+import com.miguel.pokemonapp.application.pokemon.UpdateLocalPokemonUseCase;
 import com.miguel.pokemonapp.domain.page.PageOutOfRangeException;
 import com.miguel.pokemonapp.web.collection.CollectionController;
 import com.miguel.pokemonapp.web.pokemon.PokemonController;
@@ -49,6 +51,10 @@ class GlobalExceptionHandlerTest {
   @MockitoBean private ListLocalPokemonUseCase listLocalPokemonUseCase;
 
   @MockitoBean private GetLocalPokemonUseCase getLocalPokemonUseCase;
+
+  @MockitoBean private UpdateLocalPokemonUseCase updateLocalPokemonUseCase;
+
+  @MockitoBean private DeleteLocalPokemonUseCase deleteLocalPokemonUseCase;
 
   @Test
   void beanValidationPageZeroReturnsProblemDetailNamingPage() throws Exception {

@@ -92,6 +92,30 @@ class OpenApiDocsIntegrationTest {
         .exists()
         .jsonPath(
             "$.paths['/api/v1/collection/{nationalNumber}'].get.responses['404'].content['application/problem+json']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/collection/{nationalNumber}'].put.responses['200']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].put.responses['200'].content['application/json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].put.responses['400'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].put.responses['404'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].put.responses['409'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].put.responses['415'].content['application/problem+json']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/collection/{nationalNumber}'].delete.responses['204']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].delete.responses['404'].content['application/problem+json']")
+        .exists()
+        .jsonPath("$.components.schemas.LocalPokemonResponse.properties.version")
         .exists();
   }
 }
