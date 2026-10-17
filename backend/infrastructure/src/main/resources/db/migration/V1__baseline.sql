@@ -1,0 +1,1 @@
+-- Intentional empty baseline: establishes Flyway version 1 with no tables.

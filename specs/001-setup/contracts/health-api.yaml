@@ -1,0 +1,71 @@
+openapi: 3.0.3
+info:
+  title: Pokémon App — Setup Health Contract
+  version: 0.1.0
+  description: |
+    Only HTTP contract delivered by feature 001-setup. Business APIs
+    (under /api/v1) are out of scope. This endpoint is reachable on the
+    backend port only; it is NOT exposed through the UI's /api/ proxy.
+servers:
+  - url: http://localhost:8080
+    description: Backend direct (Compose / local)
+paths:
+  /actuator/health:
+    get:
+      operationId: getHealth
+      summary: Application and dependency health
+      description: Public. Includes the database component.
+      tags:
+        - Actuator
+      responses:
+        "200":
+          description: Status is UP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+              examples:
+                up:
+                  value:
+                    status: UP
+                    components:
+                      db:
+                        status: UP
+        "503":
+          description: Status is DOWN or OUT_OF_SERVICE (Spring Boot default mapping)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+              examples:
+                dbDown:
+                  value:
+                    status: DOWN
+                    components:
+                      db:
+                        status: DOWN
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN, OUT_OF_SERVICE, UNKNOWN]
+        components:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/HealthComponent"
+    HealthComponent:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN, OUT_OF_SERVICE, UNKNOWN]
+        details:
+          type: object
+          additionalProperties: true

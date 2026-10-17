@@ -1,0 +1,37 @@
+---
+description: Record and follow user corrections to the agent
+alwaysApply: true
+---
+
+# Agent corrections
+
+When the user corrects the agent (tone, process, scope, code style, or any
+instruction that should persist):
+
+1. Append the correction to `.cursor/agent-corrections.md` in the same turn
+   (or as soon as it is clearly a correction, not a question).
+2. Use a new entry with date, brief context, source, and the resulting rule.
+3. Do not duplicate: if an equivalent entry exists, update it.
+4. Apply every correction in that file on subsequent turns.
+5. Do not use `docs/genai/` for this log (that path is the GENAI deliverable).
+6. Write the rule file and the corrections log **in English always**.
+7. Corrections never override `.specify/memory/constitution.md` or the
+   feature's spec/plan/tasks. If a correction conflicts with them, stop
+   and ask the user instead of applying it.
+8. Never pin GitHub Actions (`uses: owner/action@vN`) from memory. Check
+   each action's latest release first, read breaking input changes, then
+   pin the current major and adapt the workflow if needed.
+
+Entry format:
+
+```markdown
+## YYYY-MM-DD — short title
+- **Source**: user | Miguel's review
+- **Context**: what happened
+- **Correction**: what to do / not do from now on
+```
+
+Use `user` when the correction comes from the human directly. Use
+`Miguel's review` for review feedback of the agent's work — including when
+the user labels it as Claude Code review or another tool. Always record `Source` as
+`Miguel's review`.
