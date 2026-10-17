@@ -70,7 +70,7 @@ stated per task; `git status` before each task.
 **Independent Test**: `./mvnw -B -pl domain test` green; no Spring on domain
 test classpath. 002–004 domain tests stay green.
 
-- [ ] T001 [HU04] RED: extend
+- [x] T001 [HU04] RED: extend
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/LocalPokemonTest.java`
   — `snapshotOf` → `version == 0`; `withProprietary` returns a new instance
   with updated proprietary fields (trim / blank→null / `Tags` rules),
@@ -79,7 +79,7 @@ test classpath. 002–004 domain tests stay green.
   negatives). Confirm fail. Do not push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect local pokemon version and withProprietary (red)`
 
-- [ ] T002 [HU04] GREEN: extend
+- [x] T002 [HU04] GREEN: extend
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/LocalPokemon.java`
   with `version`, `snapshotOf` → 0, `withProprietary(...)`. Tests pass.
   Coverage: **domain**.

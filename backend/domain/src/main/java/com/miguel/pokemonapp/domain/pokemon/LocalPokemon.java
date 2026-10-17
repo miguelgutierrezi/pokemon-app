@@ -20,7 +20,8 @@ public record LocalPokemon(
     Instant syncedAt,
     String localizedName,
     String location,
-    Tags tags) {
+    Tags tags,
+    long version) {
 
   public static final int MAX_LOCALIZED_NAME_LENGTH = 100;
   public static final int MAX_LOCATION_LENGTH = 200;
@@ -36,6 +37,9 @@ public record LocalPokemon(
     localizedName = optionalText(localizedName, MAX_LOCALIZED_NAME_LENGTH, "localizedName");
     location = optionalText(location, MAX_LOCATION_LENGTH, "location");
     tags = nonNull(tags, "tags");
+    if (version < 0) {
+      throw new IllegalArgumentException("version must be >= 0");
+    }
   }
 
   public static LocalPokemon snapshotOf(CatalogDetailEntry entry, Instant syncedAt) {
@@ -56,7 +60,25 @@ public record LocalPokemon(
         syncedAt,
         null,
         null,
-        Tags.empty());
+        Tags.empty(),
+        0L);
+  }
+
+  public LocalPokemon withProprietary(String localizedName, String location, Tags tags) {
+    return new LocalPokemon(
+        nationalNumber,
+        name,
+        category,
+        types,
+        heightM,
+        weightKg,
+        imageUrl,
+        generation,
+        syncedAt,
+        localizedName,
+        location,
+        tags,
+        version);
   }
 
   private static String optionalText(String value, int maxLength, String field) {

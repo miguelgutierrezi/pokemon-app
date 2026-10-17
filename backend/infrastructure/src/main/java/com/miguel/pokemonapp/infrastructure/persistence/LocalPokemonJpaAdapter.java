@@ -129,6 +129,7 @@ public class LocalPokemonJpaAdapter implements LocalPokemonRepository {
         entity.getSyncedAt(),
         entity.getLocalizedName(),
         entity.getLocation(),
-        Tags.of(tags));
+        Tags.of(tags),
+        0L);
   }
 }
