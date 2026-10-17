@@ -306,3 +306,14 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Correction**: Do not override `handleTypeMismatch` for HU-01 list query
   binding. Re-add it in 003 with a test for `/api/v1/pokemon/{id}=abc` (path
   variable type mismatch).
+
+## 2026-10-16 — OpenAPI: ParameterObject + problem responses + API info
+- **Source**: Miguel's review
+- **Context**: Live `/v3/api-docs` exposed a required `request` object instead
+  of optional query params `page`/`size`, omitted 400/502 problem+json, and
+  lacked Pokéfolio API info metadata.
+- **Correction**: Annotate list request with springdoc `@ParameterObject`
+  (and Schema defaults/bounds); document 400/502 as
+  `application/problem+json` + `ProblemDetail` via `@ApiResponse`; register an
+  `OpenAPI` bean (title "Pokéfolio API", version, one-line description). Cover
+  with `OpenApiDocsIntegrationTest` against real `/v3/api-docs`.
