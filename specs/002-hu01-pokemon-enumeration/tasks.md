@@ -112,14 +112,14 @@ test classpath.
   Coverage: **domain**.
   ⏸ Review — `feat(domain): pokemon summary and ability ref (green)`
 
-- [ ] T010 [HU01] RED: write
+- [x] T010 [HU01] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/page/PageRequestTest.java`
   (and/or `PageTest.java`) — page beyond last given `totalElements` throws
   domain out-of-range; valid last page accepted; `totalPages` =
   ceil(total/size). Confirm fail. Do not push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect page-beyond-last rejected (red)`
 
-- [ ] T011 [HU01] GREEN: implement
+- [x] T011 [HU01] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/page/PageRequest.java`,
   `Page.java`, `PageOutOfRangeException.java`. Tests pass. Coverage: **domain**.
   ⏸ Review — `feat(domain): page model and out-of-range (green)`
