@@ -74,3 +74,25 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Build frontend image
+        working-directory: ${{ github.workspace }}
+        run: docker build -t pokemonapp-frontend:ci frontend
+      - name: Smoke test frontend image
+        working-directory: ${{ github.workspace }}
+        run: |
+          docker run -d --name frontend-smoke \
+            -p 18080:80 \
+            --add-host backend:127.0.0.1 \
+            pokemonapp-frontend:ci
+          trap 'docker stop frontend-smoke && docker rm frontend-smoke' EXIT
+          for i in $(seq 1 30); do
+            if body=$(curl -fsS http://127.0.0.1:18080/); then
+              echo "$body" | grep -q 'id="root"'
+              echo "$body" | grep -q 'Pokéfolio'
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "frontend smoke test failed" >&2
+          docker logs frontend-smoke >&2 || true
+          exit 1
