@@ -591,3 +591,32 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   throws `LocalPokemonNotFoundException` when it returns `false` — no
   `findByNationalNumber` pre-check (avoids loading the aggregate and the
   check-then-act race between concurrent deletes).
+
+## 2026-10-17 — Tags-only update must bump @Version
+- **Source**: Miguel's review
+- **Context**: T006/T007 — tags are an inverse `@OneToMany(mappedBy)`
+  collection; Hibernate does not dirty the parent for inverse collection
+  changes, so a tags-only update with unchanged `updated_at` (fixed Clock
+  equal to stored value) may leave `@Version` unbumped.
+- **Correction**: Cover with a test: fixed Clock = stored `updated_at`,
+  update that changes **only** tags → version +1. Load the entity for
+  update via a repository method annotated with a force-increment lock so
+  the version always increments. On Hibernate 7.4.5,
+  `OPTIMISTIC_FORCE_INCREMENT` does not emit a version UPDATE for this
+  path; use `PESSIMISTIC_FORCE_INCREMENT` on
+  `findByNationalNumberForUpdate`. Compare the domain version **before**
+  the forced load (the lock bumps immediately). Skip the forced load when
+  parent scalars will dirty the entity (avoids a double bump).
+
+## 2026-10-17 — Optimistic update via compare-and-set UPDATE (supersedes the force-increment entry above)
+- **Source**: Claude Code review, validated by Miguel (implemented by Claude Code at Miguel's request)
+- **Context**: The probe → detach → `PESSIMISTIC_FORCE_INCREMENT` re-load path compared the
+  version on the probe but applied changes to the re-loaded row; another update committing
+  between the two loads would be overwritten (lost update on tags-only changes).
+- **Correction**: Update proprietary fields with one atomic JPQL compare-and-set
+  (`updateProprietaryIfVersion`: `set …, version = version + 1 where national_number = :n and
+  version = :expected`, `@Modifying(flushAutomatically, clearAutomatically)`); 0 rows →
+  `StaleLocalPokemonException`. Replace tags in the same transaction (the UPDATE holds the row
+  lock until commit). Do not use probe/detach/force-increment locks or per-field dirty checks.
+  `@Version` stays on the entity. Covered by a forced-concurrency test where both writers change
+  only tags.

@@ -1,6 +1,7 @@
 package com.miguel.pokemonapp.infrastructure.persistence;
 
 import com.miguel.pokemonapp.application.DuplicateLocalPokemonException;
+import com.miguel.pokemonapp.application.StaleLocalPokemonException;
 import com.miguel.pokemonapp.application.port.LocalPokemonRepository;
 import com.miguel.pokemonapp.domain.page.Page;
 import com.miguel.pokemonapp.domain.page.PageRequest;
@@ -38,11 +39,19 @@ public class LocalPokemonJpaAdapter implements LocalPokemonRepository {
   }
 
   @Override
-  public LocalPokemon save(LocalPokemon pokemon) {
-    return writeTx.execute(status -> doSave(pokemon));
+  public LocalPokemon create(LocalPokemon pokemon) {
+    return writeTx.execute(status -> doCreate(pokemon));
   }
 
-  private LocalPokemon doSave(LocalPokemon pokemon) {
+  @Override
+  public LocalPokemon save(LocalPokemon pokemon) {
+    int nationalNumber = pokemon.nationalNumber();
+    writeTx.executeWithoutResult(status -> doUpdate(pokemon));
+    return findByNationalNumber(nationalNumber)
+        .orElseThrow(() -> new StaleLocalPokemonException(nationalNumber));
+  }
+
+  private LocalPokemon doCreate(LocalPokemon pokemon) {
     try {
       PokemonRecordEntity entity = new PokemonRecordEntity();
       Instant now = clock.instant();
@@ -70,6 +79,29 @@ public class LocalPokemonJpaAdapter implements LocalPokemonRepository {
       }
       throw ex;
     }
+  }
+
+  private void doUpdate(LocalPokemon pokemon) {
+    int nationalNumber = pokemon.nationalNumber();
+    // Atomic compare-and-set on the version: no read-compare-write window. The UPDATE also holds
+    // the row lock until commit, so the tag replacement below cannot interleave with another
+    // writer.
+    int updated =
+        repository.updateProprietaryIfVersion(
+            nationalNumber,
+            pokemon.version(),
+            pokemon.localizedName(),
+            pokemon.location(),
+            clock.instant());
+    if (updated == 0) {
+      throw new StaleLocalPokemonException(nationalNumber);
+    }
+    PokemonRecordEntity entity =
+        repository
+            .findByNationalNumber(nationalNumber)
+            .orElseThrow(() -> new StaleLocalPokemonException(nationalNumber));
+    entity.replaceTags(pokemon.tags().values());
+    repository.flush();
   }
 
   @Override
@@ -100,7 +132,8 @@ public class LocalPokemonJpaAdapter implements LocalPokemonRepository {
 
   @Override
   public boolean deleteByNationalNumber(int nationalNumber) {
-    throw new UnsupportedOperationException("deleteByNationalNumber not implemented yet");
+    return Boolean.TRUE.equals(
+        writeTx.execute(status -> repository.deleteByNationalNumber(nationalNumber) > 0));
   }
 
   private static boolean isNationalNumberUniqueViolation(DataIntegrityViolationException ex) {
@@ -135,6 +168,6 @@ public class LocalPokemonJpaAdapter implements LocalPokemonRepository {
         entity.getLocalizedName(),
         entity.getLocation(),
         Tags.of(tags),
-        0L);
+        entity.getVersion());
   }
 }

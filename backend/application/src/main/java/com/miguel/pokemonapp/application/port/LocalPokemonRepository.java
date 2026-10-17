@@ -7,6 +7,8 @@ import java.util.Optional;
 
 public interface LocalPokemonRepository {
 
+  LocalPokemon create(LocalPokemon pokemon);
+
   LocalPokemon save(LocalPokemon pokemon);
 
   Optional<LocalPokemon> findByNationalNumber(int nationalNumber);

@@ -139,7 +139,7 @@ before write / save); `DeleteLocalPokemonUseCase` (404 / delete); port
 **Independent Test**: `./mvnw -B -pl infrastructure test` with `@DataJpaTest`
 + Testcontainers.
 
-- [ ] T006 [HU04] RED: extend
+- [x] T006 [HU04] RED: extend
   `backend/infrastructure/src/test/java/com/miguel/pokemonapp/infrastructure/persistence/LocalPokemonJpaAdapterTest.java`
   — after V4, loaded aggregates expose `version` (seed → 0); update round
   trip increments `version` and advances `updated_at` without changing
@@ -154,7 +154,7 @@ before write / save); `DeleteLocalPokemonUseCase` (404 / delete); port
   Coverage: **infrastructure**.
   ⏸ Review — `test(infrastructure): expect versioned local pokemon adapter (red)`
 
-- [ ] T007 [HU04] GREEN: add Flyway
+- [x] T007 [HU04] GREEN: add Flyway
   `backend/infrastructure/src/main/resources/db/migration/V4__pokemon_record_version.sql`
   (`version BIGINT NOT NULL DEFAULT 0`); annotate entity `@Version`; extend
   `LocalPokemonJpaAdapter` — update path uses `TransactionTemplate`, after
