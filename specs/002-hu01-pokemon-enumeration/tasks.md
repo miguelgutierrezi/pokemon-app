@@ -62,13 +62,13 @@ first GREEN.
 **Independent Test**: `./mvnw -B -pl domain test` green; no Spring on domain
 test classpath.
 
-- [ ] T001 [HU01] RED: write
+- [x] T001 [HU01] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/WeightKgTest.java`
   asserting `69` hectograms → `6.9` kg (one decimal) and other fixtures; confirm
   `./mvnw -B -pl domain test` fails (type missing). Do not push RED.
   Coverage: **domain**. ⏸ Review — `test(domain): expect hectograms to kg (red)`
 
-- [ ] T002 [HU01] GREEN: implement
+- [x] T002 [HU01] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/WeightKg.java`.
   `./mvnw -B -pl domain test` passes. Coverage: **domain**.
   ⏸ Review — `feat(domain): convert hectograms to kg (green)`

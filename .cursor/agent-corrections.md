@@ -150,3 +150,12 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   HU-01 skills ≡ catalog abilities (slugs; UI formats in 007). Timing for
   SC-003/SC-004 stays manual in quickstart T029 (record observed values);
   no timing asserts in automated tests.
+
+## 2026-10-16 — WeightKgTest: exact BigDecimal scale and negative rejection
+- **Source**: Miguel's review
+- **Context**: T001 used `isEqualByComparingTo`, which ignores scale, so
+  `10` and `10.0` would both pass; negative hectograms were untested.
+- **Correction**: For WeightKg (and similar one-decimal domain money/measure
+  VOs), assert with `isEqualTo(new BigDecimal("…"))` so equals checks scale;
+  API must always emit one decimal (e.g. 100 hg → `"10.0"`). Reject negative
+  hectograms with `IllegalArgumentException`. Apply in RED before GREEN.
