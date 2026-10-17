@@ -283,3 +283,17 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Correction**: Set `springdoc.api-docs.enabled=true` and
   `springdoc.swagger-ui.enabled=true` in `application.yml` to express intent
   and silence those default-enabled WARNs.
+
+## 2026-10-16 — T020/T021: real PokeAPI wiring, no shared @Primary mock
+- **Source**: Miguel's review
+- **Context**: After T020/T021, a `@Primary` mock `ListPokemonUseCase` in
+  `PostgresTestcontainersConfiguration` would silently replace the real use
+  case in the e2e IT; wiring was deferred to T025; default size was a magic
+  `9`; AssertJ used FQCN; `weightKg` scale (`10.0`) is invisible to numeric
+  jsonPath.
+- **Correction**: Never put `@Primary` mocks of production beans in shared
+  test config. Wire `PokeApiProperties` + `PokeApiCatalogAdapter` (close on
+  shutdown) + `ListPokemonUseCase` under `web/config` when the controller
+  needs them; existing `@SpringBootTest` ITs are the RED for that wiring.
+  Use `PageRequest.DEFAULT_SIZE`; static AssertJ imports; assert raw JSON
+  contains `"weightKg":10.0` for scale.

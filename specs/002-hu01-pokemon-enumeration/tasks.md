@@ -21,7 +21,8 @@ Labels are **`[HU01]`** and **`[HU01-cache]`** only — never `[USn]`
 **Revision 2 (2026-10-16)**: Dependency tasks folded into first consumer;
 domain is strictly sequential RED→GREEN; springdoc spike is RED/GREEN IT;
 controller RED is status/shape only; advice owns problem+json; PokeAPI Spring
-wiring lives in `web/config/` and lands with the e2e IT GREEN; draft PR after
+wiring lives in `web/config/` and was pulled forward into **T021** (existing
+`@SpringBootTest` ITs as RED); e2e list IT remains T024/T025; draft PR after
 first GREEN.
 
 ## Format: `[ID] [P?] [Label] Description`
@@ -246,7 +247,7 @@ bodies are asserted in the advice pair immediately after.
 
 **Independent Test**: `@WebMvcTest` in **web** with mocked use case.
 
-- [ ] T020 [HU01] RED: add `spring-boot-starter-validation` to
+- [x] T020 [HU01] RED: add `spring-boot-starter-validation` to
   `backend/web/pom.xml`. Write
   `backend/web/src/test/java/com/miguel/pokemonapp/web/pokemon/PokemonControllerTest.java`
   (`@WebMvcTest`) — `page=0` and `size=21` → **400**; happy path → **200**
@@ -255,12 +256,17 @@ bodies are asserted in the advice pair immediately after.
   Confirm fail. Do not push RED. Coverage: **web**.
   ⏸ Review — `test(web): expect pokemon list status codes (red)`
 
-- [ ] T021 [HU01] GREEN: implement
+- [x] T021 [HU01] GREEN: implement
   `backend/web/src/main/java/com/miguel/pokemonapp/web/pokemon/PokemonController.java`,
   request/response DTOs under `.../web/pokemon/`, Bean Validation
-  (`@Min(1)` page; `@Min(1)` `@Max(20)` size; default size 9); wire
-  `ListPokemonUseCase` (mockable in slice). Controller tests pass.
-  Coverage: **web**.
+  (`@Min(1)` page; `@Min(1)` `@Max(PageRequest.MAX_SIZE)` size;
+  `PageRequest.DEFAULT_SIZE` = 9); wire `ListPokemonUseCase` (mockable in
+  slice). **Also** PokeAPI Spring wiring under
+  `backend/web/src/main/java/com/miguel/pokemonapp/web/config/`
+  (`@ConfigurationProperties` + `@Bean` adapter/`ListPokemonUseCase`,
+  defaults in `application.yml` / `POKEAPI_BASE_URL`) — moved forward from
+  T025 so existing `@SpringBootTest` ITs stay green without a shared
+  `@Primary` mock. Controller tests pass. Coverage: **web**.
   ⏸ Review — `feat(web): GET /api/v1/pokemon controller (green)`
 
 - [ ] T022 [HU01] RED: write
@@ -281,11 +287,10 @@ bodies are asserted in the advice pair immediately after.
 
 ---
 
-## Phase 7: End-to-end IT (HU-01) — including web config wiring
+## Phase 7: End-to-end IT (HU-01) — list IT on existing web config
 
 **Goal**: Full stack IT with WireMock-standalone as PokeAPI. Spring wiring for
-PokeAPI (`@Configuration` + `@ConfigurationProperties`) lives in **`web`**
-(e.g. `com.miguel.pokemonapp.web.config`) so this IT covers it (R6).
+PokeAPI already lives in **`web/config`** (from T021); this IT covers it (R6).
 
 - [ ] T024 [HU01] RED: add test-scoped `org.wiremock:wiremock-standalone`
   **3.13.2** to `backend/web/pom.xml`. Write
@@ -293,18 +298,14 @@ PokeAPI (`@Configuration` + `@ConfigurationProperties`) lives in **`web`**
   — `@SpringBootTest` + existing Postgres Testcontainers;
   `POKEAPI_BASE_URL` → WireMock-standalone; assert 200 page JSON matches
   contract fields; assert 502 ProblemDetail when WireMock returns 500 for
-  species list. Confirm fail (wiring/config missing or incomplete). Do not
-  push RED. Coverage: **web** IT.
+  species list. Confirm fail (IT / advice gaps — wiring already in T021). Do
+  not push RED. Coverage: **web** IT.
   ⏸ Review — `test(web): pokemon list IT against wiremock (red)`
 
-- [ ] T025 [HU01] GREEN: implement PokeAPI Spring wiring under
-  `backend/web/src/main/java/com/miguel/pokemonapp/web/config/`
-  (`@Configuration` + `@ConfigurationProperties` for base URL, timeouts,
-  cache TTL default 24h) and defaults in
-  `backend/web/src/main/resources/application.yml`
-  (`POKEAPI_BASE_URL` / `pokemonapp.pokeapi.base-url` =
-  `https://pokeapi.co/api/v2`); register the infrastructure adapter as a bean
-  from web config. Fix anything else needed so T024 passes.
+- [ ] T025 [HU01] GREEN: finish list IT against the wiring already added in
+  T021 under `backend/web/src/main/java/com/miguel/pokemonapp/web/config/`
+  (adapter + use-case beans, `application.yml` / `POKEAPI_BASE_URL`). Fix
+  anything else needed so T024 passes.
   `./mvnw -B -pl web -am verify` green. Coverage: **web** IT (covers web
   config).
   ⏸ Review — `feat(web): pokeapi config wiring and list IT green`
@@ -358,8 +359,8 @@ PokeAPI (`@Configuration` + `@ConfigurationProperties`) lives in **`web`**
 - **T003** (draft PR) follows the first GREEN (**T002**); then continue domain
 - **[HU01-cache]** (Phase 4) depends on the uncached adapter (Phase 3)
 - Controllers (**Phase 6**) MUST NOT start before spike GREEN **T019** succeeds
-- Web PokeAPI `@Configuration` lands in **T025** (IT GREEN), not in
-  infrastructure
+- Web PokeAPI `@Configuration` lives in **`web/config/`** (landed in
+  **T021**; list IT finishes it in **T025**), not in infrastructure
 
 ### Within phases
 

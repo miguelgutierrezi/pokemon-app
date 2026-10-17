@@ -2,6 +2,7 @@ package com.miguel.pokemonapp.domain.page;
 
 public record PageRequest(int page, int size) {
 
+  public static final int DEFAULT_SIZE = 9;
   public static final int MAX_SIZE = 20;
 
   public PageRequest {
