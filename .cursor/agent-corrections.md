@@ -253,3 +253,15 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `JsonNode.asString()` instead of `asText()`. Include `uriTemplate` in
   `getJson` error messages. Also recorded as rule 10 in
   `.cursor/rules/agent-corrections.mdc`.
+
+## 2026-10-16 — Caffeine AsyncCache to avoid VT carrier pinning
+- **Source**: Miguel's review
+- **Context**: Sync Caffeine `Cache` + blocking HTTP load on Java 21 virtual
+  threads pinned carriers (32×200ms loads ≈ 3264 ms with 2 carriers vs
+  ≈ 223 ms with `AsyncCache`).
+- **Correction**: Use Caffeine `AsyncCache` (`buildAsync`); load with
+  `(key, ignoredExecutor) -> CompletableFuture.supplyAsync(() -> load(key),
+  executor)` on the virtual-thread executor. Compose pokemon/species futures
+  in `fetchEntry` (no nested blocking joins). Keep a regression test under
+  `-Djdk.virtualThreadScheduler.parallelism=2` (or equivalent concurrency
+  proof). Failed futures must not remain cached.

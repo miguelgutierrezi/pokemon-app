@@ -66,5 +66,35 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/VirtualThreadCarrierPinningIT.java</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>virtual-thread-carrier-pinning</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <excludes combine.self="override"/>
+              <includes>
+                <include>**/VirtualThreadCarrierPinningIT.java</include>
+              </includes>
+              <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Djdk.virtualThreadScheduler.parallelism=2</argLine>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
 

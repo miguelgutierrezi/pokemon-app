@@ -1,6 +1,6 @@
 package com.miguel.pokemonapp.infrastructure.pokeapi;
 
-import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
@@ -35,9 +35,9 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
 
   private final RestClient restClient;
   private final ExecutorService executor;
-  private final Cache<String, SpeciesPage> speciesPageCache;
-  private final Cache<Integer, CatalogPokemon> pokemonCache;
-  private final Cache<Integer, CatalogSpecies> speciesCache;
+  private final AsyncCache<String, SpeciesPage> speciesPageCache;
+  private final AsyncCache<Integer, CatalogPokemon> pokemonCache;
+  private final AsyncCache<Integer, CatalogSpecies> speciesCache;
 
   public PokeApiCatalogAdapter(String baseUrl, Duration connectTimeout, Duration readTimeout) {
     this(
@@ -68,25 +68,30 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
             .expireAfterWrite(cacheTtl)
             .maximumSize(listCacheMaxSize)
             .ticker(ticker)
-            .build();
+            .buildAsync();
     this.pokemonCache =
         Caffeine.newBuilder()
             .expireAfterWrite(cacheTtl)
             .maximumSize(idCacheMaxSize)
             .ticker(ticker)
-            .build();
+            .buildAsync();
     this.speciesCache =
         Caffeine.newBuilder()
             .expireAfterWrite(cacheTtl)
             .maximumSize(idCacheMaxSize)
             .ticker(ticker)
-            .build();
+            .buildAsync();
   }
 
   @Override
   public SpeciesPage speciesPage(int offset, int limit) {
     String key = offset + ":" + limit;
-    return speciesPageCache.get(key, ignored -> loadSpeciesPage(offset, limit));
+    return join(
+        speciesPageCache.get(
+            key,
+            (ignoredKey, ignoredExecutor) ->
+                CompletableFuture.supplyAsync(() -> loadSpeciesPage(offset, limit), executor)),
+        "species page unavailable");
   }
 
   @Override
@@ -95,9 +100,7 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
       throw new IllegalArgumentException("nationalIds must not be null");
     }
     List<CompletableFuture<CatalogEntry>> futures =
-        nationalIds.stream()
-            .map(id -> CompletableFuture.supplyAsync(() -> fetchEntry(id), executor))
-            .toList();
+        nationalIds.stream().map(this::fetchEntry).toList();
     try {
       List<CatalogEntry> entries = new ArrayList<>(futures.size());
       for (CompletableFuture<CatalogEntry> future : futures) {
@@ -110,26 +113,18 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     }
   }
 
-  private CatalogEntry fetchEntry(int nationalId) {
+  private CompletableFuture<CatalogEntry> fetchEntry(int nationalId) {
     CompletableFuture<CatalogPokemon> pokemon =
-        CompletableFuture.supplyAsync(() -> cachedPokemon(nationalId), executor);
+        pokemonCache.get(
+            nationalId,
+            (key, ignoredExecutor) ->
+                CompletableFuture.supplyAsync(() -> loadPokemon(key), executor));
     CompletableFuture<CatalogSpecies> species =
-        CompletableFuture.supplyAsync(() -> cachedSpecies(nationalId), executor);
-    try {
-      return new CatalogEntry(pokemon.join(), species.join());
-    } catch (CompletionException e) {
-      pokemon.cancel(true);
-      species.cancel(true);
-      throw toCatalogUnavailable(e, "catalog entry unavailable for id " + nationalId);
-    }
-  }
-
-  private CatalogPokemon cachedPokemon(int nationalId) {
-    return pokemonCache.get(nationalId, this::loadPokemon);
-  }
-
-  private CatalogSpecies cachedSpecies(int nationalId) {
-    return speciesCache.get(nationalId, this::loadSpecies);
+        speciesCache.get(
+            nationalId,
+            (key, ignoredExecutor) ->
+                CompletableFuture.supplyAsync(() -> loadSpecies(key), executor));
+    return pokemon.thenCombine(species, CatalogEntry::new);
   }
 
   private SpeciesPage loadSpeciesPage(int offset, int limit) {
@@ -215,6 +210,14 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
       throw e;
     } catch (RestClientException e) {
       throw new CatalogUnavailableException("catalog unavailable for " + uriTemplate, e);
+    }
+  }
+
+  private static <T> T join(CompletableFuture<T> future, String message) {
+    try {
+      return future.join();
+    } catch (CompletionException e) {
+      throw toCatalogUnavailable(e, message);
     }
   }
 
