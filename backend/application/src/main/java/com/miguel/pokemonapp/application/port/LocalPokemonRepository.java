@@ -14,4 +14,6 @@ public interface LocalPokemonRepository {
   Page<LocalPokemon> findPage(PageRequest request);
 
   boolean existsByNationalNumber(int nationalNumber);
+
+  boolean deleteByNationalNumber(int nationalNumber);
 }

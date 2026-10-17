@@ -98,6 +98,11 @@ public class LocalPokemonJpaAdapter implements LocalPokemonRepository {
         readTx.execute(status -> repository.existsByNationalNumber(nationalNumber)));
   }
 
+  @Override
+  public boolean deleteByNationalNumber(int nationalNumber) {
+    throw new UnsupportedOperationException("deleteByNationalNumber not implemented yet");
+  }
+
   private static boolean isNationalNumberUniqueViolation(DataIntegrityViolationException ex) {
     for (Throwable cursor = ex; cursor != null; cursor = cursor.getCause()) {
       if (cursor instanceof ConstraintViolationException constraintViolation) {

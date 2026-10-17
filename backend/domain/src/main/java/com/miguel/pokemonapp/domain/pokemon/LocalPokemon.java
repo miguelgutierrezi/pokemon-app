@@ -37,9 +37,7 @@ public record LocalPokemon(
     localizedName = optionalText(localizedName, MAX_LOCALIZED_NAME_LENGTH, "localizedName");
     location = optionalText(location, MAX_LOCATION_LENGTH, "location");
     tags = nonNull(tags, "tags");
-    if (version < 0) {
-      throw new IllegalArgumentException("version must be >= 0");
-    }
+    atLeast(version, 0L, "version");
   }
 
   public static LocalPokemon snapshotOf(CatalogDetailEntry entry, Instant syncedAt) {

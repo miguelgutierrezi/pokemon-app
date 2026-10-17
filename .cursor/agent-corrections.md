@@ -581,3 +581,13 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   (U2) T008 asserts mocked use-case `version`; real +1 in T006/T012.
   (I2) plan structure note: `tasks.md` exists. (G4) SC-003 remains
   manual in T015. (D1) no change.
+
+## 2026-10-17 — Delete: boolean deleteByNationalNumber, one call
+- **Source**: Miguel's review
+- **Context**: T004/T005 review — `DeleteLocalPokemonUseCase` did
+  `findByNationalNumber` then `deleteByNationalNumber` (void).
+- **Correction**: Port method is `boolean deleteByNationalNumber(int)`
+  (`true` when a row was deleted). The use case makes **one** call and
+  throws `LocalPokemonNotFoundException` when it returns `false` — no
+  `findByNationalNumber` pre-check (avoids loading the aggregate and the
+  check-then-act race between concurrent deletes).

@@ -24,4 +24,11 @@ public final class Require {
     }
     return value;
   }
+
+  public static long atLeast(long value, long min, String field) {
+    if (value < min) {
+      throw new IllegalArgumentException(field + " must be >= " + min);
+    }
+    return value;
+  }
 }

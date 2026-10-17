@@ -85,7 +85,7 @@ test classpath. 002–004 domain tests stay green.
   Coverage: **domain**.
   ⏸ Review — `feat(domain): local pokemon version and withProprietary (green)`
 
-- [ ] T003 **User action**: push `005-hu04-local-update` and open a **draft**
+- [x] T003 **User action**: push `005-hu04-local-update` and open a **draft**
   PR to `main` (`gh pr create --draft --base main`). Confirm CI runs green
   on the current branch tip. If red, fix before continuing. ⏸ Review
 
@@ -101,7 +101,7 @@ before write / save); `DeleteLocalPokemonUseCase` (404 / delete); port
 
 **Independent Test**: `./mvnw -B -pl application test` with Mockito; no Spring.
 
-- [ ] T004 [HU04] RED: write
+- [x] T004 [HU04] RED: write
   `backend/application/src/test/java/com/miguel/pokemonapp/application/pokemon/UpdateLocalPokemonUseCaseTest.java`
   and
   `DeleteLocalPokemonUseCaseTest.java`
@@ -113,7 +113,7 @@ before write / save); `DeleteLocalPokemonUseCase` (404 / delete); port
   **application**.
   ⏸ Review — `test(application): expect update and delete local pokemon (red)`
 
-- [ ] T005 [HU04] GREEN: add
+- [x] T005 [HU04] GREEN: add
   `backend/application/src/main/java/com/miguel/pokemonapp/application/pokemon/ProprietaryUpdate.java`,
   `UpdateLocalPokemonUseCase.java`,
   `DeleteLocalPokemonUseCase.java`,
