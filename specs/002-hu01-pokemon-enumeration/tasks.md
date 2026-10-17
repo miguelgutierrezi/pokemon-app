@@ -269,14 +269,14 @@ bodies are asserted in the advice pair immediately after.
   `@Primary` mock. Controller tests pass. Coverage: **web**.
   ⏸ Review — `feat(web): GET /api/v1/pokemon controller (green)`
 
-- [ ] T022 [HU01] RED: write
+- [x] T022 [HU01] RED: write
   `backend/web/src/test/java/com/miguel/pokemonapp/web/error/GlobalExceptionHandlerTest.java`
   — `PageOutOfRangeException` → **400** with `application/problem+json` body
   (RFC 7807 fields); `CatalogUnavailableException` → **502** problem+json;
   no stack trace in body. Confirm fail. Do not push RED. Coverage: **web**.
   ⏸ Review — `test(web): expect problem detail advice bodies (red)`
 
-- [ ] T023 [HU01] GREEN: implement
+- [x] T023 [HU01] GREEN: implement
   `backend/web/src/main/java/com/miguel/pokemonapp/web/error/GlobalExceptionHandler.java`
   (`@RestControllerAdvice`) mapping validation + domain out-of-range → 400 and
   `CatalogUnavailableException` → 502. Advice tests pass. Coverage: **web**.

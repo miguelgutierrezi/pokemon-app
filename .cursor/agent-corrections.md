@@ -297,3 +297,12 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   needs them; existing `@SpringBootTest` ITs are the RED for that wiring.
   Use `PageRequest.DEFAULT_SIZE`; static AssertJ imports; assert raw JSON
   contains `"weightKg":10.0` for scale.
+
+## 2026-10-16 — T022/T023: no handleTypeMismatch for record query params
+- **Source**: Miguel's review
+- **Context**: `GlobalExceptionHandler.handleTypeMismatch` was unreachable
+  (JaCoCo uncovered): with record-bound query params, `page=abc` surfaces as
+  `MethodArgumentNotValidException`, already handled and tested.
+- **Correction**: Do not override `handleTypeMismatch` for HU-01 list query
+  binding. Re-add it in 003 with a test for `/api/v1/pokemon/{id}=abc` (path
+  variable type mismatch).
