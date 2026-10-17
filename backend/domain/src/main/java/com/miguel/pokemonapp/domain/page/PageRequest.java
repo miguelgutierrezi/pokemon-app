@@ -16,4 +16,17 @@ public record PageRequest(int page, int size) {
   public int offset() {
     return (page - 1) * size;
   }
+
+  public void requireWithin(long totalElements) {
+    if (totalElements < 0) {
+      throw new IllegalArgumentException("totalElements must be >= 0");
+    }
+    if (totalElements == 0) {
+      return;
+    }
+    int totalPages = PageCounts.pagesFor(totalElements, size);
+    if (page > totalPages) {
+      throw new PageOutOfRangeException("page " + page + " is beyond last page " + totalPages);
+    }
+  }
 }

@@ -28,4 +28,26 @@ class PageRequestTest {
   void rejectsSizeAboveTwenty() {
     assertThatThrownBy(() -> new PageRequest(1, 21)).isInstanceOf(IllegalArgumentException.class);
   }
+
+  @Test
+  void requireWithinAcceptsValidLastPage() {
+    new PageRequest(114, 9).requireWithin(1025L);
+  }
+
+  @Test
+  void requireWithinRejectsPageBeyondLast() {
+    assertThatThrownBy(() -> new PageRequest(115, 9).requireWithin(1025L))
+        .isInstanceOf(PageOutOfRangeException.class);
+  }
+
+  @Test
+  void requireWithinAllowsAnyPageWhenTotalIsZero() {
+    new PageRequest(115, 9).requireWithin(0L);
+  }
+
+  @Test
+  void requireWithinRejectsNegativeTotal() {
+    assertThatThrownBy(() -> new PageRequest(1, 9).requireWithin(-1L))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 }

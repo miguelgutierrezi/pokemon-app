@@ -18,21 +18,17 @@ public record Page<T>(List<T> content, int page, int size, long totalElements) {
       throw new IllegalArgumentException("totalElements must be >= 0");
     }
     content = List.copyOf(content);
-    int pages = pagesFor(totalElements, size);
+    int pages = PageCounts.pagesFor(totalElements, size);
     if (totalElements > 0 && page > pages) {
       throw new PageOutOfRangeException("page " + page + " is beyond last page " + pages);
     }
   }
 
   public int totalPages() {
-    return pagesFor(totalElements, size);
+    return PageCounts.pagesFor(totalElements, size);
   }
 
   public static <T> Page<T> of(List<T> content, PageRequest request, long totalElements) {
     return new Page<>(content, request.page(), request.size(), totalElements);
-  }
-
-  private static int pagesFor(long totalElements, int size) {
-    return Math.toIntExact(Math.ceilDiv(totalElements, size));
   }
 }

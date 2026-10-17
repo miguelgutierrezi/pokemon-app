@@ -214,5 +214,16 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `ArithmeticException` from `ceilDiv` instead of a clear domain reject;
   totalPages math was duplicated in the constructor and `totalPages()`.
 - **Correction**: Compact constructor must reject `page < 1` and `size < 1`
-  before paging math. Extract `private static pagesFor(totalElements, size)`
-  for both the constructor and `totalPages()`.
+  before paging math. Extract a shared page-count helper used by both the
+  constructor and `totalPages()` (now `PageCounts.pagesFor`).
+
+## 2026-10-16 — Catalog fetchEntries + PageRequest.requireWithin
+- **Source**: Miguel's review
+- **Context**: After T012/T013, the port exposed per-id `fetchPokemon` /
+  `fetchSpecies` (parallelism belongs in the adapter) and the use case
+  duplicated page-beyond-last math already owned by `Page`.
+- **Correction**: Port API is `fetchEntries(List<Integer>)` →
+  `List<CatalogEntry>` (domain record; nulls rejected) in request order.
+  Move beyond-last to `PageRequest.requireWithin(totalElements)` using the
+  same `PageCounts.pagesFor` as `Page`. Use case stays synchronous and only
+  calls `requireWithin` then one `fetchEntries`.

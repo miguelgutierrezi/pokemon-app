@@ -2,7 +2,7 @@ package com.miguel.pokemonapp.application.pokemon;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -15,6 +15,7 @@ import com.miguel.pokemonapp.domain.page.Page;
 import com.miguel.pokemonapp.domain.page.PageOutOfRangeException;
 import com.miguel.pokemonapp.domain.page.PageRequest;
 import com.miguel.pokemonapp.domain.pokemon.CatalogAbility;
+import com.miguel.pokemonapp.domain.pokemon.CatalogEntry;
 import com.miguel.pokemonapp.domain.pokemon.CatalogPokemon;
 import com.miguel.pokemonapp.domain.pokemon.CatalogSpecies;
 import com.miguel.pokemonapp.domain.pokemon.LocalizedText;
@@ -36,11 +37,14 @@ class ListPokemonUseCaseTest {
 
   @Test
   void returnsPageWithSummariesInSpeciesPageOrder() {
-    when(catalog.speciesPage(0, 9)).thenReturn(new SpeciesPage(List.of(2, 1), 1025L));
-    when(catalog.fetchPokemon(2)).thenReturn(pokemon(2, "ivysaur", 130));
-    when(catalog.fetchSpecies(2)).thenReturn(species("Ivysaur", "Seed Pokémon"));
-    when(catalog.fetchPokemon(1)).thenReturn(pokemon(1, "bulbasaur", 69));
-    when(catalog.fetchSpecies(1)).thenReturn(species("Bulbasaur", "Seed Pokémon"));
+    List<Integer> ids = List.of(2, 1);
+    when(catalog.speciesPage(0, 9)).thenReturn(new SpeciesPage(ids, 1025L));
+    when(catalog.fetchEntries(ids))
+        .thenReturn(
+            List.of(
+                new CatalogEntry(pokemon(2, "ivysaur", 130), species("Ivysaur", "Seed Pokémon")),
+                new CatalogEntry(
+                    pokemon(1, "bulbasaur", 69), species("Bulbasaur", "Seed Pokémon"))));
 
     Page<PokemonSummary> page = useCase.execute(new PageRequest(1, 9));
 
@@ -52,17 +56,17 @@ class ListPokemonUseCaseTest {
     assertThat(page.totalPages()).isEqualTo(114);
     assertThat(page.page()).isEqualTo(1);
     assertThat(page.size()).isEqualTo(9);
+    verify(catalog).fetchEntries(ids);
   }
 
   @Test
-  void pageBeyondLastThrowsWithoutFetchingDetails() {
+  void pageBeyondLastThrowsWithoutFetchingEntries() {
     when(catalog.speciesPage(1026, 9)).thenReturn(new SpeciesPage(List.of(), 1025L));
 
     assertThatThrownBy(() -> useCase.execute(new PageRequest(115, 9)))
         .isInstanceOf(PageOutOfRangeException.class);
 
-    verify(catalog, never()).fetchPokemon(anyInt());
-    verify(catalog, never()).fetchSpecies(anyInt());
+    verify(catalog, never()).fetchEntries(anyList());
   }
 
   @Test
@@ -73,8 +77,7 @@ class ListPokemonUseCaseTest {
         .isInstanceOf(CatalogUnavailableException.class)
         .hasMessage("down");
 
-    verify(catalog, never()).fetchPokemon(anyInt());
-    verify(catalog, never()).fetchSpecies(anyInt());
+    verify(catalog, never()).fetchEntries(anyList());
   }
 
   private static CatalogPokemon pokemon(int id, String slug, int hectograms) {
