@@ -273,16 +273,18 @@ Postgres Testcontainers; `POKEAPI_BASE_URL` → WireMock.
 
 ## Phase 6: Polish
 
-- [ ] T016 [HU03] Update root `README.md` — document
+- [x] T016 [HU03] Update root `README.md` — document
   `POST/GET /api/v1/collection`, 400/404/409/502, temporary public write
   until 006, seed after compose; no new env keys. Run every new README
   command before marking done. Coverage: N/A.
   ⏸ Review — `docs: document hu03 local collection in readme`
 
-- [ ] T017 [HU03] Run `specs/004-hu03-data-sync/quickstart.md` end to end
+- [x] T017 [HU03] Run `specs/004-hu03-data-sync/quickstart.md` end to end
   (or record deviations and fix). Confirm SC-001–SC-005 via IT and/or live
   curls. Coverage: validation run.
   ⏸ Review — `test: validate 004 quickstart`
+  — Recorded in `quickstart.md` (real PokeAPI, 2026-10-17).
+
 
 ---
 

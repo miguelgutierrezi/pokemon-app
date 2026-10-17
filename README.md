@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/miguelgutierrezi/pokemon-app/actions/workflows/ci.yml/badge.svg)](https://github.com/miguelgutierrezi/pokemon-app/actions/workflows/ci.yml)
 
-Pokéfolio is a Clean Architecture Pokemon portfolio app (Spring Boot + React) built for the Ballast Lane technical exercise. The backend exposes a paginated National Dex list and Pokémon detail via PokeAPI; the catalog UI lands in feature **007**. See [docs/requirements.md](docs/requirements.md).
+Pokéfolio is a Clean Architecture Pokemon portfolio app (Spring Boot + React) built for the Ballast Lane technical exercise. The backend exposes a paginated National Dex list and Pokémon detail via PokeAPI, plus a local collection sync API; the catalog UI lands in feature **007**. See [docs/requirements.md](docs/requirements.md).
 
 ## Architecture
 
@@ -34,6 +34,7 @@ Frontend: Vite + React 19 + TypeScript + Tailwind v4 under `frontend/`. Nginx se
 - Docker + Compose v2
 - JDK 21 (local backend)
 - Node 24 (local frontend; see `frontend/.nvmrc`)
+- jq (optional, used in curl examples)
 
 ## Run with Docker
 
@@ -46,6 +47,7 @@ docker compose up --build
 - Health: http://localhost:8080/actuator/health
 - List API: http://localhost:8080/api/v1/pokemon
 - Detail API: http://localhost:8080/api/v1/pokemon/1
+- Collection API: http://localhost:8080/api/v1/collection
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
 
@@ -156,11 +158,80 @@ Trimmed example (`GET /api/v1/pokemon/1`):
 | `404` | Pokémon not found in the catalog |
 | `502` | Upstream catalog unavailable or timed out |
 
-Errors on both endpoints use RFC 7807 `application/problem+json`.
+### Collection
+
+Local collection (import from the catalog + read). Same paging rules as the
+list endpoint (`page` default `1`, `size` default `9`, max `20`).
+
+> **Temporary exception to constitution VI:** write routes are **public** and
+> the store is **global** (one shared collection) until feature **006** adds
+> JWT and per-user scoping. Do not treat this as the final security model.
+
+#### Import
+
+`POST /api/v1/collection` with JSON body `{"nationalNumber": n}` (`n` ≥ 1).
+
+```bash
+curl -sS -D - -o /tmp/collection-import.json \
+  -H 'Content-Type: application/json' \
+  -d '{"nationalNumber":25}' \
+  http://localhost:8080/api/v1/collection
+```
+
+On success: **201 Created**, `Location: /api/v1/collection/{n}`, body is the
+local record (catalog snapshot; `localizedName` / `location` null and `tags`
+empty until edited later).
+
+| Status | When |
+|---|---|
+| `400` | Missing/invalid body (`nationalNumber`) |
+| `404` | Pokémon not found in the **catalog** |
+| `409` | National number already in the local collection |
+| `502` | Upstream catalog unavailable or timed out |
+
+#### List local collection
+
+`GET /api/v1/collection?page=&size=` — same pagination envelope as the catalog
+list (`content`, `page`, `size`, `totalElements`, `totalPages`); items are
+local records.
+
+```bash
+curl -sS 'http://localhost:8080/api/v1/collection?page=1&size=9' | jq .
+```
+
+| Status | When |
+|---|---|
+| `400` | Invalid paging (Bean Validation or page beyond last) |
+
+#### Get one local record
+
+`GET /api/v1/collection/{nationalNumber}` (`nationalNumber` ≥ 1).
+
+```bash
+curl -sS http://localhost:8080/api/v1/collection/1 | jq .
+```
+
+| Status | When |
+|---|---|
+| `400` | Invalid `nationalNumber` (non-numeric or &lt; 1) |
+| `404` | Not in the **local** collection (detail: `Pokémon {n} is not in the local collection` — distinct from catalog 404) |
+
+#### Seeded demo rows
+
+After `docker compose up`, Flyway seeds three local rows (French localized
+names):
+
+| # | Name | Localized | Location | Tags |
+|---|---|---|---|---|
+| 1 | Bulbasaur | Bulbizarre | Pallet Town garden | first-partner, forest |
+| 2 | Ivysaur | Herbizarre | Route 1 tall grass | field-notes, forest |
+| 3 | Venusaur | Florizarre | Viridian Forest clearing | first-partner, field-notes |
+
+Errors use RFC 7807 `application/problem+json`.
 
 Nginx at http://localhost:3000 proxies `/api/` unchanged (same paths).
 
-OpenAPI: [Swagger UI](http://localhost:8080/swagger-ui/index.html) · raw [`/v3/api-docs`](http://localhost:8080/v3/api-docs) (paths `/api/v1/pokemon` and `/api/v1/pokemon/{id}`).
+OpenAPI: [Swagger UI](http://localhost:8080/swagger-ui/index.html) · raw [`/v3/api-docs`](http://localhost:8080/v3/api-docs) (paths `/api/v1/pokemon`, `/api/v1/pokemon/{id}`, and `/api/v1/collection`).
 
 ## Configuration
 

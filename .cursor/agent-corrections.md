@@ -528,3 +528,11 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Correction**: In `GlobalExceptionHandlerTest` no-leak assertions for
   malformed request bodies, also assert the body does not contain
   `tools.jackson` (Jackson 3 exception packages).
+
+## 2026-10-17 — 004 final polish: jq prerequisite + T017 quickstart record
+- **Source**: Miguel's review
+- **Context**: Final 004 README/quickstart touch-ups after T016.
+- **Correction**: (1) README Prerequisites must list
+  `jq (optional, used in curl examples)`. (2) Record T017 validation
+  results in `specs/004-hu03-data-sync/quickstart.md` (measured run
+  against real PokeAPI) and mark T016/T017 done.
