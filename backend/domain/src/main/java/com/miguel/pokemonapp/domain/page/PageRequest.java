@@ -1,14 +1,14 @@
 package com.miguel.pokemonapp.domain.page;
 
+import static com.miguel.pokemonapp.domain.Require.atLeast;
+
 public record PageRequest(int page, int size) {
 
   public static final int DEFAULT_SIZE = 9;
   public static final int MAX_SIZE = 20;
 
   public PageRequest {
-    if (page < 1) {
-      throw new IllegalArgumentException("page must be >= 1");
-    }
+    atLeast(page, 1, "page");
     if (size < 1 || size > MAX_SIZE) {
       throw new IllegalArgumentException("size must be between 1 and " + MAX_SIZE);
     }

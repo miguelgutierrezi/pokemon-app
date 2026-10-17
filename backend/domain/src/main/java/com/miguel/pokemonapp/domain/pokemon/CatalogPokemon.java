@@ -1,5 +1,8 @@
 package com.miguel.pokemonapp.domain.pokemon;
 
+import static com.miguel.pokemonapp.domain.Require.nonBlank;
+import static com.miguel.pokemonapp.domain.Require.nonNull;
+
 import java.util.List;
 
 public record CatalogPokemon(
@@ -10,12 +13,7 @@ public record CatalogPokemon(
     List<CatalogAbility> abilities) {
 
   public CatalogPokemon {
-    if (slug == null || slug.isBlank()) {
-      throw new IllegalArgumentException("slug must be non-blank");
-    }
-    if (abilities == null) {
-      throw new IllegalArgumentException("abilities must not be null");
-    }
-    abilities = List.copyOf(abilities);
+    slug = nonBlank(slug, "slug");
+    abilities = List.copyOf(nonNull(abilities, "abilities"));
   }
 }

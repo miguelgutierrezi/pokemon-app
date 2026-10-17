@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
+import com.miguel.pokemonapp.application.PokemonNotFoundException;
+import com.miguel.pokemonapp.application.pokemon.GetPokemonDetailUseCase;
 import com.miguel.pokemonapp.application.pokemon.ListPokemonUseCase;
 import com.miguel.pokemonapp.domain.page.PageOutOfRangeException;
 import com.miguel.pokemonapp.web.pokemon.PokemonController;
@@ -28,6 +30,8 @@ class GlobalExceptionHandlerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private ListPokemonUseCase listPokemonUseCase;
+
+  @MockitoBean private GetPokemonDetailUseCase getPokemonDetailUseCase;
 
   @Test
   void beanValidationPageZeroReturnsProblemDetailNamingPage() throws Exception {
@@ -61,6 +65,48 @@ class GlobalExceptionHandlerTest {
             .getResponse()
             .getContentAsString();
 
+    assertNoLeak(body);
+  }
+
+  @Test
+  void pokemonNotFoundReturnsNotFoundProblemWithoutLeakingUpstream() throws Exception {
+    when(getPokemonDetailUseCase.execute(9999))
+        .thenThrow(new PokemonNotFoundException(9999, "catalog returned 404 for /pokemon/{id}"));
+
+    String body =
+        expectProblem(mockMvc.perform(get("/api/v1/pokemon/9999")), 404)
+            .andExpect(jsonPath("$.detail").value("Pokémon 9999 was not found"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).doesNotContain("catalog returned").doesNotContain("/pokemon/{id}");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void typeMismatchDetailIdReturnsBadRequestProblemNamingId() throws Exception {
+    String body =
+        expectProblem(mockMvc.perform(get("/api/v1/pokemon/abc")), 400)
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).containsIgnoringCase("id");
+    assertThat(body).doesNotContain("catalog returned").doesNotContain("/pokemon/{id}");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void detailIdZeroReturnsBadRequestProblemNamingId() throws Exception {
+    String body =
+        expectProblem(mockMvc.perform(get("/api/v1/pokemon/0")), 400)
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).containsIgnoringCase("id");
+    assertThat(body).doesNotContain("catalog returned").doesNotContain("/pokemon/{id}");
     assertNoLeak(body);
   }
 
@@ -128,7 +174,10 @@ class GlobalExceptionHandlerTest {
     assertThat(body)
         .doesNotContain("PageOutOfRangeException")
         .doesNotContain("CatalogUnavailableException")
+        .doesNotContain("PokemonNotFoundException")
         .doesNotContain("MethodArgumentNotValidException")
+        .doesNotContain("HandlerMethodValidationException")
+        .doesNotContain("MethodArgumentTypeMismatchException")
         .doesNotContain("\tat ")
         .doesNotContain("stackTrace");
   }

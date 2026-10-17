@@ -176,7 +176,9 @@ class CachingPokeApiCatalogAdapterTest {
     return """
         {
           "names": [ { "name": "%s", "language": { "name": "en" } } ],
-          "genera": [ { "genus": "Seed Pokémon", "language": { "name": "en" } } ]
+          "genera": [ { "genus": "Seed Pokémon", "language": { "name": "en" } } ],
+          "generation": { "name": "generation-i" },
+          "evolution_chain": { "url": "https://pokeapi.co/api/v2/evolution-chain/1/" }
         }
         """
         .formatted(englishName);

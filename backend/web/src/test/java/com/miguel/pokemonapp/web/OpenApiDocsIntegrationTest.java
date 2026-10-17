@@ -40,9 +40,24 @@ class OpenApiDocsIntegrationTest {
         .isEqualTo(false)
         .jsonPath("$.paths['/api/v1/pokemon'].get.responses['200']")
         .exists()
+        .jsonPath("$.paths['/api/v1/pokemon'].get.responses['200'].content['application/json']")
+        .exists()
         .jsonPath("$.paths['/api/v1/pokemon'].get.responses['400']")
         .exists()
         .jsonPath("$.paths['/api/v1/pokemon'].get.responses['502']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/pokemon/{id}'].get.parameters[?(@.name=='id')].in")
+        .isEqualTo("path")
+        .jsonPath("$.paths['/api/v1/pokemon/{id}'].get.responses['200']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/pokemon/{id}'].get.responses['200'].content['application/json']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/pokemon/{id}'].get.responses['400']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/pokemon/{id}'].get.responses['404']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/pokemon/{id}'].get.responses['502']")
         .exists();
   }
 }

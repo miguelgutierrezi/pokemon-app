@@ -317,3 +317,127 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `application/problem+json` + `ProblemDetail` via `@ApiResponse`; register an
   `OpenAPI` bean (title "Pokéfolio API", version, one-line description). Cover
   with `OpenApiDocsIntegrationTest` against real `/v3/api-docs`.
+
+## 2026-10-16 — 003 spec: three fetch phases + evolution_details first
+- **Source**: Miguel's review
+- **Context**: Spec 003 said “one parallel fan-out”; evolution edges did not
+  define which `evolution_details` entry to use; chain node id semantics
+  were underspecified.
+- **Correction**: Detail fetch is at most three sequential phases, each
+  parallel/cached: (a) pokemon+species, (b) evolution-chain, (c)
+  `fetchEntries` for chain ids (requested id already cached). Use the first
+  `evolution_details` entry; empty list → null trigger/minLevel/item. Chain
+  nodes are species ids; name/image via `fetchEntries` (species id ==
+  default Pokémon id for 1–1025).
+
+## 2026-10-16 — 003 plan: fetchDetail + one cache per URL
+- **Source**: Miguel's review
+- **Context**: Plan repeated the 002 port mistake — exposing
+  `fetchPokemonDetail` + `fetchSpeciesDetail` so parallelism lived in the
+  use case; risked a second cache for the same upstream URL.
+- **Correction**: Phase (a) is **one** port op `fetchDetail(id)` →
+  `CatalogDetailEntry` (adapter fetches pokemon+species concurrently). Use
+  case = three port calls (a/b/c). Pokemon/species Caffeine caches store
+  `CatalogPokemonDetail` / `CatalogSpeciesDetail`; 002 list types are
+  **derived** (`toSummary()` / equivalent). WireMock: for a detail call,
+  `/pokemon/{id}` and `/pokemon-species/{id}` exactly once (phase c reuses
+  phase a). Keep 002 list tests green.
+
+## 2026-10-16 — 003 tasks: stubs, OpenAPI, id=0 detail, acceptance IT
+- **Source**: Miguel's review
+- **Context**: Tasks review — port stubs timing, OpenAPI coverage, validation
+  problem detail, and acceptance IT skip rule.
+- **Correction**: T013 adds temporary `UnsupportedOperationException` stubs
+  for `fetchDetail` / `fetchEvolutionChain` on the adapter and verifies with
+  full `./mvnw -B verify` (Coverage: application; stubs compile-only). T014
+  does not invent stubs. T017/T018 extend `OpenApiDocsIntegrationTest` for
+  `/api/v1/pokemon/{id}` 200/400/404/502. T019 asserts `id=0` → 400
+  problem+json whose detail names the `id` parameter. T021/T022 are
+  acceptance ITs; if T021 passes with no production changes, commit as
+  `test(web): …` and skip T022.
+
+## 2026-10-16 — 003 analyze remediations (F1–F6, A1, C1)
+- **Source**: Miguel's review
+- **Context**: `/speckit-analyze` findings applied after Miguel validation.
+- **Correction**: Spec FR-010 / Assumptions state one `fetchDetail` port op,
+  sequential phases with intra-phase parallelism in (a)/(c), one cache per
+  URL holding detail records + `toSummary()` for list, Key Entities include
+  `isCurrent` and point to data-model; Edge Cases allow duplicate upstream
+  on concurrent misses but never partial success. Plan TDD ordering: shared-
+  cache REFACTOR (T014) before detail adapter. T021 asserts WireMock 5xx →
+  502 without upstream URL.
+
+## 2026-10-16 — FlavorText: null reference, not null-field pair
+- **Source**: Miguel's review
+- **Context**: T004/T005 used a compact constructor that allowed
+  `FlavorText(null, null)` (“null pair”).
+- **Correction**: Absent narrative is **only** a null `FlavorText` (what
+  `from()` returns). Constructor requires non-blank `text` and non-null
+  `version`. Whitespace: collapse with `\\s+` then trim (`\\s` covers
+  `\\f`/`\\n`/`\\r`). Spec/data-model say “`flavorText` is null”, not
+  “null pair”. (See 2026-10-17 for the additional `POKéMON` → `Pokémon`
+  step.)
+
+## 2026-10-16 — Evolution node image is front sprite thumbnail
+- **Source**: Miguel's review
+- **Context**: T008/T009 used `ImageUrl.resolve` for evolution nodes,
+  conflicting with FR-003 (detail artwork) vs UI tree thumbnails.
+- **Correction**: Option A — evolution node `imageUrl` is the catalog
+  **front sprite** (`spriteUrl` / `front_default`) directly; detail payload
+  image keeps artwork → sprite → null (FR-003). Spec FR-006, data-model, and
+  OpenAPI examples must not say “same rule as FR-003”. T017 must assert JSON
+  field name `isCurrent`.
+
+## 2026-10-16 — Domain Require helper + AbilityRef.orderedFrom
+- **Source**: Miguel's review
+- **Context**: T010/T011 duplicated ability ordering and null/blank/`>=`
+  validation if/throw blocks across domain records.
+- **Correction**: Extract `AbilityRef.orderedFrom` (and type name ordering
+  helper) for summary/detail assemble. Add `domain.Require` with
+  `nonNull` / `nonBlank` / `atLeast` and use it in domain records; unit-test
+  Require thoroughly. Refactor only — no behaviour change beyond shared
+  message wording for those helpers.
+
+## 2026-10-16 — List 404 → unavailable; retry once on ResourceAccessException
+- **Source**: Miguel's review
+- **Context**: T015/T016 mapped identity 404 to `PokemonNotFoundException`
+  for all callers; a flaky JDK HttpClient keep-alive close
+  (“HTTP/1.1 header parser received no bytes”) was observed once.
+- **Correction**: (1) `fetchEntries` (list path) must wrap
+  `PokemonNotFoundException` as `CatalogUnavailableException` — a
+  species-list id that 404s is catalog inconsistency (502), not “Pokémon
+  not found” for `GET /api/v1/pokemon/{id}`. Keep
+  `PokemonNotFoundException` only on `fetchDetail`. (2) In `getJson`,
+  retry **once** on `ResourceAccessException` for idempotent GETs; never
+  retry HTTP status errors. Cover both with WireMock (list 404 →
+  unavailable; `Fault.CONNECTION_RESET_BY_PEER` then 200 → exactly 2
+  requests; two faults → unavailable).
+
+## 2026-10-16 — Do not retry HttpTimeoutException in getJson
+- **Source**: Miguel's review
+- **Context**: Blind retry on every `ResourceAccessException` would also
+  retry read/connect timeouts, doubling wait (e.g. 5 s → ~10 s) and load.
+- **Correction**: Retry once only for connection-level failures (reset /
+  closed keep-alive). If the most specific cause of the
+  `ResourceAccessException` is `java.net.http.HttpTimeoutException`, do
+  **not** retry — map straight to `CatalogUnavailableException`. WireMock:
+  fixed delay > read timeout → unavailable and exactly **1** request.
+
+## 2026-10-16 — PokemonNotFoundException carries nationalId
+- **Source**: Miguel's review
+- **Context**: T019/T020 built the 404 problem detail via
+  `URI_TEMPLATE_VARIABLES` / `pathVariable("id")`, coupling the global
+  handler to a route variable name.
+- **Correction**: `PokemonNotFoundException` carries `int nationalId`
+  (constructor + accessor). Keep an internal message with the upstream
+  path for logs. Adapter passes the requested id; handler detail uses
+  `ex.nationalId()` only — no URI template lookup.
+
+## 2026-10-17 — FlavorText replaces Gen I–III "POKéMON"
+- **Source**: Miguel's review
+- **Context**: T023 README example disagreed with the live API: Bulbasaur
+  red flavor text still contained the catalog quirk `POKéMON`.
+- **Correction**: Domain `FlavorText` normalisation also replaces
+  `POKéMON` → `Pokémon` (after whitespace collapse). Cover with a unit
+  test using the real Bulbasaur red entry. Keep README / contract examples
+  aligned with the live API response.

@@ -1,6 +1,7 @@
 package com.miguel.pokemonapp.web.config;
 
 import com.github.benmanes.caffeine.cache.Ticker;
+import com.miguel.pokemonapp.application.pokemon.GetPokemonDetailUseCase;
 import com.miguel.pokemonapp.application.pokemon.ListPokemonUseCase;
 import com.miguel.pokemonapp.application.port.PokemonCatalogPort;
 import com.miguel.pokemonapp.infrastructure.pokeapi.PokeApiCatalogAdapter;
@@ -27,5 +28,10 @@ public class PokeApiConfiguration {
   @Bean
   ListPokemonUseCase listPokemonUseCase(PokemonCatalogPort catalog) {
     return new ListPokemonUseCase(catalog);
+  }
+
+  @Bean
+  GetPokemonDetailUseCase getPokemonDetailUseCase(PokemonCatalogPort catalog) {
+    return new GetPokemonDetailUseCase(catalog);
   }
 }
