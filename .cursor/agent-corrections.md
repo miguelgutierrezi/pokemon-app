@@ -159,3 +159,20 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   VOs), assert with `isEqualTo(new BigDecimal("…"))` so equals checks scale;
   API must always emit one decimal (e.g. 100 hg → `"10.0"`). Reject negative
   hectograms with `IllegalArgumentException`. Apply in RED before GREEN.
+
+## 2026-10-16 — LocalizedText + shared English language constant
+- **Source**: Miguel's review
+- **Context**: After T005, `LocalizedName(languageCode, name)` was name-specific
+  and duplicated the `"en"` literal; Category (genera) needs the same shape.
+- **Correction**: Prefer a package-level `LocalizedText(languageCode, text)` for
+  both species `names[]` and `genera[]`. Put the English language code in one
+  shared constant in `domain.pokemon`. Refactor with tests green before the
+  next RED (Category); no behaviour change in the rename.
+
+## 2026-10-16 — Tests must not reuse production constants under test
+- **Source**: Miguel's review
+- **Context**: After T006/T007, `DisplayNameTest` and `CategoryTest` used
+  `LanguageCodes.ENGLISH` in fixtures that assert English selection.
+- **Correction**: Tests must not reuse production constants for the values
+  they verify. Pin the real external/code value as a literal (here PokeAPI
+  language code `"en"`) so a wrong constant cannot make the suite pass.

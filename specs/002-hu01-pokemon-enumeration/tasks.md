@@ -73,28 +73,28 @@ test classpath.
   `./mvnw -B -pl domain test` passes. Coverage: **domain**.
   ⏸ Review — `feat(domain): convert hectograms to kg (green)`
 
-- [ ] T003 **User action**: push `002-hu01-pokemon-enumeration` and open a
+- [x] T003 **User action**: push `002-hu01-pokemon-enumeration` and open a
   **draft** PR to `main` (`gh pr create --draft --base main`). Confirm CI runs
   green on the skeleton. If red, fix before continuing. ⏸ Review
 
-- [ ] T004 [HU01] RED: write
+- [x] T004 [HU01] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/DisplayNameTest.java`
   — English `names[]` wins (e.g. "Mr. Mime"); missing English → resource slug
   fallback. Confirm fail. Do not push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect english display name with slug fallback (red)`
 
-- [ ] T005 [HU01] GREEN: implement
+- [x] T005 [HU01] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/DisplayName.java`.
   Tests pass. Coverage: **domain**.
   ⏸ Review — `feat(domain): resolve english display name (green)`
 
-- [ ] T006 [HU01] RED: write
+- [x] T006 [HU01] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/CategoryTest.java`
   — English genus only; no English → null (not guessed). Confirm fail. Do not
   push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect english genus or null (red)`
 
-- [ ] T007 [HU01] GREEN: implement
+- [x] T007 [HU01] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/Category.java`.
   Tests pass. Coverage: **domain**.
   ⏸ Review — `feat(domain): resolve english category or null (green)`
