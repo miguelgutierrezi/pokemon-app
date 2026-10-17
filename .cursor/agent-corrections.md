@@ -29,3 +29,14 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `dependencyManagement` for the four internal modules; no `<version>` on
   those deps in child POMs. (3) artifactIds `pokemonapp-{domain,application,
   infrastructure,web}` (directories stay short names).
+
+## 2026-10-16 — Pin GitHub Actions after checking latest releases (T006)
+- **Source**: Miguel's review
+- **Context**: T006 pinned `actions/checkout@v4`, `actions/setup-java@v4`,
+  and `dorny/paths-filter@v3` from memory; current majors are newer.
+- **Correction**: Never pin GitHub Actions majors from memory. Before writing
+  a `uses:` pin, check each action's latest release notes, note breaking
+  input changes, and adapt. For this workflow: `checkout@v7`,
+  `setup-java@v6`, `paths-filter@v4`; `cache-dependency-path:
+  backend/**/pom.xml`; cancel-in-progress only on `pull_request`;
+  `timeout-minutes` 5 (`changes`) / 15 (`backend`).

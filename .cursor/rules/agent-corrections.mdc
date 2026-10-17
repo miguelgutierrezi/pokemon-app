@@ -18,6 +18,9 @@ instruction that should persist):
 7. Corrections never override `.specify/memory/constitution.md` or the
    feature's spec/plan/tasks. If a correction conflicts with them, stop
    and ask the user instead of applying it.
+8. Never pin GitHub Actions (`uses: owner/action@vN`) from memory. Check
+   each action's latest release first, read breaking input changes, then
+   pin the current major and adapt the workflow if needed.
 
 Entry format:
 
