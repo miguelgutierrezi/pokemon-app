@@ -58,8 +58,7 @@ class TagsTest {
 
   @Test
   void lengthLimitAppliesToNormalisedForm() {
-    // 30 letters + 2 spaces trimmed → 30 chars OK; 31 letters + spaces → 31 OK;
-    // 33 letters with surrounding spaces → 33 after trim → reject
+    // Surrounding spaces trimmed before length check; 33 letters after trim → reject
     assertThat(Tags.of(List.of("  " + "b".repeat(30) + "  ")).values())
         .containsExactly("b".repeat(30));
 
