@@ -22,6 +22,7 @@
     <archunit.version>1.5.1</archunit.version>
     <jacoco.version>0.8.15</jacoco.version>
     <jacoco.line.minimum>0.80</jacoco.line.minimum>
+    <wiremock.version>3.13.2</wiremock.version>
     <!-- Empty default so Surefire late evaluation @{argLine} works with JaCoCo. -->
     <argLine></argLine>
   </properties>
@@ -59,6 +60,16 @@
         <groupId>com.tngtech.archunit</groupId>
         <artifactId>archunit-junit5</artifactId>
         <version>${archunit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.wiremock</groupId>
+        <artifactId>wiremock</artifactId>
+        <version>${wiremock.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.wiremock</groupId>
+        <artifactId>wiremock-standalone</artifactId>
+        <version>${wiremock.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
