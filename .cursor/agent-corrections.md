@@ -40,3 +40,15 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `setup-java@v6`, `paths-filter@v4`; `cache-dependency-path:
   backend/**/pom.xml`; cancel-in-progress only on `pull_request`;
   `timeout-minutes` 5 (`changes`) / 15 (`backend`).
+
+## 2026-10-16 — ArchUnit package prefixes and BOM (T008)
+- **Source**: Miguel's review
+- **Context**: ArchitectureTest used generic `..domain..` / `..web..` patterns
+  that can match unrelated packages (e.g. `infrastructure.pokeapi.web`); the
+  outer-frameworks rule omitted JDBC/HTTP client packages; ArchUnit version
+  was pinned only in `web/pom.xml`.
+- **Correction**: Use full prefixes `com.miguel.pokemonapp.{domain,
+  application,infrastructure,web}..`. Forbid also `java.sql..` and
+  `java.net.http..` in the outer-frameworks rule. Manage ArchUnit via
+  `archunit.version` + parent `dependencyManagement`; no version in
+  `web/pom.xml`. Avoid trailing blank lines in POMs.

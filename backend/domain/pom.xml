@@ -11,4 +11,12 @@
   </parent>
 
   <artifactId>pokemonapp-domain</artifactId>
+
+  <dependencies>
+    <!-- Temporary for T008 RED ArchitectureProbe; remove in T009 -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+    </dependency>
+  </dependencies>
 </project>
