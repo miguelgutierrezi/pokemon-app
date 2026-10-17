@@ -332,7 +332,7 @@ PokeAPI already lives in **`web/config`** (from T021); this IT covers it (R6).
 
 ## Phase 9: Polish
 
-- [ ] T028 Update root `README.md` — document `GET /api/v1/pokemon`,
+- [x] T028 Update root `README.md` — document `GET /api/v1/pokemon`,
   `POKEAPI_BASE_URL`, OpenAPI URL, and that catalog UI is 007. Run every new
   README command before marking done. Coverage: N/A.
   ⏸ Review — `docs: document hu01 pokemon list in readme`
