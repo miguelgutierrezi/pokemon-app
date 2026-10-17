@@ -153,7 +153,7 @@ Spring Data repo + adapter (`@Transactional` + `saveAndFlush` → unique →
 **Independent Test**: `./mvnw -B -pl infrastructure test` with
 `@DataJpaTest` + Testcontainers + empty test `@SpringBootConfiguration`.
 
-- [ ] T008 [HU03] RED: add empty
+- [x] T008 [HU03] RED: add empty
   `backend/infrastructure/src/test/java/com/miguel/pokemonapp/infrastructure/InfrastructureTestApplication.java`
   (`@SpringBootConfiguration`) and write
   `backend/infrastructure/src/test/java/com/miguel/pokemonapp/infrastructure/persistence/LocalPokemonJpaAdapterTest.java`
@@ -166,7 +166,7 @@ Spring Data repo + adapter (`@Transactional` + `saveAndFlush` → unique →
   fail for stated reasons. Do not push RED. Coverage: **infrastructure**.
   ⏸ Review — `test(infrastructure): expect jpa local pokemon adapter (red)`
 
-- [ ] T009 [HU03] GREEN: add
+- [x] T009 [HU03] GREEN: add
   `spring-boot-starter-data-jpa` to
   `backend/infrastructure/pom.xml`; Flyway
   `backend/infrastructure/src/main/resources/db/migration/V2__pokemon_record.sql`

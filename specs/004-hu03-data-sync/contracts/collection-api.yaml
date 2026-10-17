@@ -130,7 +130,7 @@ paths:
                     imageUrl: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png
                     generation: generation-i
                     syncedAt: "2026-01-01T00:00:00Z"
-                    localizedName: Bulbasaur (demo)
+                    localizedName: Bulbizarre
                     location: Pallet Town garden
                     tags: [first-partner, forest]
         "400":

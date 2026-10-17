@@ -494,3 +494,16 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `repository.save` stays outside so an `IllegalArgumentException` from
   persistence is not misreported as `CatalogUnavailableException` (502).
   Cover with a test: save throws IAE → propagates as IAE.
+
+## 2026-10-17 — JPA adapter: constraint-specific 409, no @Component, FR seed
+- **Source**: Miguel's review
+- **Context**: T008/T009 review of `LocalPokemonJpaAdapter` and V3 seed.
+- **Correction**: (1) Map `DataIntegrityViolationException` →
+  `DuplicateLocalPokemonException` only when the cause chain has a Hibernate
+  `ConstraintViolationException` whose constraint name is
+  `uq_pokemon_record_national_number`; rethrow other integrity violations.
+  Cover with a test that a different violation is not reported as duplicate.
+  (2) Do not put `@Component` on the adapter — register it as a `@Bean` in
+  `web/config` (T011 / U1). (3) Seed localized names are French nomenclature:
+  Bulbizarre, Herbizarre, Florizarre (no "(demo)"). (4) Prefer injecting
+  `Clock` for `created_at` / `updated_at`.
