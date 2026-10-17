@@ -197,7 +197,7 @@ cache failures; default TTL 24h, configurable.
 **Independent Test**: Two identical calls → one upstream; failing call not
 stored.
 
-- [ ] T016 [HU01-cache] RED: extend
+- [x] T016 [HU01-cache] RED: extend
   `PokeApiCatalogAdapterTest.java` (or add
   `CachingPokemonCatalogPortTest.java` under
   `.../infrastructure/pokeapi/`) — after one successful `speciesPage` /
@@ -207,7 +207,7 @@ stored.
   push RED. Coverage: **infrastructure**.
   ⏸ Review — `test(infrastructure): expect caffeine cache hit and no failure cache (red)`
 
-- [ ] T017 [HU01-cache] GREEN: add `com.github.ben-manes.caffeine:caffeine`
+- [x] T017 [HU01-cache] GREEN: add `com.github.ben-manes.caffeine:caffeine`
   (BOM-managed) to `backend/infrastructure/pom.xml`. Implement programmatic
   Caffeine caches inside the adapter (or a caching decorator of
   `PokemonCatalogPort`) under

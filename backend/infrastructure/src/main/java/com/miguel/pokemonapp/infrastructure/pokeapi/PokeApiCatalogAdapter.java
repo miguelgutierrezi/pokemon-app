@@ -1,5 +1,8 @@
 package com.miguel.pokemonapp.infrastructure.pokeapi;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Ticker;
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
 import com.miguel.pokemonapp.application.port.PokemonCatalogPort;
 import com.miguel.pokemonapp.application.port.SpeciesPage;
@@ -26,28 +29,64 @@ import tools.jackson.databind.JsonNode;
 public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoCloseable {
 
   private static final Pattern SPECIES_ID = Pattern.compile(".*/pokemon-species/(\\d+)/?$");
+  private static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(24);
+  private static final int DEFAULT_ID_CACHE_MAX_SIZE = 2048;
+  private static final int DEFAULT_LIST_CACHE_MAX_SIZE = 256;
 
   private final RestClient restClient;
   private final ExecutorService executor;
+  private final Cache<String, SpeciesPage> speciesPageCache;
+  private final Cache<Integer, CatalogPokemon> pokemonCache;
+  private final Cache<Integer, CatalogSpecies> speciesCache;
 
   public PokeApiCatalogAdapter(String baseUrl, Duration connectTimeout, Duration readTimeout) {
+    this(
+        baseUrl,
+        connectTimeout,
+        readTimeout,
+        DEFAULT_CACHE_TTL,
+        DEFAULT_ID_CACHE_MAX_SIZE,
+        DEFAULT_LIST_CACHE_MAX_SIZE,
+        Ticker.systemTicker());
+  }
+
+  public PokeApiCatalogAdapter(
+      String baseUrl,
+      Duration connectTimeout,
+      Duration readTimeout,
+      Duration cacheTtl,
+      int idCacheMaxSize,
+      int listCacheMaxSize,
+      Ticker ticker) {
     HttpClient httpClient = HttpClient.newBuilder().connectTimeout(connectTimeout).build();
     JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
     requestFactory.setReadTimeout(readTimeout);
     this.restClient = RestClient.builder().baseUrl(baseUrl).requestFactory(requestFactory).build();
     this.executor = Executors.newVirtualThreadPerTaskExecutor();
+    this.speciesPageCache =
+        Caffeine.newBuilder()
+            .expireAfterWrite(cacheTtl)
+            .maximumSize(listCacheMaxSize)
+            .ticker(ticker)
+            .build();
+    this.pokemonCache =
+        Caffeine.newBuilder()
+            .expireAfterWrite(cacheTtl)
+            .maximumSize(idCacheMaxSize)
+            .ticker(ticker)
+            .build();
+    this.speciesCache =
+        Caffeine.newBuilder()
+            .expireAfterWrite(cacheTtl)
+            .maximumSize(idCacheMaxSize)
+            .ticker(ticker)
+            .build();
   }
 
   @Override
   public SpeciesPage speciesPage(int offset, int limit) {
-    JsonNode body = getJson("/pokemon-species?offset={offset}&limit={limit}", offset, limit);
-    requireField(body, "count", "malformed species page: missing count");
-    long total = body.get("count").asLong();
-    List<Integer> ids = new ArrayList<>();
-    for (JsonNode result : body.path("results")) {
-      ids.add(parseSpeciesId(result.path("url").asString()));
-    }
-    return new SpeciesPage(ids, total);
+    String key = offset + ":" + limit;
+    return speciesPageCache.get(key, ignored -> loadSpeciesPage(offset, limit));
   }
 
   @Override
@@ -73,9 +112,9 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
 
   private CatalogEntry fetchEntry(int nationalId) {
     CompletableFuture<CatalogPokemon> pokemon =
-        CompletableFuture.supplyAsync(() -> fetchPokemon(nationalId), executor);
+        CompletableFuture.supplyAsync(() -> cachedPokemon(nationalId), executor);
     CompletableFuture<CatalogSpecies> species =
-        CompletableFuture.supplyAsync(() -> fetchSpecies(nationalId), executor);
+        CompletableFuture.supplyAsync(() -> cachedSpecies(nationalId), executor);
     try {
       return new CatalogEntry(pokemon.join(), species.join());
     } catch (CompletionException e) {
@@ -85,7 +124,26 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     }
   }
 
-  private CatalogPokemon fetchPokemon(int nationalId) {
+  private CatalogPokemon cachedPokemon(int nationalId) {
+    return pokemonCache.get(nationalId, this::loadPokemon);
+  }
+
+  private CatalogSpecies cachedSpecies(int nationalId) {
+    return speciesCache.get(nationalId, this::loadSpecies);
+  }
+
+  private SpeciesPage loadSpeciesPage(int offset, int limit) {
+    JsonNode body = getJson("/pokemon-species?offset={offset}&limit={limit}", offset, limit);
+    requireField(body, "count", "malformed species page: missing count");
+    long total = body.get("count").asLong();
+    List<Integer> ids = new ArrayList<>();
+    for (JsonNode result : body.path("results")) {
+      ids.add(parseSpeciesId(result.path("url").asString()));
+    }
+    return new SpeciesPage(ids, total);
+  }
+
+  private CatalogPokemon loadPokemon(int nationalId) {
     JsonNode body = getJson("/pokemon/{id}", nationalId);
     requireField(body, "id", "malformed pokemon payload for id " + nationalId);
     requireField(body, "name", "malformed pokemon payload for id " + nationalId);
@@ -117,7 +175,7 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
         abilities);
   }
 
-  private CatalogSpecies fetchSpecies(int nationalId) {
+  private CatalogSpecies loadSpecies(int nationalId) {
     JsonNode body = getJson("/pokemon-species/{id}", nationalId);
     List<LocalizedText> names = new ArrayList<>();
     for (JsonNode nameNode : body.path("names")) {
