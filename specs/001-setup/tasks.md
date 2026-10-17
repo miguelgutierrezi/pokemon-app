@@ -144,7 +144,7 @@ renumbered.
 **Independent Test**: After merging the 001 PR, both images appear under the repository's Packages with tags `<sha>` and `latest`.
 
 - [x] T026 [S4] Add job `publish` to `.github/workflows/ci.yml` (research R9, FR-014): `needs: [backend, frontend]`; `if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !failure() && !cancelled()`; job-level `permissions: contents: read, packages: write`; steps `actions/checkout`, `docker/setup-buildx-action`, `docker/login-action` (registry `ghcr.io`, username `${{ github.actor }}`, password `${{ secrets.GITHUB_TOKEN }}`), then `docker/build-push-action` twice with `push: true`, contexts `backend` and `frontend`, tags `ghcr.io/${{ github.repository_owner }}/pokemonapp-backend:${{ github.sha }}` + `:latest` and the same for `pokemonapp-frontend`, and GitHub Actions cache (`cache-from/to: type=gha`). Image names must be lowercase. On the draft PR, confirm `publish` shows as **skipped**. ⏸ Review — `ci: publish images to ghcr on main`
-- [ ] T027 [S4] **User action**: mark the PR ready for review once T028–T030 are done, confirm all checks green, merge with a **merge commit**, then confirm the `publish` job ran on `main` and both packages exist in GHCR. Optionally set the packages' visibility to public so the panel can pull them. ⏸ Review
+- [x] T027 [S4] **User action**: mark the PR ready for review once T028–T030 are done, confirm all checks green, merge with a **merge commit**, then confirm the `publish` job ran on `main` and both packages exist in GHCR. Optionally set the packages' visibility to public so the panel can pull them. ⏸ Review
 
 **Checkpoint**: S4 acceptance scenarios 1–5 pass.
 
