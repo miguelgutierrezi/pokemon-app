@@ -83,6 +83,10 @@ CI, docs.
 **Post-design re-check**: PASS. Contracts limited to health + env keys; no
 business tables; Complexity Tracking empty.
 
+**Post-implementation re-check (T030)**: PASS. Forbidden-dependency greps on
+`backend/*/pom.xml` and `frontend/package.json` returned no matches. Gates
+I–X unchanged; III/V/VI remain N/A until later features.
+
 ## Project Structure
 
 ### Documentation (this feature)

@@ -164,8 +164,8 @@ renumbered.
 
 ## Phase 8: Polish & cross-cutting
 
-- [ ] T029 Run the whole of `specs/001-setup/quickstart.md` from a clean clone (`docker compose down -v` first) and record any deviation. Fix before continuing. ⏸ Review
-- [ ] T030 Re-check the constitution gates in `specs/001-setup/plan.md` against the code (no forbidden dependencies: `grep -rE "security|springdoc|caffeine|wiremock|data-jpa" backend/*/pom.xml` and `grep -E "react-query|react-router|shadcn" frontend/package.json` return nothing). Mark the checklist and this file complete. ⏸ Review — `docs(specs): close 001-setup`
+- [x] T029 Run the whole of `specs/001-setup/quickstart.md` from a clean clone (`docker compose down -v` first) and record any deviation. Fix before continuing. ⏸ Review
+- [x] T030 Re-check the constitution gates in `specs/001-setup/plan.md` against the code (no forbidden dependencies: `grep -rE "security|springdoc|caffeine|wiremock|data-jpa" backend/*/pom.xml` and `grep -E "react-query|react-router|shadcn" frontend/package.json` return nothing). Mark the checklist and this file complete. ⏸ Review — `docs(specs): close 001-setup`
 
 ---
 

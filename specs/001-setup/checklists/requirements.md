@@ -44,3 +44,6 @@
   `/api`; health contract fixed (503 on DOWN).
 - `/speckit-analyze` needs `tasks.md`; run it right after `/speckit-tasks`.
 - Base Java package confirmed: `com.miguel.pokemonapp` (2026-10-16).
+- **Complete (T030, 2026-10-16)**: implementation closed for 001-setup except
+  user merge (T027). Spec quality checklist accepted as-is (partial/N/A items
+  remain intentional). Constitution gates re-checked PASS in `plan.md`.
