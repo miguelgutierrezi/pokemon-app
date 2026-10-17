@@ -102,13 +102,13 @@ test classpath. 002 list domain tests stay green.
   Tests pass. Coverage: **domain**.
   ⏸ Review — `feat(domain): flavor text normalisation and image url (green)`
 
-- [ ] T006 [HU02] RED: write
+- [x] T006 [HU02] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/PokemonStatsTest.java`
   — six bases ≥ 0; `total` = sum of the six (computed). Confirm fail. Do not
   push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect pokemon stats total (red)`
 
-- [ ] T007 [HU02] GREEN: implement
+- [x] T007 [HU02] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/PokemonStats.java`.
   Tests pass. Coverage: **domain**.
   ⏸ Review — `feat(domain): pokemon stats with computed total (green)`
