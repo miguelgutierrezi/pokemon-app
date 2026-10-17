@@ -14,3 +14,9 @@ management:
   endpoint:
     health:
       show-components: always
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

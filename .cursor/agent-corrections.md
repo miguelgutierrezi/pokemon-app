@@ -259,9 +259,27 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Context**: Sync Caffeine `Cache` + blocking HTTP load on Java 21 virtual
   threads pinned carriers (32×200ms loads ≈ 3264 ms with 2 carriers vs
   ≈ 223 ms with `AsyncCache`).
-- **Correction**: Use Caffeine `AsyncCache` (`buildAsync`); load with
-  `(key, ignoredExecutor) -> CompletableFuture.supplyAsync(() -> load(key),
-  executor)` on the virtual-thread executor. Compose pokemon/species futures
-  in `fetchEntry` (no nested blocking joins). Keep a regression test under
-  `-Djdk.virtualThreadScheduler.parallelism=2` (or equivalent concurrency
-  proof). Failed futures must not remain cached.
+- **Correction**: *(Superseded by the next entry.)* Avoid blocking IO inside
+  Caffeine `compute`/`get(key, mappingFunction)` on virtual threads. Keep
+  `VirtualThreadCarrierPinningIT` under
+  `-Djdk.virtualThreadScheduler.parallelism=2`.
+
+## 2026-10-16 — Caffeine getIfPresent/load/put (not AsyncCache)
+- **Source**: Miguel's review
+- **Context**: `AsyncCache` + `expireAfterWrite` starts the expiry clock in a
+  completion callback after `join()` returns, so
+  `CachingPokeApiCatalogAdapterTest.expiredCacheEntryIsRefetched` failed
+  10/10 when advancing a manual `Ticker` immediately after the first call.
+- **Correction**: Use synchronous Caffeine `Cache` with
+  `getIfPresent` → load **outside** any cache lock → `put` on success only.
+  No blocking IO inside `compute`. Expiry starts at `put`. Document that
+  concurrent misses for the same key are not coalesced (acceptable for
+  idempotent GETs). Keep carrier-pinning IT and cache tests.
+
+## 2026-10-16 — springdoc: set enabled flags explicitly
+- **Source**: Miguel's review
+- **Context**: springdoc 3.1.1 logs WARN when api-docs/swagger-ui are enabled
+  by default without explicit properties.
+- **Correction**: Set `springdoc.api-docs.enabled=true` and
+  `springdoc.swagger-ui.enabled=true` in `application.yml` to express intent
+  and silence those default-enabled WARNs.

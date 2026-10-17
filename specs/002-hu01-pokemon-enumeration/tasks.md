@@ -225,13 +225,13 @@ stored.
 **Goal**: Prove springdoc **3.1.1** serves OpenAPI on Boot 4.1.1. If GREEN
 cannot pass, **stop and decide** before Phase 6.
 
-- [ ] T018 [HU01] RED: write
+- [x] T018 [HU01] RED: write
   `backend/web/src/test/java/com/miguel/pokemonapp/web/OpenApiDocsIntegrationTest.java`
   (or equivalent `@SpringBootTest`) asserting `GET /v3/api-docs` returns
   **200**. Confirm it fails with **404** (springdoc absent). Do not push RED.
   Coverage: **web**. ⏸ Review — `test(web): expect openapi docs endpoint (red)`
 
-- [ ] T019 [HU01] GREEN: add `springdoc-openapi-starter-webmvc-ui` **3.1.1** to
+- [x] T019 [HU01] GREEN: add `springdoc-openapi-starter-webmvc-ui` **3.1.1** to
   `backend/web/pom.xml` (pin in parent `dependencyManagement`). Re-run T018;
   must be **200**. If it cannot pass, stop — do not start T020+.
   Coverage: **web**. ⏸ Review — `feat(web): add springdoc 3.1.1 (green)`
