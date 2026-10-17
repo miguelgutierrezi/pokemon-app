@@ -80,6 +80,22 @@ class ListPokemonUseCaseTest {
     verify(catalog, never()).fetchEntries(anyList());
   }
 
+  @Test
+  void translatesIllegalArgumentExceptionDuringAssembleToCatalogUnavailable() {
+    List<Integer> ids = List.of(1);
+    when(catalog.speciesPage(0, 9)).thenReturn(new SpeciesPage(ids, 1L));
+    when(catalog.fetchEntries(ids))
+        .thenReturn(
+            List.of(
+                new CatalogEntry(
+                    pokemon(1, "bulbasaur", -1), species("Bulbasaur", "Seed Pokémon"))));
+
+    assertThatThrownBy(() -> useCase.execute(new PageRequest(1, 9)))
+        .isInstanceOf(CatalogUnavailableException.class)
+        .hasMessage("malformed catalog data")
+        .hasCauseInstanceOf(IllegalArgumentException.class);
+  }
+
   private static CatalogPokemon pokemon(int id, String slug, int hectograms) {
     return new CatalogPokemon(
         id, slug, null, hectograms, List.of(new CatalogAbility(1, "overgrow", false)));

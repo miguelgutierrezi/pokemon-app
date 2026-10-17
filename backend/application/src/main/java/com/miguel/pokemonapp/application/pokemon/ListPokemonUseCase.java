@@ -1,5 +1,6 @@
 package com.miguel.pokemonapp.application.pokemon;
 
+import com.miguel.pokemonapp.application.CatalogUnavailableException;
 import com.miguel.pokemonapp.application.port.PokemonCatalogPort;
 import com.miguel.pokemonapp.application.port.SpeciesPage;
 import com.miguel.pokemonapp.domain.page.Page;
@@ -21,10 +22,14 @@ public class ListPokemonUseCase {
     request.requireWithin(speciesPage.totalCount());
 
     List<CatalogEntry> entries = catalog.fetchEntries(speciesPage.nationalIds());
-    List<PokemonSummary> content =
-        entries.stream()
-            .map(entry -> PokemonSummary.assemble(entry.pokemon(), entry.species()))
-            .toList();
-    return Page.of(content, request, speciesPage.totalCount());
+    try {
+      List<PokemonSummary> content =
+          entries.stream()
+              .map(entry -> PokemonSummary.assemble(entry.pokemon(), entry.species()))
+              .toList();
+      return Page.of(content, request, speciesPage.totalCount());
+    } catch (IllegalArgumentException e) {
+      throw new CatalogUnavailableException("malformed catalog data", e);
+    }
   }
 }
