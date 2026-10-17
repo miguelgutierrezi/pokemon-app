@@ -116,7 +116,9 @@ class PokeApiCatalogAdapterTest {
           "genera": [
             { "genus": "Seed Pokémon", "language": { "name": "en" } },
             { "genus": "たねポケモン", "language": { "name": "ja" } }
-          ]
+          ],
+          "generation": { "name": "generation-i" },
+          "evolution_chain": { "url": "https://pokeapi.co/api/v2/evolution-chain/1/" }
         }
         """,
         300);
@@ -139,7 +141,9 @@ class PokeApiCatalogAdapterTest {
         """
         {
           "names": [ { "name": "Ivysaur", "language": { "name": "en" } } ],
-          "genera": [ { "genus": "Seed Pokémon", "language": { "name": "en" } } ]
+          "genera": [ { "genus": "Seed Pokémon", "language": { "name": "en" } } ],
+          "generation": { "name": "generation-i" },
+          "evolution_chain": { "url": "https://pokeapi.co/api/v2/evolution-chain/1/" }
         }
         """,
         300);
@@ -160,7 +164,9 @@ class PokeApiCatalogAdapterTest {
         """
         {
           "names": [ { "name": "Venusaur", "language": { "name": "en" } } ],
-          "genera": []
+          "genera": [],
+          "generation": { "name": "generation-i" },
+          "evolution_chain": { "url": "https://pokeapi.co/api/v2/evolution-chain/1/" }
         }
         """,
         300);
@@ -183,7 +189,9 @@ class PokeApiCatalogAdapterTest {
         """
         {
           "names": [ { "name": "Charmander", "language": { "name": "en" } } ],
-          "genera": [ { "genus": "Lizard Pokémon", "language": { "name": "en" } } ]
+          "genera": [ { "genus": "Lizard Pokémon", "language": { "name": "en" } } ],
+          "generation": { "name": "generation-i" },
+          "evolution_chain": { "url": "https://pokeapi.co/api/v2/evolution-chain/2/" }
         }
         """,
         300);
@@ -329,7 +337,9 @@ class PokeApiCatalogAdapterTest {
     return """
         {
           "names": [ { "name": "%s", "language": { "name": "en" } } ],
-          "genera": [ { "genus": "Seed Pokémon", "language": { "name": "en" } } ]
+          "genera": [ { "genus": "Seed Pokémon", "language": { "name": "en" } } ],
+          "generation": { "name": "generation-i" },
+          "evolution_chain": { "url": "https://pokeapi.co/api/v2/evolution-chain/1/" }
         }
         """
         .formatted(englishName);

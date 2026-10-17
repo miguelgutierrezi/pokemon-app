@@ -99,7 +99,11 @@ class VirtualThreadCarrierPinningIT {
                         """
                         {
                           "names": [ { "name": "P%d", "language": { "name": "en" } } ],
-                          "genera": []
+                          "genera": [],
+                          "generation": { "name": "generation-i" },
+                          "evolution_chain": {
+                            "url": "https://pokeapi.co/api/v2/evolution-chain/1/"
+                          }
                         }
                         """
                             .formatted(id))));

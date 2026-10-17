@@ -10,8 +10,11 @@ import com.miguel.pokemonapp.domain.pokemon.CatalogAbility;
 import com.miguel.pokemonapp.domain.pokemon.CatalogDetailEntry;
 import com.miguel.pokemonapp.domain.pokemon.CatalogEntry;
 import com.miguel.pokemonapp.domain.pokemon.CatalogEvolutionChain;
-import com.miguel.pokemonapp.domain.pokemon.CatalogPokemon;
-import com.miguel.pokemonapp.domain.pokemon.CatalogSpecies;
+import com.miguel.pokemonapp.domain.pokemon.CatalogPokemonDetail;
+import com.miguel.pokemonapp.domain.pokemon.CatalogSpeciesDetail;
+import com.miguel.pokemonapp.domain.pokemon.CatalogStat;
+import com.miguel.pokemonapp.domain.pokemon.CatalogType;
+import com.miguel.pokemonapp.domain.pokemon.FlavorTextEntry;
 import com.miguel.pokemonapp.domain.pokemon.LocalizedText;
 import java.net.http.HttpClient;
 import java.time.Duration;
@@ -31,6 +34,7 @@ import tools.jackson.databind.JsonNode;
 public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoCloseable {
 
   private static final Pattern SPECIES_ID = Pattern.compile(".*/pokemon-species/(\\d+)/?$");
+  private static final Pattern EVOLUTION_CHAIN_ID = Pattern.compile(".*/evolution-chain/(\\d+)/?$");
   private static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(24);
   private static final int DEFAULT_ID_CACHE_MAX_SIZE = 2048;
   private static final int DEFAULT_LIST_CACHE_MAX_SIZE = 256;
@@ -38,8 +42,8 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
   private final RestClient restClient;
   private final ExecutorService executor;
   private final Cache<String, SpeciesPage> speciesPageCache;
-  private final Cache<Integer, CatalogPokemon> pokemonCache;
-  private final Cache<Integer, CatalogSpecies> speciesCache;
+  private final Cache<Integer, CatalogPokemonDetail> pokemonCache;
+  private final Cache<Integer, CatalogSpeciesDetail> speciesCache;
 
   public PokeApiCatalogAdapter(String baseUrl, Duration connectTimeout, Duration readTimeout) {
     this(
@@ -127,29 +131,29 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
   }
 
   private CompletableFuture<CatalogEntry> fetchEntry(int nationalId) {
-    CompletableFuture<CatalogPokemon> pokemon =
+    CompletableFuture<CatalogPokemonDetail> pokemon =
         CompletableFuture.supplyAsync(() -> cachedPokemon(nationalId), executor);
-    CompletableFuture<CatalogSpecies> species =
+    CompletableFuture<CatalogSpeciesDetail> species =
         CompletableFuture.supplyAsync(() -> cachedSpecies(nationalId), executor);
-    return pokemon.thenCombine(species, CatalogEntry::new);
+    return pokemon.thenCombine(species, (p, s) -> new CatalogEntry(p.toSummary(), s.toSummary()));
   }
 
-  private CatalogPokemon cachedPokemon(int nationalId) {
-    CatalogPokemon cached = pokemonCache.getIfPresent(nationalId);
+  private CatalogPokemonDetail cachedPokemon(int nationalId) {
+    CatalogPokemonDetail cached = pokemonCache.getIfPresent(nationalId);
     if (cached != null) {
       return cached;
     }
-    CatalogPokemon loaded = loadPokemon(nationalId);
+    CatalogPokemonDetail loaded = loadPokemon(nationalId);
     pokemonCache.put(nationalId, loaded);
     return loaded;
   }
 
-  private CatalogSpecies cachedSpecies(int nationalId) {
-    CatalogSpecies cached = speciesCache.getIfPresent(nationalId);
+  private CatalogSpeciesDetail cachedSpecies(int nationalId) {
+    CatalogSpeciesDetail cached = speciesCache.getIfPresent(nationalId);
     if (cached != null) {
       return cached;
     }
-    CatalogSpecies loaded = loadSpecies(nationalId);
+    CatalogSpeciesDetail loaded = loadSpecies(nationalId);
     speciesCache.put(nationalId, loaded);
     return loaded;
   }
@@ -165,7 +169,7 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     return new SpeciesPage(ids, total);
   }
 
-  private CatalogPokemon loadPokemon(int nationalId) {
+  private CatalogPokemonDetail loadPokemon(int nationalId) {
     JsonNode body = getJson("/pokemon/{id}", nationalId);
     requireField(body, "id", "malformed pokemon payload for id " + nationalId);
     requireField(body, "name", "malformed pokemon payload for id " + nationalId);
@@ -189,15 +193,41 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
               abilityNode.path("ability").path("name").asString(),
               abilityNode.path("is_hidden").asBoolean()));
     }
-    return new CatalogPokemon(
-        id,
-        name,
-        textOrNull(body.path("sprites").path("front_default")),
-        body.get("weight").asInt(),
-        abilities);
+
+    List<CatalogType> types = new ArrayList<>();
+    for (JsonNode typeNode : body.path("types")) {
+      types.add(
+          new CatalogType(
+              typeNode.path("slot").asInt(), typeNode.path("type").path("name").asString()));
+    }
+
+    List<CatalogStat> stats = new ArrayList<>();
+    for (JsonNode statNode : body.path("stats")) {
+      stats.add(
+          new CatalogStat(
+              statNode.path("stat").path("name").asString(), statNode.path("base_stat").asInt()));
+    }
+
+    int heightDecimetres = body.path("height").asInt(0);
+
+    try {
+      return new CatalogPokemonDetail(
+          id,
+          name,
+          textOrNull(body.path("sprites").path("front_default")),
+          textOrNull(
+              body.path("sprites").path("other").path("official-artwork").path("front_default")),
+          heightDecimetres,
+          body.get("weight").asInt(),
+          abilities,
+          types,
+          stats);
+    } catch (IllegalArgumentException e) {
+      throw new CatalogUnavailableException("malformed pokemon payload for id " + nationalId, e);
+    }
   }
 
-  private CatalogSpecies loadSpecies(int nationalId) {
+  private CatalogSpeciesDetail loadSpecies(int nationalId) {
     JsonNode body = getJson("/pokemon-species/{id}", nationalId);
     List<LocalizedText> names = new ArrayList<>();
     for (JsonNode nameNode : body.path("names")) {
@@ -212,7 +242,33 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
               genusNode.path("language").path("name").asString(),
               genusNode.path("genus").asString()));
     }
-    return new CatalogSpecies(names, genera);
+    List<FlavorTextEntry> flavorEntries = new ArrayList<>();
+    for (JsonNode flavorNode : body.path("flavor_text_entries")) {
+      flavorEntries.add(
+          new FlavorTextEntry(
+              flavorNode.path("language").path("name").asString(),
+              flavorNode.path("flavor_text").asString(),
+              flavorNode.path("version").path("name").asString()));
+    }
+
+    String generationSlug = textOrNull(body.path("generation").path("name"));
+    if (generationSlug == null) {
+      throw new CatalogUnavailableException(
+          "malformed species payload for id " + nationalId + ": missing generation");
+    }
+    String chainUrl = textOrNull(body.path("evolution_chain").path("url"));
+    if (chainUrl == null) {
+      throw new CatalogUnavailableException(
+          "malformed species payload for id " + nationalId + ": missing evolution_chain");
+    }
+    int evolutionChainId = parseEvolutionChainId(chainUrl);
+
+    try {
+      return new CatalogSpeciesDetail(
+          names, genera, flavorEntries, generationSlug, evolutionChainId);
+    } catch (IllegalArgumentException e) {
+      throw new CatalogUnavailableException("malformed species payload for id " + nationalId, e);
+    }
   }
 
   private JsonNode getJson(String uriTemplate, Object... uriVariables) {
@@ -260,6 +316,14 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     Matcher matcher = SPECIES_ID.matcher(url);
     if (!matcher.matches()) {
       throw new CatalogUnavailableException("unrecognized species url: " + url);
+    }
+    return Integer.parseInt(matcher.group(1));
+  }
+
+  private static int parseEvolutionChainId(String url) {
+    Matcher matcher = EVOLUTION_CHAIN_ID.matcher(url);
+    if (!matcher.matches()) {
+      throw new CatalogUnavailableException("unrecognized evolution-chain url: " + url);
     }
     return Integer.parseInt(matcher.group(1));
   }

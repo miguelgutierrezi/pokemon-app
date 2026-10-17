@@ -202,7 +202,7 @@ path derives 002 summaries. **No** second cache for the same URL. Keep all
 and existing WireMock list/cache tests still pass with the same request
 counts/semantics.
 
-- [ ] T014 [HU02] REFACTOR: in
+- [x] T014 [HU02] REFACTOR: in
   `backend/infrastructure/src/main/java/com/miguel/pokemonapp/infrastructure/pokeapi/PokeApiCatalogAdapter.java`
   (and tests under `.../infrastructure/pokeapi/`), change pokemon/species
   Caffeine caches to hold `CatalogPokemonDetail` / `CatalogSpeciesDetail`;
