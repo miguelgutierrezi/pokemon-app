@@ -34,7 +34,8 @@ Absent narrative is represented **only** as a null `FlavorText` reference
 null fields.
 
 **Normalisation** (domain): collapse runs of whitespace (`\s+`, covering
-`\f`/`\n`/`\r`/spaces) to a single space; trim. Empty after trim → absent
+`\f`/`\n`/`\r`/spaces) to a single space; trim; then replace the Gen I–III
+catalog quirk `POKéMON` with `Pokémon`. Empty after trim → absent
 (`flavorText` is null).
 
 ### ImageUrl

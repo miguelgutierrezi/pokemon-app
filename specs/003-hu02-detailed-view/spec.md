@@ -68,9 +68,9 @@ Detail cases.
    **When** detail is requested, **Then** the narrative is the **first**
    English entry in catalog order, normalised (form feed, newlines, carriage
    returns, and repeated whitespace collapsed to single spaces, then
-   trimmed), and the response includes the game **version** slug for that
-   entry; **Given** no English flavor text, **Then** `flavorText` is null
-   (documented).
+   trimmed; Gen I–III `POKéMON` → `Pokémon`), and the response includes the
+   game **version** slug for that entry; **Given** no English flavor text,
+   **Then** `flavorText` is null (documented).
 5. **Given** a species with a branching evolution chain (e.g. Eevee),
    **When** detail is requested, **Then** the evolutionary lineage is a
    **tree** of nodes (national number, English display name, front-sprite
@@ -274,7 +274,8 @@ response succeeds quickly and produces zero additional catalog HTTP calls
   `special-attack`, `special-defense`, `speed`).
 - **Flavor text**: First English entry in the species
   `flavor_text_entries` array order; normalisation collapses `\f`, `\n`,
-  `\r`, and runs of whitespace to single spaces, then trims.
+  `\r`, and runs of whitespace to single spaces, trims, then replaces
+  `POKéMON` with `Pokémon`.
 - **404 vs 502**: Adapter maps upstream **404** on identity resources to a
   domain/application not-found signal → HTTP 404. Transport/timeout/5xx/
   malformed → existing `CatalogUnavailableException` → 502.

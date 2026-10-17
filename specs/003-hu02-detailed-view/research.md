@@ -118,8 +118,8 @@ id-tier (**2048**) unless tasks choose otherwise.
 - **HeightM**: `decimetres / 10` → `BigDecimal` scale 1; reject negatives.
 - **PokemonStats**: six named base stats + `total` = sum (domain).
 - **FlavorText**: first English `flavor_text_entries` entry; normalise
-  `\f`, `\n`, `\r`, whitespace runs → single space; trim; null text+version
-  if no English entry.
+  `\f`, `\n`, `\r`, whitespace runs → single space; trim; replace Gen I–III
+  `POKéMON` → `Pokémon`; null text+version if no English entry.
 
 **Rationale**: Spec FR-003–FR-005 / SC-006; unit-testable without HTTP.
 

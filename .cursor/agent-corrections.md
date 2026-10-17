@@ -373,8 +373,10 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `FlavorText(null, null)` (“null pair”).
 - **Correction**: Absent narrative is **only** a null `FlavorText` (what
   `from()` returns). Constructor requires non-blank `text` and non-null
-  `version`. Normalise with `\\s+` only (`\\s` already covers `\\f`/`\\n`/
-  `\\r`). Spec/data-model say “`flavorText` is null”, not “null pair”.
+  `version`. Whitespace: collapse with `\\s+` then trim (`\\s` covers
+  `\\f`/`\\n`/`\\r`). Spec/data-model say “`flavorText` is null”, not
+  “null pair”. (See 2026-10-17 for the additional `POKéMON` → `Pokémon`
+  step.)
 
 ## 2026-10-16 — Evolution node image is front sprite thumbnail
 - **Source**: Miguel's review
@@ -430,3 +432,12 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   (constructor + accessor). Keep an internal message with the upstream
   path for logs. Adapter passes the requested id; handler detail uses
   `ex.nationalId()` only — no URI template lookup.
+
+## 2026-10-17 — FlavorText replaces Gen I–III "POKéMON"
+- **Source**: Miguel's review
+- **Context**: T023 README example disagreed with the live API: Bulbasaur
+  red flavor text still contained the catalog quirk `POKéMON`.
+- **Correction**: Domain `FlavorText` normalisation also replaces
+  `POKéMON` → `Pokémon` (after whitespace collapse). Cover with a unit
+  test using the real Bulbasaur red entry. Keep README / contract examples
+  aligned with the live API response.

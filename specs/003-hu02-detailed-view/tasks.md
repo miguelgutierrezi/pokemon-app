@@ -333,12 +333,12 @@ Postgres Testcontainers; `POKEAPI_BASE_URL` → WireMock.
 
 ## Phase 7: Polish
 
-- [ ] T023 [HU02] Update root `README.md` — document
+- [x] T023 [HU02] Update root `README.md` — document
   `GET /api/v1/pokemon/{id}`, 400/404/502 cases, OpenAPI paths; no new env
   keys. Run every new README command before marking done. Coverage: N/A.
   ⏸ Review — `docs: document hu02 pokemon detail in readme`
 
-- [ ] T024 [HU02] Run `specs/003-hu02-detailed-view/quickstart.md` end to end
+- [x] T024 [HU02] Run `specs/003-hu02-detailed-view/quickstart.md` end to end
   (or record deviations and fix). Record observed SC-003/SC-004 timings
   manually; confirm SC-001/SC-002/error behaviours via IT or live curls.
   Coverage: validation run.
