@@ -201,7 +201,7 @@ infrastructure.
 
 **Independent Test**: `@WebMvcTest` in **web** with mocked use cases.
 
-- [ ] T010 [HU03] RED: write
+- [x] T010 [HU03] RED: write
   `backend/web/src/test/java/com/miguel/pokemonapp/web/collection/CollectionControllerTest.java`
   — POST import → **201** + `Location: /api/v1/collection/{n}` + body shape;
   GET list pagination defaults; GET one → **200**; invalid body/`nationalNumber`
@@ -211,7 +211,7 @@ infrastructure.
   Confirm fail. Do not push RED. Coverage: **web**.
   ⏸ Review — `test(web): expect collection controller and openapi (red)`
 
-- [ ] T011 [HU03] GREEN: implement
+- [x] T011 [HU03] GREEN: implement
   `backend/web/src/main/java/com/miguel/pokemonapp/web/collection/CollectionController.java`
   + request/DTOs under `.../web/collection/`; Bean Validation; OpenAPI
   annotations; under `web/config/` register `Clock`, collection use-case

@@ -507,3 +507,16 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `web/config` (T011 / U1). (3) Seed localized names are French nomenclature:
   Bulbizarre, Herbizarre, Florizarre (no "(demo)"). (4) Prefer injecting
   `Clock` for `created_at` / `updated_at`.
+
+## 2026-10-17 — PokeAPI test read timeout + JPA adapter TransactionTemplate-only
+- **Source**: Miguel's review
+- **Context**: CI red on `0f9d789` — cold runner took > 500 ms to read the
+  ~18.6 kB Eevee body ("Stream closed"); `@Transactional` on
+  `LocalPokemonJpaAdapter` is a no-op without a Spring proxy (`@DataJpaTest`
+  constructs the adapter manually).
+- **Correction**: (1) Shared `setUp` in `PokeApiCatalogAdapterTest`,
+  `PokeApiCatalogAdapterDetailTest`, and `CachingPokeApiCatalogAdapterTest`
+  must use a generous read timeout (5 s, like production). Only tests that
+  assert timeout behaviour create their own adapter with a short timeout.
+  (2) Do not put `@Transactional` on `LocalPokemonJpaAdapter` methods —
+  rely on `TransactionTemplate` only so transactions work without a proxy.
