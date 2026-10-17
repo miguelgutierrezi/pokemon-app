@@ -75,15 +75,21 @@ Expected: `502` Problem Detail; never a 200 with partial content.
 
 ## 7. Cache (SC-003, SC-004)
 
+Manual timing only (no automated wall-clock asserts). Record the observed
+`time_total` values when running the quickstart validation task (T029).
+
 ```bash
-# First uncached page — allow ≤ 3s when PokeAPI is healthy
-time curl -s -o /dev/null -w "%{http_code} %{time_total}\n" \
+# First uncached page — expect ≤ 3s when PokeAPI is healthy; record time_total
+curl -s -o /dev/null -w "%{http_code} %{time_total}\n" \
   "http://localhost:8080/api/v1/pokemon?page=1&size=9"
-# Immediate repeat — expect ≤ 0.2s and no new upstream traffic (observe via
-# WireMock request journal in IT, or app metrics/logs if exposed)
-time curl -s -o /dev/null -w "%{http_code} %{time_total}\n" \
+# Immediate repeat — expect ≤ 0.2s; record time_total. Zero new upstream
+# calls are proven in infrastructure WireMock tests (not by curl alone).
+curl -s -o /dev/null -w "%{http_code} %{time_total}\n" \
   "http://localhost:8080/api/v1/pokemon?page=1&size=9"
 ```
+
+Recorded (fill in during T029): uncached `time_total=___` s; cached
+`time_total=___` s.
 
 ## 8. OpenAPI
 

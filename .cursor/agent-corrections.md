@@ -123,3 +123,30 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `set -a; . ../.env; set +a` and export
   `SPRING_DATASOURCE_USERNAME="$POSTGRES_USER"` /
   `SPRING_DATASOURCE_PASSWORD="$POSTGRES_PASSWORD"`.
+
+## 2026-10-16 — 002 plan: programmatic Caffeine and speciesPage (plan review)
+- **Source**: Miguel's review
+- **Context**: Plan used `@Cacheable`/starter-cache and split
+  count+listSpeciesIds; springdoc Jackson note was contradictory; web IT
+  risked Jetty clashes; POKEAPI env wording was either/or.
+- **Correction**: Cache with programmatic Caffeine in infrastructure (or a
+  port decorator), not `@Cacheable`; never cache failures; default TTL 24h.
+  Port: `speciesPage(offset, limit)` → ids + total. First web task is a
+  springdoc 3.1.1 spike (`/v3/api-docs` = 200) or stop. Web IT uses
+  `wiremock-standalone`. Assume species id == Pokémon id for 1–1025.
+  `POKEAPI_BASE_URL` defaults in yml + `.env.example` + Compose
+  `${POKEAPI_BASE_URL:-https://pokeapi.co/api/v2}`.
+  `CatalogUnavailableException` lives in application (web → 502).
+
+## 2026-10-16 — 002 analyze remediation: plan/tasks/spec sync
+- **Source**: Miguel's review
+- **Context**: `/speckit-analyze` found plan.md drifted from tasks.md rev. 2
+  (wiring, springdoc spike, TDD order); sprite source and HU-01 "skills"
+  wording underspecified; SC-003/SC-004 timing not automated.
+- **Correction**: Keep plan.md structure + TDD ordering aligned with tasks
+  (web/config/ with e2e IT GREEN; springdoc RED/GREEN; advice after
+  controller; infra client then cache; PokemonSummary pair). Label springdoc
+  tasks `[HU01]`. Sprite = `sprites.front_default` only. Spec Assumptions:
+  HU-01 skills ≡ catalog abilities (slugs; UI formats in 007). Timing for
+  SC-003/SC-004 stays manual in quickstart T029 (record observed values);
+  no timing asserts in automated tests.

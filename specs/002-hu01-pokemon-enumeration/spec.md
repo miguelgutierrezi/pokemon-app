@@ -65,10 +65,9 @@ metadata whose total comes from the catalog (not a hard-coded constant).
 5. **Given** a species has no English genus in the catalog, **When** it
    appears in a page, **Then** category is absent/null (documented), not a
    guessed or non-English value.
-6. **Given** the catalog omits a front-default (or equivalent) sprite URL for
-   a species, **When** that species appears in a page, **Then** the sprite
-   field is null (documented) and the entry is still returned with the other
-   fields.
+6. **Given** the catalog omits `sprites.front_default` for a species,
+   **When** that species appears in a page, **Then** the sprite field is null
+   (documented) and the entry is still returned with the other fields.
 7. **Given** invalid paging input (page &lt; 1, size &lt; 1, size above the
    documented maximum of 20, or page beyond the last page), **When** the
    client calls the list endpoint, **Then** the API responds with HTTP 400
@@ -110,7 +109,8 @@ response succeeds quickly and produces zero additional catalog HTTP calls.
 - Size at the documented maximum of **20** (accepted); size 21 → 400.
   Maximum 20 caps fan-out at 40 catalog calls per uncached page (species +
   Pokémon per entry), keeping SC-004 achievable.
-- Sprite URL missing in the catalog → sprite field null; entry still returned.
+- `sprites.front_default` missing in the catalog → sprite field null; entry
+  still returned (no other sprite fields are consulted).
 - Concurrent requests for the same uncached page do not return a partial
   page marked complete if the catalog fails mid-flight.
 - Alternate forms (catalog ids 10001+) MUST NOT appear; only National Dex
@@ -151,8 +151,9 @@ response succeeds quickly and produces zero additional catalog HTTP calls.
   come from the Pokémon resource, and English display name and genus from the
   species resource; those two catalog reads for an entry MAY proceed in
   parallel.
-- **FR-012**: If the catalog provides no sprite URL for an entry, the sprite
-  field MUST be null (documented); the entry MUST still be returned.
+- **FR-012**: Sprite URL MUST come only from the catalog’s
+  `sprites.front_default`. If that field is absent/null, the sprite field
+  MUST be null (documented); the entry MUST still be returned.
 - **FR-013**: The system MUST cache external catalog responses in memory with
   a bounded size and TTL so repeated identical page requests within the TTL
   do not re-contact the catalog (HU-01 nice to have / TR-CACHE).
@@ -210,14 +211,19 @@ response succeeds quickly and produces zero additional catalog HTTP calls.
   offsets for identity (includes forms 10001+). Each entry combines
   `/pokemon/{id}` (sprite, weight, abilities) and `/pokemon-species/{id}`
   (English `names[]`, genus), fetched in parallel per id.
-- **Ability names**: Returned as catalog slugs (e.g. `solar-power`); human
-  formatting (title case, spaces) is the UI’s job in feature **007**.
+- **Skills ≡ abilities**: HU-01’s “skills” are the catalog’s **abilities**,
+  returned as slugs (e.g. `solar-power`). Human formatting (title case,
+  spaces) is the UI’s job in feature **007**.
 - **Errors & docs**: Global Problem Detail advice and springdoc OpenAPI are
   introduced in this feature (deferred from 001).
-- **Caching**: Caffeine in-memory cache for PokeAPI responses, bounded size
-  and TTL (exact numbers chosen in the plan).
+- **Caching**: Programmatic Caffeine in infrastructure for PokeAPI responses,
+  bounded size and TTL (default 24h in the plan); failures never cached.
 - **Config**: `POKEAPI_BASE_URL` in `.env.example` and the env contract;
   connect/read timeouts configurable.
+- **Performance (SC-003 / SC-004)**: Cached ≤ 200 ms and first uncached ≤ 3 s
+  are validated by **manual** measurement in the quickstart task (record
+  observed `time_total` values). Automated tests MUST NOT assert wall-clock
+  timings (they do assert zero upstream calls on cache hit).
 - **Testing / coverage (R6)**: Domain and application — pure unit tests;
   PokeAPI client in infrastructure — WireMock without a Spring context; web —
   controller tests plus a few end-to-end integration tests. JaCoCo gate stays

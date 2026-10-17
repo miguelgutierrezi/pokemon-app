@@ -109,6 +109,8 @@ backend/
 ├── web/src/{main,test}/java/com/miguel/pokemonapp/web/
 │   ├── pokemon/          # PokemonController, DTOs
 │   ├── error/            # ProblemDetail @RestControllerAdvice
+│   ├── config/           # PokeAPI @Configuration + @ConfigurationProperties
+│   │                     # (wired with e2e IT GREEN — R6 covers web)
 │   └── ...
 ├── pom.xml               # dependencyManagement pins (springdoc, wiremock*)
 .env.example              # + POKEAPI_BASE_URL
@@ -116,30 +118,35 @@ docker-compose.yml        # POKEAPI_BASE_URL with default
 ```
 
 **Structure Decision**: Extend existing Clean Architecture modules; no new
-Maven modules. Frontend untouched.
+Maven modules. Frontend untouched. Spring wiring for PokeAPI lives under
+`web/config/` (not infrastructure) so the web IT covers it (R6).
 
-## TDD ordering (visible for tasks)
+## TDD ordering (visible for tasks — aligned with tasks.md rev. 2)
 
 Work red → green per slice (separate commits at implement time):
 
-1. **Domain** — RED: weight / English name / genus / `PageRequest`+beyond-last
-   tests → GREEN: pure Java value objects + rules.
-2. **Application** — RED: `ListPokemonUseCase` with mocked
-   `PokemonCatalogPort` (`speciesPage` + per-id fetches) → GREEN:
-   orchestration; `CatalogUnavailableException` in application.
-3. **Infrastructure** — RED: WireMock stubs; assert two identical page/id
-   requests hit upstream once when cache warm; failures not cached → GREEN:
-   RestClient + parallel fetch + programmatic Caffeine (no Spring context).
-4. **Web spike (FIRST web task)** — add springdoc **3.1.1**, boot the app,
-   assert `GET /v3/api-docs` → **200**. If it fails, **stop and decide**
-   before any controller work.
-5. **Web** — RED: controller slice (validation 400, happy path DTO) and advice
-   (`CatalogUnavailableException` → 502) → GREEN: controller, DTOs, advice.
-6. **IT** — RED/GREEN: one end-to-end `@SpringBootTest` with
-   **wiremock-standalone**; assert page shape + ProblemDetail on upstream
-   failure.
-7. **Ops** — `.env.example`, Compose default for `POKEAPI_BASE_URL`, JaCoCo
-   `report-aggregate` in `web` (visibility only).
+1. **Domain** — sequential RED→GREEN pairs: weight → English name → genus →
+   `PokemonSummary` assembly (abilities by slot, hidden flag, null sprite) →
+   `PageRequest` / page-beyond-last.
+2. **Application** — RED→GREEN: `ListPokemonUseCase` with mocked
+   `PokemonCatalogPort` (`speciesPage` + per-id fetches);
+   `CatalogUnavailableException` in application.
+3. **Infrastructure client** — RED→GREEN: RestClient adapter + WireMock (no
+   Spring context); per-id failure and read-timeout → whole-page
+   `CatalogUnavailableException` (never partial).
+4. **Infrastructure cache** — RED→GREEN: programmatic Caffeine (two identical
+   calls → one upstream; failures never cached). Separate from step 3.
+5. **springdoc spike** — RED: IT asserts `GET /v3/api-docs` == 200 (fails
+   404) → GREEN: add springdoc **3.1.1**. If GREEN cannot pass, **stop**.
+6. **Web controller** — RED→GREEN: status codes / JSON shape only (`@WebMvcTest`).
+7. **Web advice** — RED→GREEN: ProblemDetail bodies (400 / 502) — separate
+   from the controller pair, immediately after.
+8. **E2E IT** — RED (wiremock-standalone) → GREEN: implement `web/config/`
+   PokeAPI wiring + defaults; IT asserts page shape + ProblemDetail on
+   upstream failure.
+9. **Ops / polish** — `.env.example`, Compose, JaCoCo `report-aggregate`,
+   README, quickstart (SC-003/SC-004 timings measured manually in T029;
+   no automated timing asserts).
 
 ## Complexity Tracking
 
