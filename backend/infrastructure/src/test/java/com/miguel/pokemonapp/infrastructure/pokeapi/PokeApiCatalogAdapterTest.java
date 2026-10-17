@@ -2,14 +2,18 @@ package com.miguel.pokemonapp.infrastructure.pokeapi;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
 import com.miguel.pokemonapp.application.port.SpeciesPage;
 import com.miguel.pokemonapp.domain.pokemon.CatalogAbility;
@@ -237,7 +241,59 @@ class PokeApiCatalogAdapterTest {
   }
 
   @Test
-  void fetchEntriesFailsWhenDelayExceedsReadTimeout() {
+  void fetchEntriesMapsIdentity404ToCatalogUnavailableException() {
+    stubSpeciesPage(0, 2, 1, 2);
+    stubPokemon(1, pokemonBody(1, "bulbasaur"), 0);
+    stubSpecies(1, speciesBody("Bulbasaur"), 0);
+    wireMock.stubFor(get(urlEqualTo("/pokemon/2")).willReturn(aResponse().withStatus(404)));
+    stubSpecies(2, speciesBody("Ivysaur"), 0);
+
+    SpeciesPage page = adapter.speciesPage(0, 2);
+    assertThat(page.nationalIds()).containsExactly(1, 2);
+
+    assertThatThrownBy(() -> adapter.fetchEntries(page.nationalIds()))
+        .isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void getJsonRetriesOnceAfterConnectionResetThenSucceeds() {
+    wireMock.stubFor(
+        get(urlEqualTo("/pokemon/1"))
+            .inScenario("connection-reset-retry")
+            .whenScenarioStateIs(STARTED)
+            .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
+            .willSetStateTo("recovered"));
+    wireMock.stubFor(
+        get(urlEqualTo("/pokemon/1"))
+            .inScenario("connection-reset-retry")
+            .whenScenarioStateIs("recovered")
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(pokemonBody(1, "bulbasaur"))));
+    stubSpecies(1, speciesBody("Bulbasaur"), 0);
+
+    List<CatalogEntry> entries = adapter.fetchEntries(List.of(1));
+
+    assertThat(entries).hasSize(1);
+    assertThat(entries.getFirst().pokemon().slug()).isEqualTo("bulbasaur");
+    wireMock.verify(exactly(2), getRequestedFor(urlEqualTo("/pokemon/1")));
+  }
+
+  @Test
+  void getJsonFailsWhenConnectionResetTwice() {
+    wireMock.stubFor(
+        get(urlEqualTo("/pokemon/1"))
+            .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+    stubSpecies(1, speciesBody("Bulbasaur"), 0);
+
+    assertThatThrownBy(() -> adapter.fetchEntries(List.of(1)))
+        .isInstanceOf(CatalogUnavailableException.class);
+    wireMock.verify(exactly(2), getRequestedFor(urlEqualTo("/pokemon/1")));
+  }
+
+  @Test
+  void getJsonDoesNotRetryWhenReadTimeoutExceeded() {
     wireMock.stubFor(
         get(urlEqualTo("/pokemon/1"))
             .willReturn(
@@ -253,6 +309,7 @@ class PokeApiCatalogAdapterTest {
     try {
       assertThatThrownBy(() -> shortRead.fetchEntries(List.of(1)))
           .isInstanceOf(CatalogUnavailableException.class);
+      wireMock.verify(exactly(1), getRequestedFor(urlEqualTo("/pokemon/1")));
     } finally {
       shortRead.close();
     }
@@ -296,6 +353,38 @@ class PokeApiCatalogAdapterTest {
     assertThatThrownBy(() -> adapter.fetchEntries(List.of(1)))
         .isInstanceOf(CatalogUnavailableException.class)
         .hasMessageContaining("malformed");
+  }
+
+  private void stubSpeciesPage(int offset, int limit, int... ids) {
+    StringBuilder results = new StringBuilder();
+    for (int i = 0; i < ids.length; i++) {
+      if (i > 0) {
+        results.append(',');
+      }
+      results.append(
+          """
+          {
+            "name": "p%d",
+            "url": "https://pokeapi.co/api/v2/pokemon-species/%d/"
+          }
+          """
+              .formatted(ids[i], ids[i]));
+    }
+    wireMock.stubFor(
+        get(urlPathEqualTo("/pokemon-species"))
+            .withQueryParam("offset", equalTo(String.valueOf(offset)))
+            .withQueryParam("limit", equalTo(String.valueOf(limit)))
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                        {
+                          "count": 1025,
+                          "results": [%s]
+                        }
+                        """
+                            .formatted(results))));
   }
 
   private void stubPokemon(int id, String body, int delayMs) {
