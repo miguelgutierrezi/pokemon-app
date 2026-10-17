@@ -66,14 +66,14 @@ catalog detail records + `toSummary()`, `PokemonDetail` assembly.
 **Independent Test**: `./mvnw -B -pl domain test` green; no Spring on domain
 test classpath. 002 list domain tests stay green.
 
-- [ ] T001 [HU02] RED: write
+- [x] T001 [HU02] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/HeightMTest.java`
   — catalog height `7` dm → `0.7` m (scale 1); reject negatives with
   `IllegalArgumentException`. Confirm `./mvnw -B -pl domain test` fails
   (type missing). Do not push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect decimetres to metres (red)`
 
-- [ ] T002 [HU02] GREEN: implement
+- [x] T002 [HU02] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/HeightM.java`.
   `./mvnw -B -pl domain test` passes. Coverage: **domain**.
   ⏸ Review — `feat(domain): convert decimetres to metres (green)`
