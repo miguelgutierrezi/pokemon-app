@@ -87,6 +87,29 @@ version 1.
 the exclusion in the parent POM. Modules without classes are skipped by
 JaCoCo. Do **not** lower the threshold.
 
+**Consequence found in T014 (binding for 002 onwards)**: JaCoCo measures each
+module only with that module's own tests. Code in `infrastructure` exercised
+only by `web` integration tests counts as 0% in `infrastructure` and fails
+the gate. In 001 the gate is effectively vacuous ("Analyzed bundle
+'pokemonapp-web' with 0 classes"); it starts biting with the first real code.
+
+Rule: **each module tests its own code**.
+
+| Module | How it is tested |
+|---|---|
+| `domain` | Pure unit tests (JUnit + AssertJ), no Spring |
+| `application` | Use-case unit tests, ports mocked with Mockito, no Spring |
+| `infrastructure` | PokeAPI client with WireMock, no Spring context (build the client in the test); JPA adapters (004+) with `@DataJpaTest` + Testcontainers, using an empty `@SpringBootConfiguration` class in `infrastructure/src/test` |
+| `web` | Controller tests (MockMvc/RestTestClient, use cases mocked) plus a few end-to-end integration tests |
+
+A `report-aggregate` execution may be added in `web` (002) for a single HTML
+report **for visibility only**; the gate stays per module.
+
+**Alternatives considered**: a global gate over an aggregated report —
+rejected: JaCoCo `check` cannot run on `report-aggregate` (would need an extra
+module or custom parsing), and a global 80% can hide an untested layer.
+Lowering the threshold or excluding modules — rejected.
+
 ## R7. Frontend placeholder
 
 **Decision**: Vite + React 19 + TypeScript (strict), Tailwind v4 via
