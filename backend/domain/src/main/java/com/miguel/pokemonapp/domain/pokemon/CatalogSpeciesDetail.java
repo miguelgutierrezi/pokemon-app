@@ -1,5 +1,9 @@
 package com.miguel.pokemonapp.domain.pokemon;
 
+import static com.miguel.pokemonapp.domain.Require.atLeast;
+import static com.miguel.pokemonapp.domain.Require.nonBlank;
+import static com.miguel.pokemonapp.domain.Require.nonNull;
+
 import java.util.List;
 
 public record CatalogSpeciesDetail(
@@ -10,24 +14,11 @@ public record CatalogSpeciesDetail(
     int evolutionChainId) {
 
   public CatalogSpeciesDetail {
-    if (names == null) {
-      throw new IllegalArgumentException("names must not be null");
-    }
-    if (genera == null) {
-      throw new IllegalArgumentException("genera must not be null");
-    }
-    if (flavorEntries == null) {
-      throw new IllegalArgumentException("flavorEntries must not be null");
-    }
-    if (generationSlug == null || generationSlug.isBlank()) {
-      throw new IllegalArgumentException("generationSlug must be non-blank");
-    }
-    if (evolutionChainId < 1) {
-      throw new IllegalArgumentException("evolutionChainId must be >= 1");
-    }
-    names = List.copyOf(names);
-    genera = List.copyOf(genera);
-    flavorEntries = List.copyOf(flavorEntries);
+    names = List.copyOf(nonNull(names, "names"));
+    genera = List.copyOf(nonNull(genera, "genera"));
+    flavorEntries = List.copyOf(nonNull(flavorEntries, "flavorEntries"));
+    generationSlug = nonBlank(generationSlug, "generationSlug");
+    atLeast(evolutionChainId, 1, "evolutionChainId");
   }
 
   public CatalogSpecies toSummary() {

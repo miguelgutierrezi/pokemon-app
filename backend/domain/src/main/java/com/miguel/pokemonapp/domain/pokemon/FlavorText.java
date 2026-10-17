@@ -1,5 +1,8 @@
 package com.miguel.pokemonapp.domain.pokemon;
 
+import static com.miguel.pokemonapp.domain.Require.nonBlank;
+import static com.miguel.pokemonapp.domain.Require.nonNull;
+
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -8,12 +11,8 @@ public record FlavorText(String text, String version) {
   private static final Pattern WHITESPACE_RUNS = Pattern.compile("\\s+");
 
   public FlavorText {
-    if (text == null || text.isBlank()) {
-      throw new IllegalArgumentException("text must be non-blank");
-    }
-    if (version == null) {
-      throw new IllegalArgumentException("version must be non-null");
-    }
+    text = nonBlank(text, "text");
+    version = nonNull(version, "version");
   }
 
   public static FlavorText from(List<FlavorTextEntry> entries) {

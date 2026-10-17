@@ -1,5 +1,9 @@
 package com.miguel.pokemonapp.domain.pokemon;
 
+import static com.miguel.pokemonapp.domain.Require.atLeast;
+import static com.miguel.pokemonapp.domain.Require.nonBlank;
+import static com.miguel.pokemonapp.domain.Require.nonNull;
+
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -13,26 +17,15 @@ public record EvolutionNode(
     List<EvolutionChild> children) {
 
   public EvolutionNode {
-    if (nationalNumber < 1) {
-      throw new IllegalArgumentException("nationalNumber must be >= 1");
-    }
-    if (name == null || name.isBlank()) {
-      throw new IllegalArgumentException("name must be non-blank");
-    }
-    if (children == null) {
-      throw new IllegalArgumentException("children must not be null");
-    }
-    children = List.copyOf(children);
+    atLeast(nationalNumber, 1, "nationalNumber");
+    name = nonBlank(name, "name");
+    children = List.copyOf(nonNull(children, "children"));
   }
 
   public static EvolutionNode from(
       CatalogEvolutionChain chain, List<CatalogEntry> entries, int requestedId) {
-    if (chain == null) {
-      throw new IllegalArgumentException("chain must not be null");
-    }
-    if (entries == null) {
-      throw new IllegalArgumentException("entries must not be null");
-    }
+    chain = nonNull(chain, "chain");
+    entries = nonNull(entries, "entries");
     Map<Integer, CatalogEntry> byId =
         entries.stream()
             .collect(

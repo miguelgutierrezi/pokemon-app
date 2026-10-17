@@ -1,5 +1,8 @@
 package com.miguel.pokemonapp.domain.pokemon;
 
+import static com.miguel.pokemonapp.domain.Require.atLeast;
+import static com.miguel.pokemonapp.domain.Require.nonNull;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,12 +21,12 @@ public record PokemonStats(
       Set.of(HP, ATTACK, DEFENSE, SPECIAL_ATTACK, SPECIAL_DEFENSE, SPEED);
 
   public PokemonStats {
-    requireNonNegative(hp, "hp");
-    requireNonNegative(attack, "attack");
-    requireNonNegative(defense, "defense");
-    requireNonNegative(specialAttack, "specialAttack");
-    requireNonNegative(specialDefense, "specialDefense");
-    requireNonNegative(speed, "speed");
+    atLeast(hp, 0, "hp");
+    atLeast(attack, 0, "attack");
+    atLeast(defense, 0, "defense");
+    atLeast(specialAttack, 0, "specialAttack");
+    atLeast(specialDefense, 0, "specialDefense");
+    atLeast(speed, 0, "speed");
   }
 
   public int total() {
@@ -31,9 +34,7 @@ public record PokemonStats(
   }
 
   public static PokemonStats from(List<CatalogStat> stats) {
-    if (stats == null) {
-      throw new IllegalArgumentException("stats must not be null");
-    }
+    stats = nonNull(stats, "stats");
     Map<String, Integer> byName = new HashMap<>();
     for (CatalogStat stat : stats) {
       if (stat == null || stat.name() == null) {
@@ -53,11 +54,5 @@ public record PokemonStats(
         byName.get(SPECIAL_ATTACK),
         byName.get(SPECIAL_DEFENSE),
         byName.get(SPEED));
-  }
-
-  private static void requireNonNegative(int value, String field) {
-    if (value < 0) {
-      throw new IllegalArgumentException(field + " must be non-negative");
-    }
   }
 }

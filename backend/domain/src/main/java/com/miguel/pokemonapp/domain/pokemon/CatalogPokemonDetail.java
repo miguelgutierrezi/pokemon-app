@@ -1,5 +1,9 @@
 package com.miguel.pokemonapp.domain.pokemon;
 
+import static com.miguel.pokemonapp.domain.Require.atLeast;
+import static com.miguel.pokemonapp.domain.Require.nonBlank;
+import static com.miguel.pokemonapp.domain.Require.nonNull;
+
 import java.util.List;
 
 public record CatalogPokemonDetail(
@@ -14,24 +18,11 @@ public record CatalogPokemonDetail(
     List<CatalogStat> stats) {
 
   public CatalogPokemonDetail {
-    if (nationalNumber < 1) {
-      throw new IllegalArgumentException("nationalNumber must be >= 1");
-    }
-    if (slug == null || slug.isBlank()) {
-      throw new IllegalArgumentException("slug must be non-blank");
-    }
-    if (abilities == null) {
-      throw new IllegalArgumentException("abilities must not be null");
-    }
-    if (types == null) {
-      throw new IllegalArgumentException("types must not be null");
-    }
-    if (stats == null) {
-      throw new IllegalArgumentException("stats must not be null");
-    }
-    abilities = List.copyOf(abilities);
-    types = List.copyOf(types);
-    stats = List.copyOf(stats);
+    atLeast(nationalNumber, 1, "nationalNumber");
+    slug = nonBlank(slug, "slug");
+    abilities = List.copyOf(nonNull(abilities, "abilities"));
+    types = List.copyOf(nonNull(types, "types"));
+    stats = List.copyOf(nonNull(stats, "stats"));
   }
 
   public CatalogPokemon toSummary() {

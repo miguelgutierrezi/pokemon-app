@@ -385,3 +385,13 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   image keeps artwork → sprite → null (FR-003). Spec FR-006, data-model, and
   OpenAPI examples must not say “same rule as FR-003”. T017 must assert JSON
   field name `isCurrent`.
+
+## 2026-10-16 — Domain Require helper + AbilityRef.orderedFrom
+- **Source**: Miguel's review
+- **Context**: T010/T011 duplicated ability ordering and null/blank/`>=`
+  validation if/throw blocks across domain records.
+- **Correction**: Extract `AbilityRef.orderedFrom` (and type name ordering
+  helper) for summary/detail assemble. Add `domain.Require` with
+  `nonNull` / `nonBlank` / `atLeast` and use it in domain records; unit-test
+  Require thoroughly. Refactor only — no behaviour change beyond shared
+  message wording for those helpers.

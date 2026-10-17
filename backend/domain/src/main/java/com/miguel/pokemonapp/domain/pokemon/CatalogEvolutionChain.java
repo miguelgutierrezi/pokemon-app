@@ -1,10 +1,10 @@
 package com.miguel.pokemonapp.domain.pokemon;
 
+import static com.miguel.pokemonapp.domain.Require.nonNull;
+
 public record CatalogEvolutionChain(CatalogEvolutionNode root) {
 
   public CatalogEvolutionChain {
-    if (root == null) {
-      throw new IllegalArgumentException("root must not be null");
-    }
+    root = nonNull(root, "root");
   }
 }

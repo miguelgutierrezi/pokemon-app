@@ -1,7 +1,10 @@
 package com.miguel.pokemonapp.domain.pokemon;
 
+import static com.miguel.pokemonapp.domain.Require.atLeast;
+import static com.miguel.pokemonapp.domain.Require.nonBlank;
+import static com.miguel.pokemonapp.domain.Require.nonNull;
+
 import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.List;
 
 public record PokemonDetail(
@@ -19,35 +22,15 @@ public record PokemonDetail(
     EvolutionNode evolution) {
 
   public PokemonDetail {
-    if (nationalNumber < 1) {
-      throw new IllegalArgumentException("nationalNumber must be >= 1");
-    }
-    if (name == null || name.isBlank()) {
-      throw new IllegalArgumentException("name must be non-blank");
-    }
-    if (types == null) {
-      throw new IllegalArgumentException("types must not be null");
-    }
-    if (heightM == null) {
-      throw new IllegalArgumentException("heightM must not be null");
-    }
-    if (weightKg == null) {
-      throw new IllegalArgumentException("weightKg must not be null");
-    }
-    if (abilities == null) {
-      throw new IllegalArgumentException("abilities must not be null");
-    }
-    if (generation == null || generation.isBlank()) {
-      throw new IllegalArgumentException("generation must be non-blank");
-    }
-    if (stats == null) {
-      throw new IllegalArgumentException("stats must not be null");
-    }
-    if (evolution == null) {
-      throw new IllegalArgumentException("evolution must not be null");
-    }
-    types = List.copyOf(types);
-    abilities = List.copyOf(abilities);
+    atLeast(nationalNumber, 1, "nationalNumber");
+    name = nonBlank(name, "name");
+    types = List.copyOf(nonNull(types, "types"));
+    heightM = nonNull(heightM, "heightM");
+    weightKg = nonNull(weightKg, "weightKg");
+    abilities = List.copyOf(nonNull(abilities, "abilities"));
+    generation = nonBlank(generation, "generation");
+    stats = nonNull(stats, "stats");
+    evolution = nonNull(evolution, "evolution");
   }
 
   public static PokemonDetail assemble(
@@ -55,15 +38,9 @@ public record PokemonDetail(
       CatalogEvolutionChain chain,
       List<CatalogEntry> chainEntries,
       int requestedId) {
-    if (entry == null) {
-      throw new IllegalArgumentException("entry must not be null");
-    }
-    if (chain == null) {
-      throw new IllegalArgumentException("chain must not be null");
-    }
-    if (chainEntries == null) {
-      throw new IllegalArgumentException("chainEntries must not be null");
-    }
+    entry = nonNull(entry, "entry");
+    chain = nonNull(chain, "chain");
+    chainEntries = nonNull(chainEntries, "chainEntries");
     CatalogPokemonDetail pokemon = entry.pokemon();
     CatalogSpeciesDetail species = entry.species();
     if (requestedId != pokemon.nationalNumber()) {
@@ -71,26 +48,14 @@ public record PokemonDetail(
           "requestedId must match detail national number " + pokemon.nationalNumber());
     }
 
-    List<AbilityRef> orderedAbilities =
-        pokemon.abilities().stream()
-            .sorted(Comparator.comparingInt(CatalogAbility::slot))
-            .map(a -> new AbilityRef(a.name(), a.hidden()))
-            .toList();
-
-    List<String> orderedTypes =
-        pokemon.types().stream()
-            .sorted(Comparator.comparingInt(CatalogType::slot))
-            .map(CatalogType::name)
-            .toList();
-
     return new PokemonDetail(
         pokemon.nationalNumber(),
         DisplayName.from(species.names(), pokemon.slug()),
         Category.from(species.genera()),
-        orderedTypes,
+        CatalogType.namesOrderedBySlot(pokemon.types()),
         HeightM.fromDecimetres(pokemon.heightDecimetres()),
         WeightKg.fromHectograms(pokemon.weightHectograms()),
-        orderedAbilities,
+        AbilityRef.orderedFrom(pokemon.abilities()),
         species.generationSlug(),
         ImageUrl.resolve(pokemon.officialArtworkSprite(), pokemon.frontDefaultSprite()),
         PokemonStats.from(pokemon.stats()),

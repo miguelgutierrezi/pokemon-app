@@ -1,5 +1,8 @@
 package com.miguel.pokemonapp.domain.pokemon;
 
+import static com.miguel.pokemonapp.domain.Require.atLeast;
+import static com.miguel.pokemonapp.domain.Require.nonNull;
+
 import java.util.List;
 
 public record CatalogEvolutionNode(
@@ -8,16 +11,8 @@ public record CatalogEvolutionNode(
     List<CatalogEvolutionNode> children) {
 
   public CatalogEvolutionNode {
-    if (speciesId < 1) {
-      throw new IllegalArgumentException("speciesId must be >= 1");
-    }
-    if (evolutionDetails == null) {
-      throw new IllegalArgumentException("evolutionDetails must not be null");
-    }
-    if (children == null) {
-      throw new IllegalArgumentException("children must not be null");
-    }
-    evolutionDetails = List.copyOf(evolutionDetails);
-    children = List.copyOf(children);
+    atLeast(speciesId, 1, "speciesId");
+    evolutionDetails = List.copyOf(nonNull(evolutionDetails, "evolutionDetails"));
+    children = List.copyOf(nonNull(children, "children"));
   }
 }
