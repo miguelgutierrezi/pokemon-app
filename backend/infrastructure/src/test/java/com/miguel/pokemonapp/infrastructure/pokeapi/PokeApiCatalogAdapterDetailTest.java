@@ -41,7 +41,7 @@ class PokeApiCatalogAdapterDetailTest {
     wireMock.start();
     adapter =
         new PokeApiCatalogAdapter(
-            wireMock.baseUrl(), Duration.ofMillis(200), Duration.ofMillis(500));
+            wireMock.baseUrl(), Duration.ofMillis(200), Duration.ofSeconds(5));
   }
 
   @AfterEach

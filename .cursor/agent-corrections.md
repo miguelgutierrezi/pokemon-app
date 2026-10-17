@@ -441,3 +441,98 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `POKéMON` → `Pokémon` (after whitespace collapse). Cover with a unit
   test using the real Bulbasaur red entry. Keep README / contract examples
   aligned with the live API response.
+
+## 2026-10-17 — 004 spec: seed tags, 006 ownership, constitution VI exception
+- **Source**: Miguel's review
+- **Context**: Spec 004 Assumptions underspecified seed tag vocabulary,
+  006 ownership of seed rows, and the constitution VI write-route exception.
+- **Correction**: (1) Seed tags: use lowercase examples such as
+  `first-partner`, `field-notes`, `forest` — never `favorites`. (2) Note
+  for 006: when records become owned per user, HU-03 seed rows are assigned
+  to the demo user (mock credentials seeded in 006). (3) Public write /
+  global store is a temporary documented exception to constitution VI;
+  `plan.md` MUST record it in Complexity Tracking.
+
+## 2026-10-17 — 004 plan: import order, saveAndFlush, JPA yml
+- **Source**: Miguel's review
+- **Context**: Plan review for `004-hu03-data-sync` underspecified import
+  sequencing, how unique violations surface in the JPA adapter, and JPA
+  Boot defaults.
+- **Correction**: (1) `ImportPokemonUseCase`: `existsByNationalNumber(n)` →
+  409 without catalog call; then `fetchDetail(n)`; then `save`. Unique
+  constraint remains the concurrent backstop. (2) Adapter `save` is its
+  own short `@Transactional` method and uses `saveAndFlush` so
+  `DataIntegrityViolationException` is translated inside the adapter to
+  `DuplicateLocalPokemonException` (plain `save()` may fail at commit as
+  500). (3) `application.yml`: `spring.jpa.open-in-view=false` and
+  `spring.jpa.hibernate.ddl-auto=validate`.
+
+## 2026-10-17 — 004 analyze remediation (I1/U1/G1/A1/I2)
+- **Source**: Miguel's review
+- **Context**: `/speckit-analyze` findings for `004-hu03-data-sync`.
+- **Correction**: (I1) FR-005: same page/size rules and pagination envelope
+  as 002; items are `LocalPokemon`, not `PokemonSummary`. (U1) Register the
+  JPA adapter as a `@Bean` in `web/config` (PokeApiConfiguration pattern);
+  do **not** add `@EnableJpaRepositories` / `@EntityScan` (`PokemonApplication`
+  root-package scan covers infrastructure); in `@DataJpaTest`, construct the
+  adapter with the injected Spring Data repo. (G1) page-beyond-last → 400 in
+  T006 use-case test and T014 e2e IT. (A1) Exact V3 seed strings in
+  `data-model.md` table; T009 must match. (I2) Post-design check cites
+  R1–R8 + R3b. (G2/G3) Manual quickstart measurement in T017 is enough.
+
+## 2026-10-17 — LocalPokemon: no domain surrogate id
+- **Source**: Miguel's review
+- **Context**: T004/T005 review — `LocalPokemon` carried `Long id`.
+- **Correction**: Do not put the DB surrogate key on the domain aggregate.
+  Domain / API identity is `nationalNumber`. The surrogate `id` stays on the
+  JPA entity / Flyway table only.
+
+## 2026-10-17 — ImportPokemonUseCase: catch only around snapshotOf
+- **Source**: Miguel's review
+- **Context**: T006/T007 review — try/catch wrapped `snapshotOf` and `save`.
+- **Correction**: Narrow the try/catch to `LocalPokemon.snapshotOf` only.
+  `repository.save` stays outside so an `IllegalArgumentException` from
+  persistence is not misreported as `CatalogUnavailableException` (502).
+  Cover with a test: save throws IAE → propagates as IAE.
+
+## 2026-10-17 — JPA adapter: constraint-specific 409, no @Component, FR seed
+- **Source**: Miguel's review
+- **Context**: T008/T009 review of `LocalPokemonJpaAdapter` and V3 seed.
+- **Correction**: (1) Map `DataIntegrityViolationException` →
+  `DuplicateLocalPokemonException` only when the cause chain has a Hibernate
+  `ConstraintViolationException` whose constraint name is
+  `uq_pokemon_record_national_number`; rethrow other integrity violations.
+  Cover with a test that a different violation is not reported as duplicate.
+  (2) Do not put `@Component` on the adapter — register it as a `@Bean` in
+  `web/config` (T011 / U1). (3) Seed localized names are French nomenclature:
+  Bulbizarre, Herbizarre, Florizarre (no "(demo)"). (4) Prefer injecting
+  `Clock` for `created_at` / `updated_at`.
+
+## 2026-10-17 — PokeAPI test read timeout + JPA adapter TransactionTemplate-only
+- **Source**: Miguel's review
+- **Context**: CI red on `0f9d789` — cold runner took > 500 ms to read the
+  ~18.6 kB Eevee body ("Stream closed"); `@Transactional` on
+  `LocalPokemonJpaAdapter` is a no-op without a Spring proxy (`@DataJpaTest`
+  constructs the adapter manually).
+- **Correction**: (1) Shared `setUp` in `PokeApiCatalogAdapterTest`,
+  `PokeApiCatalogAdapterDetailTest`, and `CachingPokeApiCatalogAdapterTest`
+  must use a generous read timeout (5 s, like production). Only tests that
+  assert timeout behaviour create their own adapter with a short timeout.
+  (2) Do not put `@Transactional` on `LocalPokemonJpaAdapter` methods —
+  rely on `TransactionTemplate` only so transactions work without a proxy.
+
+## 2026-10-17 — Malformed-body no-leak: assert tools.jackson
+- **Source**: Miguel's review
+- **Context**: T012/T013 review — malformed-body leak checks used
+  `com.fasterxml`, which only covers the Jackson annotations artifact.
+- **Correction**: In `GlobalExceptionHandlerTest` no-leak assertions for
+  malformed request bodies, also assert the body does not contain
+  `tools.jackson` (Jackson 3 exception packages).
+
+## 2026-10-17 — 004 final polish: jq prerequisite + T017 quickstart record
+- **Source**: Miguel's review
+- **Context**: Final 004 README/quickstart touch-ups after T016.
+- **Correction**: (1) README Prerequisites must list
+  `jq (optional, used in curl examples)`. (2) Record T017 validation
+  results in `specs/004-hu03-data-sync/quickstart.md` (measured run
+  against real PokeAPI) and mark T016/T017 done.

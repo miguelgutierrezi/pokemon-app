@@ -58,6 +58,40 @@ class OpenApiDocsIntegrationTest {
         .jsonPath("$.paths['/api/v1/pokemon/{id}'].get.responses['404']")
         .exists()
         .jsonPath("$.paths['/api/v1/pokemon/{id}'].get.responses['502']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/collection'].post.responses['201']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/collection'].post.responses['201'].content['application/json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection'].post.responses['400'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection'].post.responses['404'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection'].post.responses['409'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection'].post.responses['502'].content['application/problem+json']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/collection'].get.responses['200']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/collection'].get.responses['200'].content['application/json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection'].get.responses['400'].content['application/problem+json']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/collection/{nationalNumber}'].get.responses['200']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].get.responses['200'].content['application/json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].get.responses['400'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].get.responses['404'].content['application/problem+json']")
         .exists();
   }
 }

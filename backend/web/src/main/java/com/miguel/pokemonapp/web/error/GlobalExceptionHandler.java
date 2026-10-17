@@ -1,6 +1,8 @@
 package com.miguel.pokemonapp.web.error;
 
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
+import com.miguel.pokemonapp.application.DuplicateLocalPokemonException;
+import com.miguel.pokemonapp.application.LocalPokemonNotFoundException;
 import com.miguel.pokemonapp.application.PokemonNotFoundException;
 import com.miguel.pokemonapp.domain.page.PageOutOfRangeException;
 import java.net.URI;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -25,6 +28,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   private static final URI BAD_REQUEST_TYPE = URI.create("urn:problem-type:bad-request");
   private static final URI NOT_FOUND_TYPE = URI.create("urn:problem-type:not-found");
+  private static final URI CONFLICT_TYPE = URI.create("urn:problem-type:conflict");
   private static final URI BAD_GATEWAY_TYPE = URI.create("urn:problem-type:bad-gateway");
   private static final URI INTERNAL_ERROR_TYPE = URI.create("urn:problem-type:internal");
 
@@ -71,6 +75,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     return badRequest(ex, headers, request, parameter);
   }
 
+  @Override
+  protected ResponseEntity<Object> handleHttpMessageNotReadable(
+      HttpMessageNotReadableException ex,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest request) {
+    return handleExceptionInternal(
+        ex,
+        problem(HttpStatus.BAD_REQUEST, BAD_REQUEST_TYPE, "Malformed request body"),
+        headers,
+        HttpStatus.BAD_REQUEST,
+        request);
+  }
+
   @ExceptionHandler(PageOutOfRangeException.class)
   ProblemDetail handlePageOutOfRange(PageOutOfRangeException ex) {
     return problem(HttpStatus.BAD_REQUEST, BAD_REQUEST_TYPE, ex.getMessage());
@@ -80,6 +98,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   ProblemDetail handlePokemonNotFound(PokemonNotFoundException ex) {
     return problem(
         HttpStatus.NOT_FOUND, NOT_FOUND_TYPE, "Pokémon " + ex.nationalId() + " was not found");
+  }
+
+  @ExceptionHandler(LocalPokemonNotFoundException.class)
+  ProblemDetail handleLocalPokemonNotFound(LocalPokemonNotFoundException ex) {
+    return problem(
+        HttpStatus.NOT_FOUND,
+        NOT_FOUND_TYPE,
+        "Pokémon " + ex.nationalNumber() + " is not in the local collection");
+  }
+
+  @ExceptionHandler(DuplicateLocalPokemonException.class)
+  ProblemDetail handleDuplicateLocalPokemon(DuplicateLocalPokemonException ex) {
+    return problem(
+        HttpStatus.CONFLICT,
+        CONFLICT_TYPE,
+        "Pokémon " + ex.nationalNumber() + " is already in the local collection");
   }
 
   @ExceptionHandler(CatalogUnavailableException.class)
