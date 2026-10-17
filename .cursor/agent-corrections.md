@@ -520,3 +520,11 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   assert timeout behaviour create their own adapter with a short timeout.
   (2) Do not put `@Transactional` on `LocalPokemonJpaAdapter` methods —
   rely on `TransactionTemplate` only so transactions work without a proxy.
+
+## 2026-10-17 — Malformed-body no-leak: assert tools.jackson
+- **Source**: Miguel's review
+- **Context**: T012/T013 review — malformed-body leak checks used
+  `com.fasterxml`, which only covers the Jackson annotations artifact.
+- **Correction**: In `GlobalExceptionHandlerTest` no-leak assertions for
+  malformed request bodies, also assert the body does not contain
+  `tools.jackson` (Jackson 3 exception packages).

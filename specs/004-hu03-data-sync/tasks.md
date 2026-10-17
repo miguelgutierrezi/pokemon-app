@@ -222,7 +222,7 @@ infrastructure.
   pass. Coverage: **web**.
   ⏸ Review — `feat(web): collection controller (green)`
 
-- [ ] T012 [HU03] RED: extend
+- [x] T012 [HU03] RED: extend
   `backend/web/src/test/java/com/miguel/pokemonapp/web/error/GlobalExceptionHandlerTest.java`
   — `DuplicateLocalPokemonException` → **409** problem+json;
   `LocalPokemonNotFoundException` → **404** problem+json whose detail
@@ -230,7 +230,7 @@ infrastructure.
   not-found). Confirm fail. Do not push RED. Coverage: **web**.
   ⏸ Review — `test(web): expect 409 and local 404 problem details (red)`
 
-- [ ] T013 [HU03] GREEN: extend
+- [x] T013 [HU03] GREEN: extend
   `backend/web/src/main/java/com/miguel/pokemonapp/web/error/GlobalExceptionHandler.java`
   for the two new exceptions. Advice tests pass. Coverage: **web**.
   ⏸ Review — `feat(web): 409 and local 404 problem advice (green)`
