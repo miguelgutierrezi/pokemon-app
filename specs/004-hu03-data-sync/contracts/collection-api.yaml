@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: Pokémon App — HU-03 Data Synchronization
+  version: 0.1.0
+  description: |
+    Local Pokémon collection (import + read). Backend owns /api/v1.
+    Nginx forwards /api/ unchanged. Errors are RFC 7807 Problem Details.
+    Until feature 006, routes are public and the store is global
+    (temporary exception to constitution VI).
+servers:
+  - url: http://localhost:8080
+    description: Backend direct
+  - url: http://localhost:3000
+    description: Via UI proxy (path unchanged)
+paths:
+  /api/v1/collection:
+    post:
+      operationId: importPokemon
+      summary: Import (sync) a Pokémon from the catalog into the local store
+      tags:
+        - Collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportPokemonRequest"
+            example:
+              nationalNumber: 25
+      responses:
+        "201":
+          description: Local record created
+          headers:
+            Location:
+              description: URL of the new local record
+              schema:
+                type: string
+                example: /api/v1/collection/25
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocalPokemon"
+        "400":
+          description: Invalid body (missing/invalid nationalNumber)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          description: Pokémon not found in the catalog
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "409":
+          description: National number already in the local collection
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "502":
+          description: Upstream catalog unavailable or timed out
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+    get:
+      operationId: listLocalPokemon
+      summary: List local collection (national number ascending)
+      tags:
+        - Collection
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 9
+      responses:
+        "200":
+          description: Page of local Pokémon records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocalPokemonPage"
+        "400":
+          description: Invalid paging (validation or page beyond last)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/v1/collection/{nationalNumber}:
+    get:
+      operationId: getLocalPokemon
+      summary: Get one local record by National Dex number
+      tags:
+        - Collection
+      parameters:
+        - name: nationalNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Local Pokémon record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocalPokemon"
+              examples:
+                bulbasaurSeed:
+                  value:
+                    nationalNumber: 1
+                    name: Bulbasaur
+                    category: Seed Pokémon
+                    types: [grass, poison]
+                    heightM: 0.7
+                    weightKg: 6.9
+                    imageUrl: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png
+                    generation: generation-i
+                    syncedAt: "2026-01-01T00:00:00Z"
+                    localizedName: Bulbasaur (demo)
+                    location: Kanto starter route
+                    tags: [first-partner, forest]
+        "400":
+          description: Invalid nationalNumber (non-numeric or &lt; 1)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          description: Not in the local collection (distinct detail from catalog 404)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+components:
+  schemas:
+    ImportPokemonRequest:
+      type: object
+      required: [nationalNumber]
+      properties:
+        nationalNumber:
+          type: integer
+          minimum: 1
+          description: National Dex number to import from the catalog
+    LocalPokemon:
+      type: object
+      required:
+        - nationalNumber
+        - name
+        - types
+        - heightM
+        - weightKg
+        - generation
+        - syncedAt
+        - tags
+      properties:
+        nationalNumber:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        category:
+          type: string
+          nullable: true
+        types:
+          type: array
+          items:
+            type: string
+          description: Type slugs in catalog slot order
+        heightM:
+          type: number
+          multipleOf: 0.1
+          example: 0.7
+        weightKg:
+          type: number
+          multipleOf: 0.1
+          example: 6.9
+        imageUrl:
+          type: string
+          nullable: true
+          format: uri
+        generation:
+          type: string
+          example: generation-i
+        syncedAt:
+          type: string
+          format: date-time
+        localizedName:
+          type: string
+          nullable: true
+          maxLength: 100
+        location:
+          type: string
+          nullable: true
+          maxLength: 200
+        tags:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 32
+          description: Normalised tags (trim, lowercase, deduped)
+    LocalPokemonPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/LocalPokemon"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+    ProblemDetail:
+      type: object
+      description: RFC 7807
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string

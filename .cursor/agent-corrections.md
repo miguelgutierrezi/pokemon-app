@@ -441,3 +441,28 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `POKéMON` → `Pokémon` (after whitespace collapse). Cover with a unit
   test using the real Bulbasaur red entry. Keep README / contract examples
   aligned with the live API response.
+
+## 2026-10-17 — 004 spec: seed tags, 006 ownership, constitution VI exception
+- **Source**: Miguel's review
+- **Context**: Spec 004 Assumptions underspecified seed tag vocabulary,
+  006 ownership of seed rows, and the constitution VI write-route exception.
+- **Correction**: (1) Seed tags: use lowercase examples such as
+  `first-partner`, `field-notes`, `forest` — never `favorites`. (2) Note
+  for 006: when records become owned per user, HU-03 seed rows are assigned
+  to the demo user (mock credentials seeded in 006). (3) Public write /
+  global store is a temporary documented exception to constitution VI;
+  `plan.md` MUST record it in Complexity Tracking.
+
+## 2026-10-17 — 004 plan: import order, saveAndFlush, JPA yml
+- **Source**: Miguel's review
+- **Context**: Plan review for `004-hu03-data-sync` underspecified import
+  sequencing, how unique violations surface in the JPA adapter, and JPA
+  Boot defaults.
+- **Correction**: (1) `ImportPokemonUseCase`: `existsByNationalNumber(n)` →
+  409 without catalog call; then `fetchDetail(n)`; then `save`. Unique
+  constraint remains the concurrent backstop. (2) Adapter `save` is its
+  own short `@Transactional` method and uses `saveAndFlush` so
+  `DataIntegrityViolationException` is translated inside the adapter to
+  `DuplicateLocalPokemonException` (plain `save()` may fail at commit as
+  500). (3) `application.yml`: `spring.jpa.open-in-view=false` and
+  `spring.jpa.hibernate.ddl-auto=validate`.
