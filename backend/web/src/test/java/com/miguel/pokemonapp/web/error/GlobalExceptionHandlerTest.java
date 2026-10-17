@@ -3,9 +3,12 @@ package com.miguel.pokemonapp.web.error;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -14,12 +17,14 @@ import com.miguel.pokemonapp.application.CatalogUnavailableException;
 import com.miguel.pokemonapp.application.DuplicateLocalPokemonException;
 import com.miguel.pokemonapp.application.LocalPokemonNotFoundException;
 import com.miguel.pokemonapp.application.PokemonNotFoundException;
+import com.miguel.pokemonapp.application.StaleLocalPokemonException;
 import com.miguel.pokemonapp.application.pokemon.DeleteLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.GetLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.GetPokemonDetailUseCase;
 import com.miguel.pokemonapp.application.pokemon.ImportPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.ListLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.ListPokemonUseCase;
+import com.miguel.pokemonapp.application.pokemon.ProprietaryUpdate;
 import com.miguel.pokemonapp.application.pokemon.UpdateLocalPokemonUseCase;
 import com.miguel.pokemonapp.domain.page.PageOutOfRangeException;
 import com.miguel.pokemonapp.web.collection.CollectionController;
@@ -39,6 +44,15 @@ class GlobalExceptionHandlerTest {
 
   private static final String CATALOG_NOT_FOUND_DETAIL = "Pokémon 25 was not found";
   private static final String LOCAL_NOT_FOUND_DETAIL = "Pokémon 25 is not in the local collection";
+  private static final String VALID_PUT_BODY =
+      """
+      {
+        "localizedName": "Bulbizarre",
+        "location": "Pallet Town garden",
+        "tags": ["forest"],
+        "version": 0
+      }
+      """;
 
   @Autowired private MockMvc mockMvc;
 
@@ -255,7 +269,7 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
-  void nonNumericNationalNumberReturnsMalformedBodyProblem() throws Exception {
+  void nonNumericNationalNumberReturnsBadRequestNamingProperty() throws Exception {
     String body =
         expectProblem(
                 mockMvc.perform(
@@ -264,7 +278,9 @@ class GlobalExceptionHandlerTest {
                         .content("{\"nationalNumber\":\"abc\"}")),
                 400)
             .andExpect(jsonPath("$.type").value("urn:problem-type:bad-request"))
-            .andExpect(jsonPath("$.detail").value("Malformed request body"))
+            .andExpect(
+                jsonPath("$.detail")
+                    .value("Invalid or missing value for property 'nationalNumber'"))
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -273,8 +289,7 @@ class GlobalExceptionHandlerTest {
         .doesNotContain("ImportPokemonRequest")
         .doesNotContain("JsonMappingException")
         .doesNotContain("MismatchedInputException")
-        .doesNotContain("com.fasterxml")
-        .doesNotContain("tools.jackson");
+        .doesNotContain("InvalidFormatException");
     assertNoLeak(body);
   }
 
@@ -368,6 +383,229 @@ class GlobalExceptionHandlerTest {
     assertNoLeak(body);
   }
 
+  @Test
+  void staleLocalPokemonReturnsConflictWithStaleVersionTypeDistinctFromDuplicate()
+      throws Exception {
+    when(updateLocalPokemonUseCase.execute(anyInt(), any(ProprietaryUpdate.class)))
+        .thenThrow(new StaleLocalPokemonException(1));
+
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    put("/api/v1/collection/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_PUT_BODY)),
+                409)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:stale-version"))
+            .andExpect(
+                jsonPath("$.detail")
+                    .value("Pokémon 1 was modified by another request; reload and retry"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).doesNotContain("urn:problem-type:conflict");
+    assertThat("urn:problem-type:stale-version").isNotEqualTo("urn:problem-type:conflict");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void unknownPropertyOnPutReturnsBadRequestNamingProperty() throws Exception {
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    put("/api/v1/collection/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            """
+                            {
+                              "localizedName": "x",
+                              "location": "y",
+                              "tags": [],
+                              "version": 0,
+                              "name": "Bulbasaur"
+                            }
+                            """)),
+                400)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:bad-request"))
+            .andExpect(jsonPath("$.detail").value("Unknown or read-only property 'name'"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body)
+        .doesNotContain("Unrecognized property")
+        .doesNotContain("not marked as ignorable")
+        .doesNotContain("UpdateLocalPokemonRequest");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void missingRequiredPropertyOnPutReturnsBadRequestNamingProperty() throws Exception {
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    put("/api/v1/collection/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            """
+                            {
+                              "location": "y",
+                              "tags": [],
+                              "version": 0
+                            }
+                            """)),
+                400)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:bad-request"))
+            .andExpect(
+                jsonPath("$.detail").value("Invalid or missing value for property 'localizedName'"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body)
+        .doesNotContain("Missing required creator property")
+        .doesNotContain("UpdateLocalPokemonRequest");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void wrongTypeVersionOnPutReturnsBadRequestNamingProperty() throws Exception {
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    put("/api/v1/collection/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            """
+                            {
+                              "localizedName": "x",
+                              "location": "y",
+                              "tags": [],
+                              "version": "abc"
+                            }
+                            """)),
+                400)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:bad-request"))
+            .andExpect(
+                jsonPath("$.detail").value("Invalid or missing value for property 'version'"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body)
+        .doesNotContain("Cannot deserialize")
+        .doesNotContain("UpdateLocalPokemonRequest")
+        .doesNotContain("InvalidFormatException");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void blankTagOnPutReturnsBadRequestNamingTagsIndex() throws Exception {
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    put("/api/v1/collection/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            """
+                            {
+                              "localizedName": "x",
+                              "location": "y",
+                              "tags": ["  "],
+                              "version": 0
+                            }
+                            """)),
+                400)
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).contains("tags[0]");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void putLocalizedNameTooLongReturnsBadRequestNamingField() throws Exception {
+    String tooLong = "x".repeat(101);
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    put("/api/v1/collection/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            """
+                            {
+                              "localizedName": "%s",
+                              "location": "y",
+                              "tags": [],
+                              "version": 0
+                            }
+                            """
+                                .formatted(tooLong))),
+                400)
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).contains("localizedName");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void putMissingRecordReturnsLocalNotFoundWording() throws Exception {
+    when(updateLocalPokemonUseCase.execute(anyInt(), any(ProprietaryUpdate.class)))
+        .thenThrow(new LocalPokemonNotFoundException(150));
+
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    put("/api/v1/collection/150")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_PUT_BODY)),
+                404)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:not-found"))
+            .andExpect(jsonPath("$.detail").value("Pokémon 150 is not in the local collection"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).doesNotContain("was not found");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void deleteMissingRecordReturnsLocalNotFoundWording() throws Exception {
+    doThrow(new LocalPokemonNotFoundException(150)).when(deleteLocalPokemonUseCase).execute(150);
+
+    String body =
+        expectProblem(mockMvc.perform(delete("/api/v1/collection/150")), 404)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:not-found"))
+            .andExpect(jsonPath("$.detail").value("Pokémon 150 is not in the local collection"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).doesNotContain("was not found");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void putNonJsonContentTypeReturnsUnsupportedMediaTypeProblem() throws Exception {
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    put("/api/v1/collection/1")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content(VALID_PUT_BODY)),
+                415)
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertNoLeak(body);
+  }
+
   private static ResultActions expectProblem(ResultActions actions, int status) throws Exception {
     return actions
         .andExpect(status().is(status))
@@ -385,10 +623,15 @@ class GlobalExceptionHandlerTest {
         .doesNotContain("PokemonNotFoundException")
         .doesNotContain("DuplicateLocalPokemonException")
         .doesNotContain("LocalPokemonNotFoundException")
+        .doesNotContain("StaleLocalPokemonException")
         .doesNotContain("MethodArgumentNotValidException")
         .doesNotContain("HandlerMethodValidationException")
         .doesNotContain("MethodArgumentTypeMismatchException")
         .doesNotContain("HttpMessageNotReadableException")
+        .doesNotContain("UnrecognizedPropertyException")
+        .doesNotContain("MismatchedInputException")
+        .doesNotContain("tools.jackson")
+        .doesNotContain("com.fasterxml")
         .doesNotContain("\tat ")
         .doesNotContain("stackTrace")
         .doesNotContain("https://");
