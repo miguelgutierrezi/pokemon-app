@@ -536,3 +536,31 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `jq (optional, used in curl examples)`. (2) Record T017 validation
   results in `specs/004-hu03-data-sync/quickstart.md` (measured run
   against real PokeAPI) and mark T016/T017 done.
+
+## 2026-10-17 — 005 spec: version in responses, two 409 types, lock race
+- **Source**: Miguel's review
+- **Context**: Spec review for `005-hu04-local-update`.
+- **Correction**: (1) Local record responses of ALL collection endpoints
+  (POST import, GET list, GET one, PUT) include `version` — additive change
+  to 004's contract; note it. (2) Distinguish the two 409s by RFC 7807
+  `type`: duplicate import keeps `urn:problem-type:conflict`; stale version
+  uses `urn:problem-type:stale-version` (different detail too). (3) Record
+  missing when read → 404; record deleted between read and write
+  (optimistic lock failure) → 409 stale-version — not a blanket 404.
+
+## 2026-10-17 — 005 plan: in-tx version check, Boot unknown-props, tags null
+- **Source**: Miguel's review
+- **Context**: Plan review for `005-hu04-local-update` — lost-update hole
+  if relying only on setting `@Version` from the domain object.
+- **Correction**: (1) Adapter update MUST, inside its transaction after
+  loading the entity, compare `entity.getVersion()` with the domain
+  object's version and throw `StaleLocalPokemonException` on mismatch;
+  manually setting a managed entity's `@Version` has no effect. `@Version`
+  + OOLFE remain the commit-time backstop. Concurrent test MUST force
+  "B loads after A commits" (latch ordering) → one 200 + one 409.
+  (2) Global `fail-on-unknown-properties=true` also makes
+  `POST /api/v1/collection` reject unknown properties (004 behaviour
+  change — add a test); PokeAPI parsing unaffected (`JsonNode` /
+  own RestClient). (3) Wording: it is **Spring Boot** (not Jackson 3)
+  that disables `FAIL_ON_UNKNOWN_PROPERTIES` by default.
+  (4) `"tags": null` → 400 (tags must be an array); cover with a test.

@@ -1,0 +1,300 @@
+openapi: 3.0.3
+info:
+  title: Pokémon App — HU-04 Local Data Modification
+  version: 0.1.0
+  description: |
+    Extends HU-03 collection API with Update (PUT) and Delete.
+    Additive change: local records include `version` on all read/write
+    responses that return a record (import, list, get, update).
+    Until feature 006, write routes remain public and the store is global
+    (temporary exception to constitution VI).
+    Errors are RFC 7807 Problem Details. Two distinct 409 types:
+    `urn:problem-type:conflict` (duplicate import) vs
+    `urn:problem-type:stale-version` (optimistic lock).
+servers:
+  - url: http://localhost:8080
+    description: Backend direct
+  - url: http://localhost:3000
+    description: Via UI proxy (path unchanged)
+paths:
+  /api/v1/collection/{nationalNumber}:
+    parameters:
+      - name: nationalNumber
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+    put:
+      operationId: updateLocalPokemon
+      summary: Replace proprietary fields of a local record (optimistic lock)
+      tags:
+        - Collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLocalPokemonRequest"
+            examples:
+              clearTextsKeepTags:
+                value:
+                  localizedName: null
+                  location: null
+                  tags: [field-notes]
+                  version: 0
+              fullReplace:
+                value:
+                  localizedName: Bulbizarre
+                  location: Pallet Town garden
+                  tags: [first-partner, forest]
+                  version: 0
+      responses:
+        "200":
+          description: Updated local record (version incremented)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocalPokemon"
+        "400":
+          description: |
+            Malformed payload — missing property, wrong types, limits,
+            blank tag, unknown/read-only property. Detail names the field.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          description: Not in the local collection
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+              example:
+                type: urn:problem-type:not-found
+                title: Not Found
+                status: 404
+                detail: Pokémon 150 is not in the local collection
+        "409":
+          description: Stale version (optimistic lock)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+              example:
+                type: urn:problem-type:stale-version
+                title: Conflict
+                status: 409
+                detail: Pokémon 1 was modified by another request; reload and retry
+        "415":
+          description: Non-JSON Content-Type
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+    delete:
+      operationId: deleteLocalPokemon
+      summary: Delete a local record (catalog untouched)
+      tags:
+        - Collection
+      responses:
+        "204":
+          description: Deleted; no body
+        "400":
+          description: Invalid nationalNumber
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          description: Not in the local collection
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/v1/collection:
+    get:
+      operationId: listLocalPokemon
+      summary: List local collection (includes version; additive vs 004)
+      tags:
+        - Collection
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 9
+      responses:
+        "200":
+          description: Page of local records (each item includes version)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocalPokemonPage"
+    post:
+      operationId: importPokemon
+      summary: Import (response includes version 0; additive vs 004)
+      tags:
+        - Collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nationalNumber]
+              properties:
+                nationalNumber:
+                  type: integer
+                  minimum: 1
+      responses:
+        "201":
+          description: Created; Location /api/v1/collection/{n}; body includes version
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocalPokemon"
+        "409":
+          description: Duplicate import (type urn:problem-type:conflict — not stale-version)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+components:
+  schemas:
+    UpdateLocalPokemonRequest:
+      type: object
+      additionalProperties: false
+      required: [localizedName, location, tags, version]
+      properties:
+        localizedName:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Explicit null clears; omit → 400 (required)
+        location:
+          type: string
+          nullable: true
+          maxLength: 200
+          description: Explicit null clears; omit → 400 (required)
+        tags:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 32
+          description: Empty array clears all tags
+        version:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Expected concurrency token (must match current)
+    LocalPokemon:
+      type: object
+      required:
+        - nationalNumber
+        - name
+        - types
+        - heightM
+        - weightKg
+        - generation
+        - syncedAt
+        - tags
+        - version
+      properties:
+        nationalNumber:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        category:
+          type: string
+          nullable: true
+        types:
+          type: array
+          items:
+            type: string
+        heightM:
+          type: number
+          multipleOf: 0.1
+        weightKg:
+          type: number
+          multipleOf: 0.1
+        imageUrl:
+          type: string
+          nullable: true
+          format: uri
+        generation:
+          type: string
+        syncedAt:
+          type: string
+          format: date-time
+        localizedName:
+          type: string
+          nullable: true
+          maxLength: 100
+        location:
+          type: string
+          nullable: true
+          maxLength: 200
+        tags:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 32
+        version:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Optimistic-lock token (0 after import/seed; increments on each update)
+    LocalPokemonPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/LocalPokemon"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+    ProblemDetail:
+      type: object
+      description: RFC 7807
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |
+            Examples: urn:problem-type:bad-request,
+            urn:problem-type:not-found,
+            urn:problem-type:conflict (duplicate import),
+            urn:problem-type:stale-version (optimistic lock),
+            urn:problem-type:unsupported-media-type
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
