@@ -314,7 +314,7 @@ PokeAPI already lives in **`web/config`** (from T021); this IT covers it (R6).
 
 ## Phase 8: Ops & coverage visibility
 
-- [ ] T026 Add `POKEAPI_BASE_URL=https://pokeapi.co/api/v2` to root
+- [x] T026 Add `POKEAPI_BASE_URL=https://pokeapi.co/api/v2` to root
   `.env.example`; pass
   `POKEAPI_BASE_URL: ${POKEAPI_BASE_URL:-https://pokeapi.co/api/v2}` into the
   `backend` service in root `docker-compose.yml`; confirm alignment with
@@ -322,7 +322,7 @@ PokeAPI already lives in **`web/config`** (from T021); this IT covers it (R6).
   Verify with `docker compose config`. Coverage: N/A.
   ⏸ Review — `chore: wire POKEAPI_BASE_URL in env example and compose`
 
-- [ ] T027 Add JaCoCo `report-aggregate` execution on `backend/web/pom.xml`
+- [x] T027 Add JaCoCo `report-aggregate` execution on `backend/web/pom.xml`
   for visibility only — **do not** bind `check` to the aggregate; per-module
   `check` remains the gate (R6). Verify aggregate HTML is produced on
   `./mvnw -B -pl web -am verify`. Coverage: reporting only.
