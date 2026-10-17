@@ -258,7 +258,7 @@ JSON shape**; Problem Detail bodies in the advice pair.
 
 **Independent Test**: `@WebMvcTest` in **web** with mocked use case.
 
-- [ ] T017 [HU02] RED: extend
+- [x] T017 [HU02] RED: extend
   `backend/web/src/test/java/com/miguel/pokemonapp/web/pokemon/PokemonControllerTest.java`
   — `GET /api/v1/pokemon/{id}` happy path → **200** with detail JSON shape
   (identity, stats+total, flavorText, evolution/`isCurrent`, imageUrl);
@@ -270,7 +270,7 @@ JSON shape**; Problem Detail bodies in the advice pair.
   **web**.
   ⏸ Review — `test(web): expect pokemon detail status codes and openapi (red)`
 
-- [ ] T018 [HU02] GREEN: implement detail mapping on
+- [x] T018 [HU02] GREEN: implement detail mapping on
   `backend/web/src/main/java/com/miguel/pokemonapp/web/pokemon/PokemonController.java`,
   detail request/response DTOs under `.../web/pokemon/`, `@Min(1)` on path
   id, OpenAPI 200/400/404/502 annotations so
