@@ -163,7 +163,7 @@ unavailable.
 
 **Independent Test**: `./mvnw -B -pl application test` with Mockito; no Spring.
 
-- [ ] T012 [HU02] RED: write
+- [x] T012 [HU02] RED: write
   `backend/application/src/test/java/com/miguel/pokemonapp/application/pokemon/GetPokemonDetailUseCaseTest.java`
   — mock `PokemonCatalogPort`: verify **exactly three** calls in order
   `fetchDetail(id)` → `fetchEvolutionChain(chainId)` →
@@ -172,7 +172,7 @@ unavailable.
   not push RED. Coverage: **application**.
   ⏸ Review — `test(application): expect get pokemon detail use case (red)`
 
-- [ ] T013 [HU02] GREEN: extend
+- [x] T013 [HU02] GREEN: extend
   `backend/application/src/main/java/com/miguel/pokemonapp/application/port/PokemonCatalogPort.java`
   with `fetchDetail(id)` → `CatalogDetailEntry` and
   `fetchEvolutionChain(chainId)` (do **not** add `fetchPokemonDetail` /

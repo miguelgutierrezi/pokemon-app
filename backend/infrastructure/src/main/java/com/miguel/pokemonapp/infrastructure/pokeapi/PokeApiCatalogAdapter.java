@@ -7,7 +7,9 @@ import com.miguel.pokemonapp.application.CatalogUnavailableException;
 import com.miguel.pokemonapp.application.port.PokemonCatalogPort;
 import com.miguel.pokemonapp.application.port.SpeciesPage;
 import com.miguel.pokemonapp.domain.pokemon.CatalogAbility;
+import com.miguel.pokemonapp.domain.pokemon.CatalogDetailEntry;
 import com.miguel.pokemonapp.domain.pokemon.CatalogEntry;
+import com.miguel.pokemonapp.domain.pokemon.CatalogEvolutionChain;
 import com.miguel.pokemonapp.domain.pokemon.CatalogPokemon;
 import com.miguel.pokemonapp.domain.pokemon.CatalogSpecies;
 import com.miguel.pokemonapp.domain.pokemon.LocalizedText;
@@ -112,6 +114,16 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
       futures.forEach(future -> future.cancel(true));
       throw toCatalogUnavailable(e, "catalog entries unavailable");
     }
+  }
+
+  @Override
+  public CatalogDetailEntry fetchDetail(int nationalId) {
+    throw new UnsupportedOperationException("fetchDetail not implemented yet");
+  }
+
+  @Override
+  public CatalogEvolutionChain fetchEvolutionChain(int chainId) {
+    throw new UnsupportedOperationException("fetchEvolutionChain not implemented yet");
   }
 
   private CompletableFuture<CatalogEntry> fetchEntry(int nationalId) {
