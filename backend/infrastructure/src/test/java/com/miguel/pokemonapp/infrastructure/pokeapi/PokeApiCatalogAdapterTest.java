@@ -260,6 +260,36 @@ class PokeApiCatalogAdapterTest {
         .isInstanceOf(CatalogUnavailableException.class);
   }
 
+  @Test
+  void fetchEntriesFailsWhenPokemonWeightMissing() {
+    stubPokemon(
+        1,
+        """
+        {
+          "id": 1,
+          "name": "bulbasaur",
+          "sprites": { "front_default": "https://example.com/1.png" },
+          "abilities": []
+        }
+        """,
+        0);
+    stubSpecies(1, speciesBody("Bulbasaur"), 0);
+
+    assertThatThrownBy(() -> adapter.fetchEntries(List.of(1)))
+        .isInstanceOf(CatalogUnavailableException.class)
+        .hasMessageContaining("malformed");
+  }
+
+  @Test
+  void fetchEntriesFailsWhenPokemonIdMismatchesRequest() {
+    stubPokemon(1, pokemonBody(99, "bulbasaur"), 0);
+    stubSpecies(1, speciesBody("Bulbasaur"), 0);
+
+    assertThatThrownBy(() -> adapter.fetchEntries(List.of(1)))
+        .isInstanceOf(CatalogUnavailableException.class)
+        .hasMessageContaining("malformed");
+  }
+
   private void stubPokemon(int id, String body, int delayMs) {
     wireMock.stubFor(
         get(urlEqualTo("/pokemon/" + id))

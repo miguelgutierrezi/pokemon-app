@@ -25,6 +25,9 @@ instruction that should persist):
    previous task's changes are still uncommitted, STOP and ask the user to
    commit them first. Never start new work on top of uncommitted reviewed
    work.
+10. Compile with deprecation warnings on
+    (`-Dmaven.compiler.showDeprecation=true`). Never use APIs deprecated in
+    the project's Spring 7 / Jackson 3 versions.
 
 Entry format:
 

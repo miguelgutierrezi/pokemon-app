@@ -19,7 +19,6 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import tools.jackson.databind.JsonNode;
@@ -35,50 +34,20 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     HttpClient httpClient = HttpClient.newBuilder().connectTimeout(connectTimeout).build();
     JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
     requestFactory.setReadTimeout(readTimeout);
-    this.restClient =
-        RestClient.builder()
-            .baseUrl(baseUrl)
-            .requestFactory(requestFactory)
-            .messageConverters(List.of(new JacksonJsonHttpMessageConverter()))
-            .build();
+    this.restClient = RestClient.builder().baseUrl(baseUrl).requestFactory(requestFactory).build();
     this.executor = Executors.newVirtualThreadPerTaskExecutor();
   }
 
   @Override
   public SpeciesPage speciesPage(int offset, int limit) {
-    try {
-      JsonNode body =
-          restClient
-              .get()
-              .uri(
-                  uriBuilder ->
-                      uriBuilder
-                          .path("/pokemon-species")
-                          .queryParam("offset", offset)
-                          .queryParam("limit", limit)
-                          .build())
-              .retrieve()
-              .onStatus(
-                  status -> status.isError(),
-                  (request, response) -> {
-                    throw new CatalogUnavailableException(
-                        "species page returned " + response.getStatusCode());
-                  })
-              .body(JsonNode.class);
-      if (body == null) {
-        throw new CatalogUnavailableException("empty species page response");
-      }
-      long total = body.path("count").asLong();
-      List<Integer> ids = new ArrayList<>();
-      for (JsonNode result : body.path("results")) {
-        ids.add(parseSpeciesId(result.path("url").asText()));
-      }
-      return new SpeciesPage(ids, total);
-    } catch (CatalogUnavailableException e) {
-      throw e;
-    } catch (RestClientException e) {
-      throw new CatalogUnavailableException("species page unavailable", e);
+    JsonNode body = getJson("/pokemon-species?offset={offset}&limit={limit}", offset, limit);
+    requireField(body, "count", "malformed species page: missing count");
+    long total = body.get("count").asLong();
+    List<Integer> ids = new ArrayList<>();
+    for (JsonNode result : body.path("results")) {
+      ids.add(parseSpeciesId(result.path("url").asString()));
     }
+    return new SpeciesPage(ids, total);
   }
 
   @Override
@@ -91,8 +60,13 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
             .map(id -> CompletableFuture.supplyAsync(() -> fetchEntry(id), executor))
             .toList();
     try {
-      return futures.stream().map(CompletableFuture::join).toList();
+      List<CatalogEntry> entries = new ArrayList<>(futures.size());
+      for (CompletableFuture<CatalogEntry> future : futures) {
+        entries.add(future.join());
+      }
+      return List.copyOf(entries);
     } catch (CompletionException e) {
+      futures.forEach(future -> future.cancel(true));
       throw toCatalogUnavailable(e, "catalog entries unavailable");
     }
   }
@@ -105,83 +79,91 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     try {
       return new CatalogEntry(pokemon.join(), species.join());
     } catch (CompletionException e) {
+      pokemon.cancel(true);
+      species.cancel(true);
       throw toCatalogUnavailable(e, "catalog entry unavailable for id " + nationalId);
     }
   }
 
   private CatalogPokemon fetchPokemon(int nationalId) {
-    try {
-      JsonNode body =
-          restClient
-              .get()
-              .uri("/pokemon/{id}", nationalId)
-              .retrieve()
-              .onStatus(
-                  status -> status.isError(),
-                  (request, response) -> {
-                    throw new CatalogUnavailableException(
-                        "pokemon " + nationalId + " returned " + response.getStatusCode());
-                  })
-              .body(JsonNode.class);
-      if (body == null) {
-        throw new CatalogUnavailableException("empty pokemon response for id " + nationalId);
-      }
-      List<CatalogAbility> abilities = new ArrayList<>();
-      for (JsonNode abilityNode : body.path("abilities")) {
-        abilities.add(
-            new CatalogAbility(
-                abilityNode.path("slot").asInt(),
-                abilityNode.path("ability").path("name").asText(),
-                abilityNode.path("is_hidden").asBoolean()));
-      }
-      return new CatalogPokemon(
-          body.path("id").asInt(),
-          body.path("name").asText(),
-          textOrNull(body.path("sprites").path("front_default")),
-          body.path("weight").asInt(),
-          abilities);
-    } catch (CatalogUnavailableException e) {
-      throw e;
-    } catch (RestClientException e) {
-      throw new CatalogUnavailableException("pokemon " + nationalId + " unavailable", e);
+    JsonNode body = getJson("/pokemon/{id}", nationalId);
+    requireField(body, "id", "malformed pokemon payload for id " + nationalId);
+    requireField(body, "name", "malformed pokemon payload for id " + nationalId);
+    requireField(body, "weight", "malformed pokemon payload for id " + nationalId);
+
+    int id = body.get("id").asInt();
+    if (id != nationalId) {
+      throw new CatalogUnavailableException(
+          "malformed pokemon id: expected " + nationalId + " but was " + id);
     }
+    String name = body.get("name").asString();
+    if (name.isBlank()) {
+      throw new CatalogUnavailableException("malformed pokemon payload for id " + nationalId);
+    }
+
+    List<CatalogAbility> abilities = new ArrayList<>();
+    for (JsonNode abilityNode : body.path("abilities")) {
+      abilities.add(
+          new CatalogAbility(
+              abilityNode.path("slot").asInt(),
+              abilityNode.path("ability").path("name").asString(),
+              abilityNode.path("is_hidden").asBoolean()));
+    }
+    return new CatalogPokemon(
+        id,
+        name,
+        textOrNull(body.path("sprites").path("front_default")),
+        body.get("weight").asInt(),
+        abilities);
   }
 
   private CatalogSpecies fetchSpecies(int nationalId) {
+    JsonNode body = getJson("/pokemon-species/{id}", nationalId);
+    List<LocalizedText> names = new ArrayList<>();
+    for (JsonNode nameNode : body.path("names")) {
+      names.add(
+          new LocalizedText(
+              nameNode.path("language").path("name").asString(), nameNode.path("name").asString()));
+    }
+    List<LocalizedText> genera = new ArrayList<>();
+    for (JsonNode genusNode : body.path("genera")) {
+      genera.add(
+          new LocalizedText(
+              genusNode.path("language").path("name").asString(),
+              genusNode.path("genus").asString()));
+    }
+    return new CatalogSpecies(names, genera);
+  }
+
+  private JsonNode getJson(String uriTemplate, Object... uriVariables) {
     try {
       JsonNode body =
           restClient
               .get()
-              .uri("/pokemon-species/{id}", nationalId)
+              .uri(uriTemplate, uriVariables)
               .retrieve()
               .onStatus(
                   status -> status.isError(),
                   (request, response) -> {
                     throw new CatalogUnavailableException(
-                        "species " + nationalId + " returned " + response.getStatusCode());
+                        "catalog returned " + response.getStatusCode() + " for " + uriTemplate);
                   })
               .body(JsonNode.class);
       if (body == null) {
-        throw new CatalogUnavailableException("empty species response for id " + nationalId);
+        throw new CatalogUnavailableException("empty catalog response for " + uriTemplate);
       }
-      List<LocalizedText> names = new ArrayList<>();
-      for (JsonNode nameNode : body.path("names")) {
-        names.add(
-            new LocalizedText(
-                nameNode.path("language").path("name").asText(), nameNode.path("name").asText()));
-      }
-      List<LocalizedText> genera = new ArrayList<>();
-      for (JsonNode genusNode : body.path("genera")) {
-        genera.add(
-            new LocalizedText(
-                genusNode.path("language").path("name").asText(),
-                genusNode.path("genus").asText()));
-      }
-      return new CatalogSpecies(names, genera);
+      return body;
     } catch (CatalogUnavailableException e) {
       throw e;
     } catch (RestClientException e) {
-      throw new CatalogUnavailableException("species " + nationalId + " unavailable", e);
+      throw new CatalogUnavailableException("catalog unavailable for " + uriTemplate, e);
+    }
+  }
+
+  private static void requireField(JsonNode body, String field, String message) {
+    JsonNode node = body.get(field);
+    if (node == null || node.isNull() || node.isMissingNode()) {
+      throw new CatalogUnavailableException(message);
     }
   }
 
@@ -206,7 +188,7 @@ public final class PokeApiCatalogAdapter implements PokemonCatalogPort, AutoClos
     if (node == null || node.isNull() || node.isMissingNode()) {
       return null;
     }
-    String text = node.asText();
+    String text = node.asString();
     return text.isBlank() ? null : text;
   }
 

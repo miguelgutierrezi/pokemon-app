@@ -227,3 +227,29 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   Move beyond-last to `PageRequest.requireWithin(totalElements)` using the
   same `PageCounts.pagesFor` as `Page`. Use case stays synchronous and only
   calls `requireWithin` then one `fetchEntries`.
+
+## 2026-10-16 — PokeApiCatalogAdapter: getJson, payload validation, cancel
+- **Source**: Miguel's review
+- **Context**: After T014/T015, GET/onStatus/null/catch was duplicated; missing
+  required JSON fields (e.g. weight) or id mismatches could surface as
+  domain `IllegalArgumentException` (HTTP 500) instead of catalog 502; unused
+  `org.wiremock:wiremock` remained in parent DM; failed fan-out did not cancel
+  sibling futures.
+- **Correction**: Extract private `getJson(uriTemplate, vars…)`. Validate
+  required upstream fields (`id`, `name`, `weight`; species-page `count`) and
+  that pokemon `id` equals the requested national id — throw
+  `CatalogUnavailableException("malformed …")`. Cancel remaining futures on
+  `fetchEntries` failure. Drop unused `wiremock` from parent
+  `dependencyManagement` (keep `wiremock-standalone`).
+
+## 2026-10-16 — Compile with deprecation; prefer Spring 7 / Jackson 3 APIs
+- **Source**: Miguel's review
+- **Context**: Adapter refactor used deprecated `RestClient.messageConverters`
+  and Jackson `JsonNode.asText()`; found with
+  `-Dmaven.compiler.showDeprecation=true`.
+- **Correction**: Always compile/verify with deprecation warnings on. Never
+  use APIs deprecated in the project's Spring 7 / Jackson 3 stack. Prefer
+  default RestClient converters or `configureMessageConverters`; use
+  `JsonNode.asString()` instead of `asText()`. Include `uriTemplate` in
+  `getJson` error messages. Also recorded as rule 10 in
+  `.cursor/rules/agent-corrections.mdc`.

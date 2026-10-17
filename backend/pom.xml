@@ -63,11 +63,6 @@
       </dependency>
       <dependency>
         <groupId>org.wiremock</groupId>
-        <artifactId>wiremock</artifactId>
-        <version>${wiremock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.wiremock</groupId>
         <artifactId>wiremock-standalone</artifactId>
         <version>${wiremock.version}</version>
       </dependency>
