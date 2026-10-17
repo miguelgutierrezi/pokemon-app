@@ -82,7 +82,7 @@ renumbered.
 ### Architecture boundaries (TDD)
 
 - [x] T008 [S2] Add `archunit-junit5` (test scope) to `backend/web/pom.xml`. Write `backend/web/src/test/java/com/miguel/pokemonapp/architecture/ArchitectureTest.java` with the three rules of research R3 (domain only depends on itself and `java..`; application only on itself, domain and `java..`; neither on `org.springframework..`, `jakarta.persistence..`, `jakarta.servlet..`, `..infrastructure..`, `..web..`), each with `.allowEmptyShould(true)`. RED: add a temporary probe class `backend/domain/src/main/java/com/miguel/pokemonapp/domain/ArchitectureProbe.java` importing `org.springframework.stereotype.Component` (add `spring-context` to domain temporarily) and confirm the test fails. Do not push the RED state. ⏸ Review — `test(backend): add architecture rules (red: probe violates domain purity)`
-- [ ] T009 [S2] GREEN: delete `ArchitectureProbe.java` and the temporary `spring-context` dependency from `backend/domain/pom.xml`; `./mvnw -B verify` passes. ⏸ Review — `test(backend): remove architecture probe (green)`
+- [x] T009 [S2] GREEN: delete `ArchitectureProbe.java` and the temporary `spring-context` dependency from `backend/domain/pom.xml`; `./mvnw -B verify` passes. ⏸ Review — `test(backend): remove architecture probe (green)`
 
 ### Bootable app + DB health (TDD)
 
