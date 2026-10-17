@@ -89,3 +89,13 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Correction**: In `src/test/setup.ts`, call `cleanup()` in `afterEach`
   from `@testing-library/react`. Set `"strict": true` explicitly in
   `tsconfig.app.json` and `tsconfig.node.json`.
+
+## 2026-10-16 — Backend Docker context ignore and JDK build image (T022)
+- **Source**: Miguel's review
+- **Context**: `backend/.dockerignore` used plain `target/`, which only
+  matches the context root, so module `target/` dirs could enter the build
+  context and leak stale classes. The build stage used
+  `maven:3.9-eclipse-temurin-21` even though the build runs `./mvnw`.
+- **Correction**: Ignore `**/target/`, keep `.idea/`, and add `**/*.iml`.
+  Build stage base image is `eclipse-temurin:21-jdk`; Maven version comes
+  from the wrapper, matching local and CI.
