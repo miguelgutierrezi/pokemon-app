@@ -307,7 +307,7 @@ JSON shape**; Problem Detail bodies in the advice pair.
 **Independent Test**: `@SpringBootTest` + WireMock-standalone; existing
 Postgres Testcontainers; `POKEAPI_BASE_URL` → WireMock.
 
-- [ ] T021 [HU02] RED: write acceptance IT
+- [x] T021 [HU02] RED: write acceptance IT
   `backend/web/src/test/java/com/miguel/pokemonapp/web/pokemon/PokemonDetailIntegrationTest.java`
   — 200 for stubbed Bulbasaur/Eevee/single-stage shapes; **404** ProblemDetail
   on identity upstream 404; WireMock **5xx** on `/pokemon/{id}` → HTTP
@@ -318,13 +318,14 @@ Postgres Testcontainers; `POKEAPI_BASE_URL` → WireMock.
   already green — see T022). Do not push RED. Coverage: **web** IT.
   ⏸ Review — `test(web): pokemon detail IT against wiremock (red)`
 
-- [ ] T022 [HU02] GREEN: finish wiring/fixes so T021 passes (reuse
+- [x] T022 [HU02] GREEN: finish wiring/fixes so T021 passes (reuse
   `web/config/` beans). **Acceptance note**: if T021 already passes with no
   production changes, commit the IT as
   `test(web): pokemon detail IT against wiremock` and mark **T022 skipped**.
   Otherwise `./mvnw -B -pl web -am verify` green; 002
   `PokemonListIntegrationTest` stays green. Coverage: **web** IT.
   ⏸ Review — `feat(web): pokemon detail IT green` (or skipped)
+  **Skipped**: T021 already green with no production changes (IT-only).
 
 **Checkpoint**: Detail e2e green; list IT unchanged.
 
