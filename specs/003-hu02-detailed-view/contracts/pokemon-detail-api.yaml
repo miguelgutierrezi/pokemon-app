@@ -62,7 +62,7 @@ paths:
                     evolution:
                       nationalNumber: 1
                       name: Bulbasaur
-                      imageUrl: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png
+                      imageUrl: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png
                       isCurrent: true
                       children:
                         - trigger: level-up
@@ -71,7 +71,7 @@ paths:
                           node:
                             nationalNumber: 2
                             name: Ivysaur
-                            imageUrl: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png
+                            imageUrl: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png
                             isCurrent: false
                             children: []
         "400":
@@ -152,6 +152,9 @@ components:
           type: string
           nullable: true
           format: uri
+          description: >
+            Catalog front sprite thumbnail (`sprites/pokemon/{id}.png`), not
+            official artwork (detail-level imageUrl uses artwork preference).
         isCurrent:
           type: boolean
           description: True when this node is the requested Pokémon

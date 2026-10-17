@@ -113,7 +113,7 @@ test classpath. 002 list domain tests stay green.
   Tests pass. Coverage: **domain**.
   ⏸ Review — `feat(domain): pokemon stats with computed total (green)`
 
-- [ ] T008 [HU02] RED: write
+- [x] T008 [HU02] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/EvolutionNodeTest.java`
   — tree from catalog chain + `CatalogEntry` lookups; edge metadata from
   **first** `evolution_details` only (empty list → null trigger / minLevel /
@@ -122,7 +122,7 @@ test classpath. 002 list domain tests stay green.
   not push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect evolution tree and isCurrent (red)`
 
-- [ ] T009 [HU02] GREEN: implement
+- [x] T009 [HU02] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/EvolutionLink.java`,
   `EvolutionChild.java`, `EvolutionNode.java` (and catalog chain input
   records as needed under `domain/pokemon/`). Tests pass. Coverage:
@@ -262,6 +262,7 @@ JSON shape**; Problem Detail bodies in the advice pair.
   `backend/web/src/test/java/com/miguel/pokemonapp/web/pokemon/PokemonControllerTest.java`
   — `GET /api/v1/pokemon/{id}` happy path → **200** with detail JSON shape
   (identity, stats+total, flavorText, evolution/`isCurrent`, imageUrl);
+  assert the JSON property is exactly **`isCurrent`** (not `current`);
   `id=0` → **400**. **Do not** assert `problem+json` body here. Also extend
   `backend/web/src/test/java/com/miguel/pokemonapp/web/OpenApiDocsIntegrationTest.java`
   to assert `/api/v1/pokemon/{id}` is documented with responses **200**,

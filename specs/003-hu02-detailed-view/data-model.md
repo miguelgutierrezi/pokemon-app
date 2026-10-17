@@ -65,7 +65,7 @@ If `evolution_details` is **empty**, all three are null (documented).
 |-------|------|--------|
 | `nationalNumber` | int | Species id (≥ 1) |
 | `name` | string | English display name (slug fallback) via `DisplayName` |
-| `imageUrl` | string \| null | Same `ImageUrl` rule as detail |
+| `imageUrl` | string \| null | Catalog **front sprite** (`CatalogPokemon.spriteUrl` / `front_default`) for tree thumbnails — not the detail `ImageUrl` (artwork) rule |
 | `isCurrent` | boolean | `true` iff this node is the requested Pokémon |
 | `children` | list of EvolutionChild | Ordered as in the catalog chain |
 

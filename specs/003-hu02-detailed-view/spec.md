@@ -73,8 +73,8 @@ Detail cases.
    (documented).
 5. **Given** a species with a branching evolution chain (e.g. Eevee),
    **When** detail is requested, **Then** the evolutionary lineage is a
-   **tree** of nodes (national number, English display name, image per the
-   same image rule, children) and each edge carries trigger / min level /
+   **tree** of nodes (national number, English display name, front-sprite
+   thumbnail image, children) and each edge carries trigger / min level /
    item from the **first** catalog `evolution_details` entry (all null when
    that list is empty); the requested Pokémon is identifiable within the
    tree.
@@ -163,11 +163,12 @@ response succeeds quickly and produces zero additional catalog HTTP calls
   null (not an object with null fields).
 - **FR-006**: Evolutionary lineage MUST be a **tree** (nodes with children),
   not a flat list; each node MUST include national number, English display
-  name, image (same rule as FR-003), and children; each parent→child edge
-  MUST take the **first** entry of the catalog `evolution_details` list for
-  trigger slug, min level, and item slug; if that list is empty, trigger,
-  min level, and item MUST all be null (documented); the requested Pokémon
-  MUST be identifiable within the tree.
+  name, image URL for the catalog **front sprite** (`front_default`
+  thumbnail — not the FR-003 artwork preference), and children; each
+  parent→child edge MUST take the **first** entry of the catalog
+  `evolution_details` list for trigger slug, min level, and item slug; if
+  that list is empty, trigger, min level, and item MUST all be null
+  (documented); the requested Pokémon MUST be identifiable within the tree.
 - **FR-007**: Id &lt; 1 or non-numeric id MUST yield HTTP **400** with an
   RFC 7807 Problem Detail (including type-mismatch handling for the path
   variable).

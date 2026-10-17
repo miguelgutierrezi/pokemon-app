@@ -375,3 +375,13 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `from()` returns). Constructor requires non-blank `text` and non-null
   `version`. Normalise with `\\s+` only (`\\s` already covers `\\f`/`\\n`/
   `\\r`). Spec/data-model say “`flavorText` is null”, not “null pair”.
+
+## 2026-10-16 — Evolution node image is front sprite thumbnail
+- **Source**: Miguel's review
+- **Context**: T008/T009 used `ImageUrl.resolve` for evolution nodes,
+  conflicting with FR-003 (detail artwork) vs UI tree thumbnails.
+- **Correction**: Option A — evolution node `imageUrl` is the catalog
+  **front sprite** (`spriteUrl` / `front_default`) directly; detail payload
+  image keeps artwork → sprite → null (FR-003). Spec FR-006, data-model, and
+  OpenAPI examples must not say “same rule as FR-003”. T017 must assert JSON
+  field name `isCurrent`.
