@@ -248,7 +248,7 @@ ddl-mismatch startup test).
 **Independent Test**: `@SpringBootTest` + WireMock-standalone; existing
 Postgres Testcontainers; `POKEAPI_BASE_URL` → WireMock.
 
-- [ ] T014 [HU03] RED: write acceptance IT
+- [x] T014 [HU03] RED: write acceptance IT
   `backend/web/src/test/java/com/miguel/pokemonapp/web/collection/CollectionIntegrationTest.java`
   — seed list includes 1/2/3; import stubbed catalog id → **201** + Location;
   duplicate → **409** and one row; get → **200**; get missing → **404** local
@@ -263,12 +263,9 @@ Postgres Testcontainers; `POKEAPI_BASE_URL` → WireMock.
   **web** IT.
   ⏸ Review — `test(web): collection IT against wiremock (red)`
 
-- [ ] T015 [HU03] GREEN: finish wiring/fixes so T014 passes. **Acceptance
-  note**: if T014 already passes with no production changes, commit the IT
-  as `test(web): collection IT against wiremock` and mark **T015 skipped**.
-  Otherwise `./mvnw -B -pl web -am verify` green; 002/003 list/detail ITs
-  stay green. Coverage: **web** IT.
-  ⏸ Review — `feat(web): collection IT green` (or skipped)
+- [x] T015 [HU03] GREEN: **skipped** — T014 passed with no production changes
+  (commit IT as `test(web): collection IT against wiremock` when committing).
+  ⏸ Review — skipped
 
 **Checkpoint**: Collection e2e green; prior ITs unchanged.
 
