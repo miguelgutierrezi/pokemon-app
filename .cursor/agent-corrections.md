@@ -479,3 +479,10 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   T006 use-case test and T014 e2e IT. (A1) Exact V3 seed strings in
   `data-model.md` table; T009 must match. (I2) Post-design check cites
   R1–R8 + R3b. (G2/G3) Manual quickstart measurement in T017 is enough.
+
+## 2026-10-17 — LocalPokemon: no domain surrogate id
+- **Source**: Miguel's review
+- **Context**: T004/T005 review — `LocalPokemon` carried `Long id`.
+- **Correction**: Do not put the DB surrogate key on the domain aggregate.
+  Domain / API identity is `nationalNumber`. The surrogate `id` stays on the
+  JPA entity / Flyway table only.

@@ -31,8 +31,7 @@ Snapshot of catalog identity/presentation at sync time + proprietary fields.
 
 | Field | Type | Rules |
 |-------|------|--------|
-| `id` | long \| null | Surrogate; null until persisted; assigned by store |
-| `nationalNumber` | int | ≥ 1; natural key |
+| `nationalNumber` | int | ≥ 1; **domain / API identity** (natural key) |
 | `name` | `DisplayName` | English display name from catalog |
 | `category` | `Category` | English genus; may be empty/absent per 002 rules |
 | `types` | list of type slugs | Slot order from catalog (slot 1, 2, …) |
@@ -45,9 +44,13 @@ Snapshot of catalog identity/presentation at sync time + proprietary fields.
 | `location` | string \| null | Proprietary free text; null on import; length ≤ **200** when set |
 | `tags` | `Tags` | Empty on import; seed may populate |
 
+The Flyway / JPA surrogate `id` is a **persistence-only** detail on
+`pokemon_record` — it MUST NOT appear on the domain `LocalPokemon` or HTTP
+DTOs. API paths and lookups use `nationalNumber`.
+
 **Factory**: `LocalPokemon.snapshotOf(CatalogDetailEntry entry, Instant syncedAt)`
 — builds snapshot fields from pokemon + species detail; proprietary fields
-null/empty; `id` null.
+null/empty.
 
 **Invariants** (via `Require` / factory): national number ≥ 1; non-null
 name/height/weight/syncedAt/tags; type list non-null (may be empty only if
@@ -60,7 +63,7 @@ non-null; tags via `Tags`.
 
 | Method | Behaviour |
 |--------|-----------|
-| `save(LocalPokemon)` | Persist new aggregate; return with id. Adapter implementation: short `@Transactional` + `saveAndFlush`; unique violation → `DuplicateLocalPokemonException` |
+| `save(LocalPokemon)` | Persist new aggregate; return saved `LocalPokemon`. Adapter implementation: short `@Transactional` + `saveAndFlush`; unique violation → `DuplicateLocalPokemonException` |
 | `findByNationalNumber(int)` | Optional local record |
 | `findPage(PageRequest)` | `Page<LocalPokemon>` ordered by national number ASC |
 | `existsByNationalNumber(int)` | Required first step of import — if true → 409 **before** catalog `fetchDetail` |

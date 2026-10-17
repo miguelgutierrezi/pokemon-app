@@ -80,20 +80,21 @@ test classpath. 002/003 domain tests stay green.
   `./mvnw -B -pl domain test` passes. Coverage: **domain**.
   ⏸ Review — `feat(domain): tags value object (green)`
 
-- [ ] T003 **User action**: push `004-hu03-data-sync` and open a **draft** PR
+- [x] T003 **User action**: push `004-hu03-data-sync` and open a **draft** PR
   to `main` (`gh pr create --draft --base main`). Confirm CI runs green on
   the current branch tip. If red, fix before continuing. ⏸ Review
 
-- [ ] T004 [HU03] RED: write
+- [x] T004 [HU03] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/LocalPokemonTest.java`
   — `snapshotOf` maps catalog detail → national number, `DisplayName`,
   `Category`, types in slot order, `HeightM`, `WeightKg`, `ImageUrl`,
   generation, `syncedAt`; proprietary `localizedName` / `location` null,
-  `tags` empty; `id` null; localized name ≤ **100**, location ≤ **200** when
-  set (invariants). Confirm fail. Do not push RED. Coverage: **domain**.
+  `tags` empty; no domain surrogate id (identity = `nationalNumber`);
+  localized name ≤ **100**, location ≤ **200** when set (invariants).
+  Confirm fail. Do not push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect local pokemon snapshot (red)`
 
-- [ ] T005 [HU03] GREEN: implement
+- [x] T005 [HU03] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/LocalPokemon.java`
   with `snapshotOf` + `Require` invariants. Tests pass. Coverage: **domain**.
   ⏸ Review — `feat(domain): local pokemon aggregate (green)`
