@@ -61,10 +61,14 @@ English genus or null; ability `name` values are slugs.
 curl -s -i "http://localhost:8080/api/v1/pokemon?page=0"
 curl -s -i "http://localhost:8080/api/v1/pokemon?size=21"
 curl -s -i "http://localhost:8080/api/v1/pokemon?page=99999&size=20"
+curl -s -i "http://localhost:8080/api/v1/pokemon?page=abc"
 ```
 
 Expected: each `400` with `Content-Type` problem+json (RFC 7807), no stack
 trace body.
+
+Validated (2026-10-16, real PokeAPI): `400` for `page=115` (beyond last at
+`size=9`), `size=21`, and `page=abc`.
 
 ## 6. Catalog failure (SC-005)
 
@@ -72,6 +76,9 @@ Point `POKEAPI_BASE_URL` at a closed port or stop WireMock; restart backend;
 request a page.
 
 Expected: `502` Problem Detail; never a 200 with partial content.
+
+Validated (2026-10-16): `502` with generic detail when the catalog is
+unreachable (no upstream URL leak).
 
 ## 7. Cache (SC-003, SC-004)
 
@@ -88,18 +95,26 @@ curl -s -o /dev/null -w "%{http_code} %{time_total}\n" \
   "http://localhost:8080/api/v1/pokemon?page=1&size=9"
 ```
 
-Recorded (fill in during T029): uncached `time_total=___` s; cached
-`time_total=___` s.
+Recorded (T029, 2026-10-16, Claude Code review against real PokeAPI):
+
+| Scenario | `time_total` |
+|---|---|
+| Uncached `page=1&size=9` | **1.04 s** (≤ 3 s — SC-004) |
+| Uncached `page=1&size=20` | **0.89 s** |
+| Cached repeat (same page) | **3 ms** (≤ 200 ms — SC-003) |
+| Via Nginx `:3000` (cached path) | **3 ms** |
 
 ## 8. OpenAPI
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/v3/api-docs
-curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/swagger-ui.html
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/swagger-ui/index.html
 ```
 
 Expected: docs available (springdoc 3.1.1). Exact UI path may redirect; follow
 redirects.
+
+Validated (2026-10-16): Swagger UI **Try it out** OK; no console messages.
 
 ## 9. Backend verify (TR-UNIT / R6)
 

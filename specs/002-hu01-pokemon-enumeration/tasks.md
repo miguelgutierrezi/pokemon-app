@@ -337,14 +337,15 @@ PokeAPI already lives in **`web/config`** (from T021); this IT covers it (R6).
   README command before marking done. Coverage: N/A.
   ⏸ Review — `docs: document hu01 pokemon list in readme`
 
-- [ ] T029 Run `specs/002-hu01-pokemon-enumeration/quickstart.md` end to end
+- [x] T029 Run `specs/002-hu01-pokemon-enumeration/quickstart.md` end to end
   (or record deviations and fix). Confirm SC-001–SC-005 behaviours locally
   or via IT substitutes. Coverage: validation run.
   ⏸ Review — `test: validate 002 quickstart`
 
-- [ ] T030 Optional refactor only if needed after green (no behaviour change);
+- [x] T030 Optional refactor only if needed after green (no behaviour change);
   separate commit. Skip if nothing to refactor. Coverage: existing tests stay
-  green. ⏸ Review — `refactor: tidy hu01 after green`
+  green. ⏸ Review — `refactor: tidy hu01 after green` — **skipped** (nothing
+  to refactor)
 
 ---
 
