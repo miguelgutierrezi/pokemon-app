@@ -50,6 +50,9 @@ jobs:
           cache: maven
           cache-dependency-path: backend/**/pom.xml
       - run: ./mvnw -B verify
+      - name: Build backend image
+        working-directory: ${{ github.workspace }}
+        run: docker build backend
 
   frontend:
     needs: changes
