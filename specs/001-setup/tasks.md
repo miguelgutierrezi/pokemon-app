@@ -96,7 +96,7 @@ renumbered.
 
 ### Coverage gate
 
-- [ ] T014 [S2] Configure JaCoCo in `backend/pom.xml`: `prepare-agent`, `report`, and `check` bound to `verify` with rule `LINE` / `COVEREDRATIO` minimum `0.80`; exclude only `com/miguel/pokemonapp/PokemonApplication.class` with a comment explaining why (research R6). Verify: `./mvnw -B verify` passes and `backend/web/target/site/jacoco/index.html` exists. Temporarily set the minimum to `1.01`, confirm failure, restore `0.80`. ⏸ Review — `build(backend): enforce 80% line coverage with jacoco`
+- [x] T014 [S2] Configure JaCoCo in `backend/pom.xml`: `prepare-agent`, `report`, and `check` bound to `verify` with rule `LINE` / `COVEREDRATIO` minimum `0.80`; exclude only `com/miguel/pokemonapp/PokemonApplication.class` with a comment explaining why (research R6). Verify: `./mvnw -B verify` passes and `backend/web/target/site/jacoco/index.html` exists. Temporarily set the minimum to `1.01`, confirm failure, restore `0.80`. ⏸ Review — `build(backend): enforce 80% line coverage with jacoco`
 
 **Checkpoint**: S2 acceptance scenarios 1–5 pass via `./mvnw -B verify` and in CI.
 
