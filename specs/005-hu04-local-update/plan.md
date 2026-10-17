@@ -35,10 +35,13 @@ compile with `-Dmaven.compiler.showDeprecation=true`; no deprecated Spring 7
 **Testing**: JUnit 5, AssertJ, Mockito; domain unit tests; application use
 cases with mocked ports; `@DataJpaTest` + Testcontainers (update round
 trip, version++, stale → exception, **concurrent update with latches
-forcing B-load-after-A-commit → one 200 + one 409**, delete cascades);
-`@WebMvcTest` (PUT/DELETE + validation + unknown props + `"tags": null`
-→ 400 + POST import unknown property → 400); `@SpringBootTest` IT with
-Postgres (seed update, stale 409, 400s, 404, delete 204 + re-import).
+forcing B-load-after-A-commit → one success + one
+`StaleLocalPokemonException`**, OOLFE after mid-write delete → stale,
+delete cascades); `@WebMvcTest` (PUT/DELETE + validation + unknown props
++ `"tags": null` → 400 + POST import unknown property → 400); `@SpringBootTest`
+IT with Postgres (seed update, sequential same-version PUTs → 200 then
+409 + first writer’s values, clear null/`[]`, 400s, 404, delete 204 +
+re-import). HTTP **200/409** belong to web/IT; infra asserts exceptions.
 JaCoCo ≥ 80% per module.
 
 **Target Platform**: Same as 001–004 (Compose + CI).
@@ -112,7 +115,7 @@ specs/005-hu04-local-update/
 ├── contracts/
 │   ├── collection-api.yaml
 │   └── env-config.md
-└── tasks.md             # /speckit-tasks — not created by /speckit-plan
+└── tasks.md             # /speckit-tasks
 ```
 
 ### Source Code (repository root)
@@ -158,19 +161,25 @@ Work red → green per slice (separate commits at implement time):
    update: load → **in-tx** `entity.getVersion()` vs domain `version` →
    stale exception on mismatch → apply proprietary + `updated_at` →
    `saveAndFlush`; OOLFE → `StaleLocalPokemonException`; delete cascades;
-   concurrent-update latch test (**B loads after A commits** → one 200 /
-   one 409).
+   concurrent-update latch test (**B loads after A commits** → one
+   success + one `StaleLocalPokemonException`); OOLFE path when the row
+   is deleted after load then `save`. HTTP **200/409** are web/IT only.
 4. **Web DTOs / controller / OpenAPI** — RED→GREEN: additive `version` on
    `LocalPokemonResponse` (breaks/fixes existing collection tests);
    `UpdateLocalPokemonRequest` with `@JsonProperty(required = true)` on
    all four (test omit vs explicit null for text; `"tags": null` → 400);
    unknown/snapshot props → 400; **POST import unknown property → 400**
    (global fail-on-unknown); PUT 200; DELETE 204; 415 non-JSON; OpenAPI.
+   `@WebMvcTest` asserts the `version` returned by the **mocked** use
+   case; real version +1 is asserted in infrastructure / e2e IT.
 5. **Web advice** — RED→GREEN: `StaleLocalPokemonException` → 409
    `urn:problem-type:stale-version` + fixed detail; keep duplicate
    `urn:problem-type:conflict`; unknown-property 400 names field without
    Jackson leaks (`tools.jackson` / `com.fasterxml`).
-6. **E2E IT** — Postgres: update seed Bulbasaur 200 version+1; stale 409;
+6. **E2E IT** — Postgres: update seed Bulbasaur 200 version+1; two
+   sequential PUTs with the same version → first **200**, second **409**
+   stale-version and stored values match the first request (no lost
+   update; real race stays in infra); PUT null/`[]` clears fields;
    read-only/unknown 400; `"tags": null` / limits 400; missing 404;
    delete 204 → GET 404 → re-import 201.
 7. **Ops / polish** — README update/delete + version note; quickstart

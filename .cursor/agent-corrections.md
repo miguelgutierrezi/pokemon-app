@@ -557,10 +557,27 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   object's version and throw `StaleLocalPokemonException` on mismatch;
   manually setting a managed entity's `@Version` has no effect. `@Version`
   + OOLFE remain the commit-time backstop. Concurrent test MUST force
-  "B loads after A commits" (latch ordering) → one 200 + one 409.
+  "B loads after A commits" (latch ordering) → one success + one
+  `StaleLocalPokemonException` (HTTP 200/409 are web/IT — see analyze
+  remediation below).
   (2) Global `fail-on-unknown-properties=true` also makes
   `POST /api/v1/collection` reject unknown properties (004 behaviour
   change — add a test); PokeAPI parsing unaffected (`JsonNode` /
   own RestClient). (3) Wording: it is **Spring Boot** (not Jackson 3)
   that disables `FAIL_ON_UNKNOWN_PROPERTIES` by default.
   (4) `"tags": null` → 400 (tags must be an array); cover with a test.
+
+## 2026-10-17 — 005 analyze remediation (plan/tasks)
+- **Source**: Miguel's review
+- **Context**: `/speckit-analyze` findings I1/G1/G2/G3/U1/U2/I2/G4
+  applied to plan.md and tasks.md (no code).
+- **Correction**: (I1) Infra concurrency asserts one success + one
+  `StaleLocalPokemonException`; 200/409 belong to web/IT. (G1) T012:
+  two sequential PUTs with the same version → first 200, second 409
+  stale-version, stored values = first request; real race stays in T006.
+  (G2) T006 RED: load → delete row → save → `StaleLocalPokemonException`
+  (OOLFE path). (G3) T012 asserts PUT null/`[]` clears fields in DB.
+  (U1) T001: invariant `version ≥ 0` on the record (no “if exposed”).
+  (U2) T008 asserts mocked use-case `version`; real +1 in T006/T012.
+  (I2) plan structure note: `tasks.md` exists. (G4) SC-003 remains
+  manual in T015. (D1) no change.
