@@ -71,3 +71,12 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Correction**: On `@ImportTestcontainers` declaration classes, use
   `@ServiceConnection` without `@Container`. Integration tests that do not
   call HTTP should omit `webEnvironment` (default / no web server).
+
+## 2026-10-16 — Clean Vite scaffold leftovers (T015)
+- **Source**: Miguel's review
+- **Context**: After scaffolding, unused template files remained
+  (`public/icons.svg`, `README.md`) and `package.json` kept the generic
+  name `frontend`.
+- **Correction**: Remove unused Vite template assets and the scaffold
+  README (root README is the project docs). Name the npm package
+  `pokefolio-frontend` and refresh `package-lock.json` with `npm install`.
