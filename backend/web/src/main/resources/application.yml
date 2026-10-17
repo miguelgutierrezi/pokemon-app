@@ -6,6 +6,16 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
 
+pokemonapp:
+  pokeapi:
+    base-url: ${POKEAPI_BASE_URL:https://pokeapi.co/api/v2}
+    connect-timeout: 2s
+    read-timeout: 5s
+    cache:
+      ttl: 24h
+      id-max-size: 2048
+      list-max-size: 256
+
 management:
   endpoints:
     web:
@@ -14,3 +24,9 @@ management:
   endpoint:
     health:
       show-components: always
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

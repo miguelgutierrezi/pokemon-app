@@ -123,3 +123,197 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `set -a; . ../.env; set +a` and export
   `SPRING_DATASOURCE_USERNAME="$POSTGRES_USER"` /
   `SPRING_DATASOURCE_PASSWORD="$POSTGRES_PASSWORD"`.
+
+## 2026-10-16 — 002 plan: programmatic Caffeine and speciesPage (plan review)
+- **Source**: Miguel's review
+- **Context**: Plan used `@Cacheable`/starter-cache and split
+  count+listSpeciesIds; springdoc Jackson note was contradictory; web IT
+  risked Jetty clashes; POKEAPI env wording was either/or.
+- **Correction**: Cache with programmatic Caffeine in infrastructure (or a
+  port decorator), not `@Cacheable`; never cache failures; default TTL 24h.
+  Port: `speciesPage(offset, limit)` → ids + total. First web task is a
+  springdoc 3.1.1 spike (`/v3/api-docs` = 200) or stop. Web IT uses
+  `wiremock-standalone`. Assume species id == Pokémon id for 1–1025.
+  `POKEAPI_BASE_URL` defaults in yml + `.env.example` + Compose
+  `${POKEAPI_BASE_URL:-https://pokeapi.co/api/v2}`.
+  `CatalogUnavailableException` lives in application (web → 502).
+
+## 2026-10-16 — 002 analyze remediation: plan/tasks/spec sync
+- **Source**: Miguel's review
+- **Context**: `/speckit-analyze` found plan.md drifted from tasks.md rev. 2
+  (wiring, springdoc spike, TDD order); sprite source and HU-01 "skills"
+  wording underspecified; SC-003/SC-004 timing not automated.
+- **Correction**: Keep plan.md structure + TDD ordering aligned with tasks
+  (web/config/ with e2e IT GREEN; springdoc RED/GREEN; advice after
+  controller; infra client then cache; PokemonSummary pair). Label springdoc
+  tasks `[HU01]`. Sprite = `sprites.front_default` only. Spec Assumptions:
+  HU-01 skills ≡ catalog abilities (slugs; UI formats in 007). Timing for
+  SC-003/SC-004 stays manual in quickstart T029 (record observed values);
+  no timing asserts in automated tests.
+
+## 2026-10-16 — WeightKgTest: exact BigDecimal scale and negative rejection
+- **Source**: Miguel's review
+- **Context**: T001 used `isEqualByComparingTo`, which ignores scale, so
+  `10` and `10.0` would both pass; negative hectograms were untested.
+- **Correction**: For WeightKg (and similar one-decimal domain money/measure
+  VOs), assert with `isEqualTo(new BigDecimal("…"))` so equals checks scale;
+  API must always emit one decimal (e.g. 100 hg → `"10.0"`). Reject negative
+  hectograms with `IllegalArgumentException`. Apply in RED before GREEN.
+
+## 2026-10-16 — LocalizedText + shared English language constant
+- **Source**: Miguel's review
+- **Context**: After T005, `LocalizedName(languageCode, name)` was name-specific
+  and duplicated the `"en"` literal; Category (genera) needs the same shape.
+- **Correction**: Prefer a package-level `LocalizedText(languageCode, text)` for
+  both species `names[]` and `genera[]`. Put the English language code in one
+  shared constant in `domain.pokemon`. Refactor with tests green before the
+  next RED (Category); no behaviour change in the rename.
+
+## 2026-10-16 — Tests must not reuse production constants under test
+- **Source**: Miguel's review
+- **Context**: After T006/T007, `DisplayNameTest` and `CategoryTest` used
+  `LanguageCodes.ENGLISH` in fixtures that assert English selection.
+- **Correction**: Tests must not reuse production constants for the values
+  they verify. Pin the real external/code value as a literal (here PokeAPI
+  language code `"en"`) so a wrong constant cannot make the suite pass.
+
+## 2026-10-16 — PokemonSummary assemble via CatalogPokemon/CatalogSpecies
+- **Source**: Miguel's review
+- **Context**: After T008/T009, `PokemonSummary.assemble` took seven loose
+  args (names/genera easy to swap) and invariants lived only in the factory,
+  so `new PokemonSummary(...)` could bypass them.
+- **Correction**: Put summary invariants in the record compact constructor
+  (`nationalNumber >= 1`, non-blank `name`, non-null `weightKg`, non-null
+  `abilities` → `List.copyOf`). Introduce `CatalogPokemon` and
+  `CatalogSpecies` (each validates nulls / `List.copyOf`) as the assemble
+  inputs and as future `PokemonCatalogPort` return types. Factory becomes
+  `assemble(CatalogPokemon, CatalogSpecies)`.
+
+## 2026-10-16 — Stop if previous reviewed work is uncommitted
+- **Source**: Miguel's review
+- **Context**: Agents started the next task/refactor while prior reviewed
+  changes were still uncommitted, mixing review units.
+- **Correction**: Before any new task or refactor, run `git status`. If the
+  previous task's changes are still uncommitted, stop and ask the user to
+  commit first. Never stack new work on uncommitted reviewed work. Also
+  recorded as rule 9 in `.cursor/rules/agent-corrections.mdc`.
+
+## 2026-10-16 — Page: computed totalPages, ceilDiv, MAX_SIZE
+- **Source**: Miguel's review
+- **Context**: After T010/T011, `totalPages` was a record component (could be
+  inconsistent), paging used `Math.ceil` on doubles, and max size was a magic
+  `20` with no shared constant for web `@Max`.
+- **Correction**: Expose `totalPages()` as a computed method
+  (`Math.ceilDiv`); reject `totalElements < 0`; publish
+  `PageRequest.MAX_SIZE = 20` for web validation. Keep literal fixtures in
+  tests (e.g. 1025/9 → 114, size 21 rejected).
+
+## 2026-10-16 — Page compact ctor: reject page/size < 1 via pagesFor
+- **Source**: Miguel's review
+- **Context**: After the Page refactor, `new Page<>(…, size 0, …)` hit
+  `ArithmeticException` from `ceilDiv` instead of a clear domain reject;
+  totalPages math was duplicated in the constructor and `totalPages()`.
+- **Correction**: Compact constructor must reject `page < 1` and `size < 1`
+  before paging math. Extract a shared page-count helper used by both the
+  constructor and `totalPages()` (now `PageCounts.pagesFor`).
+
+## 2026-10-16 — Catalog fetchEntries + PageRequest.requireWithin
+- **Source**: Miguel's review
+- **Context**: After T012/T013, the port exposed per-id `fetchPokemon` /
+  `fetchSpecies` (parallelism belongs in the adapter) and the use case
+  duplicated page-beyond-last math already owned by `Page`.
+- **Correction**: Port API is `fetchEntries(List<Integer>)` →
+  `List<CatalogEntry>` (domain record; nulls rejected) in request order.
+  Move beyond-last to `PageRequest.requireWithin(totalElements)` using the
+  same `PageCounts.pagesFor` as `Page`. Use case stays synchronous and only
+  calls `requireWithin` then one `fetchEntries`.
+
+## 2026-10-16 — PokeApiCatalogAdapter: getJson, payload validation, cancel
+- **Source**: Miguel's review
+- **Context**: After T014/T015, GET/onStatus/null/catch was duplicated; missing
+  required JSON fields (e.g. weight) or id mismatches could surface as
+  domain `IllegalArgumentException` (HTTP 500) instead of catalog 502; unused
+  `org.wiremock:wiremock` remained in parent DM; failed fan-out did not cancel
+  sibling futures.
+- **Correction**: Extract private `getJson(uriTemplate, vars…)`. Validate
+  required upstream fields (`id`, `name`, `weight`; species-page `count`) and
+  that pokemon `id` equals the requested national id — throw
+  `CatalogUnavailableException("malformed …")`. Cancel remaining futures on
+  `fetchEntries` failure. Drop unused `wiremock` from parent
+  `dependencyManagement` (keep `wiremock-standalone`).
+
+## 2026-10-16 — Compile with deprecation; prefer Spring 7 / Jackson 3 APIs
+- **Source**: Miguel's review
+- **Context**: Adapter refactor used deprecated `RestClient.messageConverters`
+  and Jackson `JsonNode.asText()`; found with
+  `-Dmaven.compiler.showDeprecation=true`.
+- **Correction**: Always compile/verify with deprecation warnings on. Never
+  use APIs deprecated in the project's Spring 7 / Jackson 3 stack. Prefer
+  default RestClient converters or `configureMessageConverters`; use
+  `JsonNode.asString()` instead of `asText()`. Include `uriTemplate` in
+  `getJson` error messages. Also recorded as rule 10 in
+  `.cursor/rules/agent-corrections.mdc`.
+
+## 2026-10-16 — Caffeine AsyncCache to avoid VT carrier pinning
+- **Source**: Miguel's review
+- **Context**: Sync Caffeine `Cache` + blocking HTTP load on Java 21 virtual
+  threads pinned carriers (32×200ms loads ≈ 3264 ms with 2 carriers vs
+  ≈ 223 ms with `AsyncCache`).
+- **Correction**: *(Superseded by the next entry.)* Avoid blocking IO inside
+  Caffeine `compute`/`get(key, mappingFunction)` on virtual threads. Keep
+  `VirtualThreadCarrierPinningIT` under
+  `-Djdk.virtualThreadScheduler.parallelism=2`.
+
+## 2026-10-16 — Caffeine getIfPresent/load/put (not AsyncCache)
+- **Source**: Miguel's review
+- **Context**: `AsyncCache` + `expireAfterWrite` starts the expiry clock in a
+  completion callback after `join()` returns, so
+  `CachingPokeApiCatalogAdapterTest.expiredCacheEntryIsRefetched` failed
+  10/10 when advancing a manual `Ticker` immediately after the first call.
+- **Correction**: Use synchronous Caffeine `Cache` with
+  `getIfPresent` → load **outside** any cache lock → `put` on success only.
+  No blocking IO inside `compute`. Expiry starts at `put`. Document that
+  concurrent misses for the same key are not coalesced (acceptable for
+  idempotent GETs). Keep carrier-pinning IT and cache tests.
+
+## 2026-10-16 — springdoc: set enabled flags explicitly
+- **Source**: Miguel's review
+- **Context**: springdoc 3.1.1 logs WARN when api-docs/swagger-ui are enabled
+  by default without explicit properties.
+- **Correction**: Set `springdoc.api-docs.enabled=true` and
+  `springdoc.swagger-ui.enabled=true` in `application.yml` to express intent
+  and silence those default-enabled WARNs.
+
+## 2026-10-16 — T020/T021: real PokeAPI wiring, no shared @Primary mock
+- **Source**: Miguel's review
+- **Context**: After T020/T021, a `@Primary` mock `ListPokemonUseCase` in
+  `PostgresTestcontainersConfiguration` would silently replace the real use
+  case in the e2e IT; wiring was deferred to T025; default size was a magic
+  `9`; AssertJ used FQCN; `weightKg` scale (`10.0`) is invisible to numeric
+  jsonPath.
+- **Correction**: Never put `@Primary` mocks of production beans in shared
+  test config. Wire `PokeApiProperties` + `PokeApiCatalogAdapter` (close on
+  shutdown) + `ListPokemonUseCase` under `web/config` when the controller
+  needs them; existing `@SpringBootTest` ITs are the RED for that wiring.
+  Use `PageRequest.DEFAULT_SIZE`; static AssertJ imports; assert raw JSON
+  contains `"weightKg":10.0` for scale.
+
+## 2026-10-16 — T022/T023: no handleTypeMismatch for record query params
+- **Source**: Miguel's review
+- **Context**: `GlobalExceptionHandler.handleTypeMismatch` was unreachable
+  (JaCoCo uncovered): with record-bound query params, `page=abc` surfaces as
+  `MethodArgumentNotValidException`, already handled and tested.
+- **Correction**: Do not override `handleTypeMismatch` for HU-01 list query
+  binding. Re-add it in 003 with a test for `/api/v1/pokemon/{id}=abc` (path
+  variable type mismatch).
+
+## 2026-10-16 — OpenAPI: ParameterObject + problem responses + API info
+- **Source**: Miguel's review
+- **Context**: Live `/v3/api-docs` exposed a required `request` object instead
+  of optional query params `page`/`size`, omitted 400/502 problem+json, and
+  lacked Pokéfolio API info metadata.
+- **Correction**: Annotate list request with springdoc `@ParameterObject`
+  (and Schema defaults/bounds); document 400/502 as
+  `application/problem+json` + `ProblemDetail` via `@ApiResponse`; register an
+  `OpenAPI` bean (title "Pokéfolio API", version, one-line description). Cover
+  with `OpenApiDocsIntegrationTest` against real `/v3/api-docs`.

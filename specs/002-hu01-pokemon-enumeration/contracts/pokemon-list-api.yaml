@@ -1,0 +1,142 @@
+openapi: 3.0.3
+info:
+  title: Pokémon App — HU-01 Pokemon Enumeration
+  version: 0.2.0
+  description: |
+    Public paginated National Dex list. Backend owns /api/v1.
+    Nginx forwards /api/ unchanged. Errors are RFC 7807 Problem Details.
+servers:
+  - url: http://localhost:8080
+    description: Backend direct
+  - url: http://localhost:3000
+    description: Via UI proxy (path unchanged)
+paths:
+  /api/v1/pokemon:
+    get:
+      operationId: listPokemon
+      summary: List Pokémon (National Dex order)
+      tags:
+        - Pokemon
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 9
+      responses:
+        "200":
+          description: Page of Pokémon summaries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PokemonPage"
+              examples:
+                firstPage:
+                  value:
+                    content:
+                      - nationalNumber: 1
+                        name: Bulbasaur
+                        spriteUrl: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png
+                        category: Seed Pokémon
+                        weightKg: 6.9
+                        abilities:
+                          - name: overgrow
+                            hidden: false
+                          - name: chlorophyll
+                            hidden: true
+                    page: 1
+                    size: 9
+                    totalElements: 1025
+                    totalPages: 114
+        "400":
+          description: Invalid paging (validation or page beyond last)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "502":
+          description: Upstream catalog unavailable or timed out
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+components:
+  schemas:
+    AbilityRef:
+      type: object
+      required: [name, hidden]
+      properties:
+        name:
+          type: string
+          description: Catalog slug (e.g. solar-power)
+          example: overgrow
+        hidden:
+          type: boolean
+    PokemonSummary:
+      type: object
+      required: [nationalNumber, name, weightKg, abilities]
+      properties:
+        nationalNumber:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          description: English display name, or resource slug fallback
+        spriteUrl:
+          type: string
+          nullable: true
+          format: uri
+        category:
+          type: string
+          nullable: true
+          description: English genus; null if absent
+        weightKg:
+          type: number
+          multipleOf: 0.1
+          example: 6.9
+        abilities:
+          type: array
+          items:
+            $ref: "#/components/schemas/AbilityRef"
+    PokemonPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/PokemonSummary"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+    ProblemDetail:
+      type: object
+      description: RFC 7807
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string

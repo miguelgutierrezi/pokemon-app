@@ -21,6 +21,13 @@ instruction that should persist):
 8. Never pin GitHub Actions (`uses: owner/action@vN`) from memory. Check
    each action's latest release first, read breaking input changes, then
    pin the current major and adapt the workflow if needed.
+9. Before starting any new task or refactor, run `git status`. If the
+   previous task's changes are still uncommitted, STOP and ask the user to
+   commit them first. Never start new work on top of uncommitted reviewed
+   work.
+10. Compile with deprecation warnings on
+    (`-Dmaven.compiler.showDeprecation=true`). Never use APIs deprecated in
+    the project's Spring 7 / Jackson 3 versions.
 
 Entry format:
 
