@@ -26,11 +26,16 @@ detail cache values (see below).
 
 | Field | Type | Rules |
 |-------|------|--------|
-| `text` | string \| null | First English flavor entry, normalised; null if none |
-| `version` | string \| null | Version slug for that entry; null iff text is null |
+| `text` | string | Non-blank normalised English narrative |
+| `version` | string | Non-null version slug for that entry |
 
-**Normalisation** (domain): replace `\f`, `\n`, `\r` and runs of whitespace
-with a single space; trim. Empty after trim → treat as absent (null pair).
+Absent narrative is represented **only** as a null `FlavorText` reference
+(e.g. `FlavorText.from(...)` returns null) — never as a `FlavorText` with
+null fields.
+
+**Normalisation** (domain): collapse runs of whitespace (`\s+`, covering
+`\f`/`\n`/`\r`/spaces) to a single space; trim. Empty after trim → absent
+(`flavorText` is null).
 
 ### ImageUrl
 
@@ -85,7 +90,7 @@ If `evolution_details` is **empty**, all three are null (documented).
 | `generation` | string | Generation slug from species |
 | `imageUrl` | string \| null | `ImageUrl` rule |
 | `stats` | PokemonStats | Six bases + total |
-| `flavorText` | FlavorText | May be null pair |
+| `flavorText` | FlavorText \| null | Null when no usable English narrative |
 | `evolution` | EvolutionNode | Root of the chain tree (with `isCurrent` markers) |
 
 **Factory**: `PokemonDetail.assemble(CatalogDetailEntry, CatalogEvolutionChain,

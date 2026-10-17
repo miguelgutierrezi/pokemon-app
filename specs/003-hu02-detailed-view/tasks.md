@@ -78,23 +78,24 @@ test classpath. 002 list domain tests stay green.
   `./mvnw -B -pl domain test` passes. Coverage: **domain**.
   ⏸ Review — `feat(domain): convert decimetres to metres (green)`
 
-- [ ] T003 **User action**: push `003-hu02-detailed-view` and open a
+- [x] T003 **User action**: push `003-hu02-detailed-view` and open a
   **draft** PR to `main` (`gh pr create --draft --base main`). Confirm CI
   runs green on the skeleton (or current branch tip). If red, fix before
   continuing. ⏸ Review
 
-- [ ] T004 [HU02] RED: write
+- [x] T004 [HU02] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/FlavorTextTest.java`
   and
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/ImageUrlTest.java`
   — first English flavor entry wins; normalise `\f`/`\n`/`\r`/runs of
-  whitespace → single spaces + trim; empty after trim → null pair; no
-  English → null pair. ImageUrl: prefer `officialArtworkSprite`, else
+  whitespace → single spaces + trim; empty after trim → `flavorText` null;
+  no English → `flavorText` null. ImageUrl: prefer `officialArtworkSprite`,
+  else
   `frontDefaultSprite`, else `null`. Confirm fail. Do not push RED.
   Coverage: **domain**.
   ⏸ Review — `test(domain): expect flavor text and image url rules (red)`
 
-- [ ] T005 [HU02] GREEN: implement
+- [x] T005 [HU02] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/FlavorText.java`
   and
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/ImageUrl.java`.

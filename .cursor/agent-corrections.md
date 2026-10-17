@@ -366,3 +366,12 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   on concurrent misses but never partial success. Plan TDD ordering: shared-
   cache REFACTOR (T014) before detail adapter. T021 asserts WireMock 5xx →
   502 without upstream URL.
+
+## 2026-10-16 — FlavorText: null reference, not null-field pair
+- **Source**: Miguel's review
+- **Context**: T004/T005 used a compact constructor that allowed
+  `FlavorText(null, null)` (“null pair”).
+- **Correction**: Absent narrative is **only** a null `FlavorText` (what
+  `from()` returns). Constructor requires non-blank `text` and non-null
+  `version`. Normalise with `\\s+` only (`\\s` already covers `\\f`/`\\n`/
+  `\\r`). Spec/data-model say “`flavorText` is null”, not “null pair”.

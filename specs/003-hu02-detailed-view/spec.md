@@ -69,8 +69,8 @@ Detail cases.
    English entry in catalog order, normalised (form feed, newlines, carriage
    returns, and repeated whitespace collapsed to single spaces, then
    trimmed), and the response includes the game **version** slug for that
-   entry; **Given** no English flavor text, **Then** narrative and version
-   are null (documented).
+   entry; **Given** no English flavor text, **Then** `flavorText` is null
+   (documented).
 5. **Given** a species with a branching evolution chain (e.g. Eevee),
    **When** detail is requested, **Then** the evolutionary lineage is a
    **tree** of nodes (national number, English display name, image per the
@@ -159,7 +159,8 @@ response succeeds quickly and produces zero additional catalog HTTP calls
   **total** equal to their sum.
 - **FR-005**: Narrative description MUST be the first English flavor-text
   entry in catalog order, normalised in the domain, plus that entry’s game
-  version slug; both MUST be null when no English entry exists.
+  version slug; when no usable English entry exists, `flavorText` MUST be
+  null (not an object with null fields).
 - **FR-006**: Evolutionary lineage MUST be a **tree** (nodes with children),
   not a flat list; each node MUST include national number, English display
   name, image (same rule as FR-003), and children; each parent→child edge
@@ -200,8 +201,8 @@ response succeeds quickly and produces zero additional catalog HTTP calls
 - **PokemonDetail**: Full detail for one National Dex Pokémon — identity,
   image, stats (+ total), narrative (+ version), evolution tree, generation.
 - **PokemonStats**: The six base stats and computed total.
-- **FlavorText**: Normalised English narrative text and version slug
-  (nullable as a pair when absent).
+- **FlavorText**: Normalised English narrative text and version slug;
+  absent narrative is a null `flavorText` reference.
 - **EvolutionNode**: Tree node — national number, display name, image,
   **`isCurrent`** (true iff this node is the requested Pokémon), children
   (each child link carries trigger, min level, item slug — or all null when
