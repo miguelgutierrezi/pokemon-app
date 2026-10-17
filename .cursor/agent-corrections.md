@@ -52,3 +52,12 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `java.net.http..` in the outer-frameworks rule. Manage ArchUnit via
   `archunit.version` + parent `dependencyManagement`; no version in
   `web/pom.xml`. Avoid trailing blank lines in POMs.
+
+## 2026-10-16 — No credential defaults in application.yml (T011)
+- **Source**: Miguel's review
+- **Context**: `application.yml` defaulted `SPRING_DATASOURCE_USERNAME` /
+  `_PASSWORD` to `pokemon`, embedding credentials in source and disagreeing
+  with `.env.example`'s `change-me` password.
+- **Correction**: Keep only a non-secret URL default. Require username and
+  password from the environment (no defaults) so missing credentials fail
+  fast at startup (constitution VI). Tests rely on `@ServiceConnection`.
