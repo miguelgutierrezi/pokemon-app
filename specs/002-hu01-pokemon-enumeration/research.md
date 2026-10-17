@@ -59,14 +59,21 @@ Depend on `com.github.ben-manes.caffeine:caffeine` from Boot **4.1.1 BOM
 (caffeine.version 3.2.4)**.
 
 **Cache policy**: only successful responses are stored; transport/timeout/5xx
-and incomplete page assembly **must never** be cached.
+and incomplete page assembly **must never** be cached. Implementation uses
+`getIfPresent` → load **outside** the cache → `put` on success (no blocking
+IO inside Caffeine `compute` / mapping functions — avoids pinning Java 21
+virtual-thread carriers). Concurrent misses for the **same** key are **not**
+coalesced (duplicate upstream GETs possible); acceptable here because catalog
+GETs are idempotent and traffic is low.
 
 **Rationale**: Infrastructure tests (WireMock, no Spring context) can assert
 two identical requests → one upstream call. Spring Cache would force a
 context and obscure that proof.
 
 **Alternatives considered**: `@Cacheable` + starter-cache (rejected: Spring
-context required); Redis (ops weight).
+context required); Redis (ops weight); Caffeine `AsyncCache` (rejected for
+this feature: `expireAfterWrite` clock starts in a completion callback after
+`join()`, which races manual `Ticker` advances in tests).
 
 ## R4. springdoc OpenAPI 3.x for Boot 4 — spike first
 
