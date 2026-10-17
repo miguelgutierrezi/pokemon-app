@@ -197,3 +197,22 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   previous task's changes are still uncommitted, stop and ask the user to
   commit first. Never stack new work on uncommitted reviewed work. Also
   recorded as rule 9 in `.cursor/rules/agent-corrections.mdc`.
+
+## 2026-10-16 — Page: computed totalPages, ceilDiv, MAX_SIZE
+- **Source**: Miguel's review
+- **Context**: After T010/T011, `totalPages` was a record component (could be
+  inconsistent), paging used `Math.ceil` on doubles, and max size was a magic
+  `20` with no shared constant for web `@Max`.
+- **Correction**: Expose `totalPages()` as a computed method
+  (`Math.ceilDiv`); reject `totalElements < 0`; publish
+  `PageRequest.MAX_SIZE = 20` for web validation. Keep literal fixtures in
+  tests (e.g. 1025/9 → 114, size 21 rejected).
+
+## 2026-10-16 — Page compact ctor: reject page/size < 1 via pagesFor
+- **Source**: Miguel's review
+- **Context**: After the Page refactor, `new Page<>(…, size 0, …)` hit
+  `ArithmeticException` from `ceilDiv` instead of a clear domain reject;
+  totalPages math was duplicated in the constructor and `totalPages()`.
+- **Correction**: Compact constructor must reject `page < 1` and `size < 1`
+  before paging math. Extract `private static pagesFor(totalElements, size)`
+  for both the constructor and `totalPages()`.

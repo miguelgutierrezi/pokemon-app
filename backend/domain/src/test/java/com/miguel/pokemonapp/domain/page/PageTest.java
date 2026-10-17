@@ -43,13 +43,31 @@ class PageTest {
 
   @Test
   void compactConstructorRejectsNullContent() {
-    assertThatThrownBy(() -> new Page<String>(null, 1, 9, 1025L, 114))
+    assertThatThrownBy(() -> new Page<String>(null, 1, 9, 1025L))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void compactConstructorRejectsPageBeyondLast() {
-    assertThatThrownBy(() -> new Page<>(List.of(), 115, 9, 1025L, 114))
+    assertThatThrownBy(() -> new Page<>(List.of(), 115, 9, 1025L))
         .isInstanceOf(PageOutOfRangeException.class);
+  }
+
+  @Test
+  void rejectsNegativeTotalElements() {
+    assertThatThrownBy(() -> new Page<>(List.of(), 1, 9, -1L))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void compactConstructorRejectsPageLessThanOne() {
+    assertThatThrownBy(() -> new Page<>(List.of(), 0, 9, 1025L))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void compactConstructorRejectsSizeLessThanOne() {
+    assertThatThrownBy(() -> new Page<>(List.of(), 1, 0, 1025L))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 }
