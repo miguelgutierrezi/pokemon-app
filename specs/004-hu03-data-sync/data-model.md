@@ -124,9 +124,16 @@ No `version` column in 004 (research R5).
 
 ### V3 — seed
 
-Static inserts for national numbers **1, 2, 3** (Bulbasaur line) with
-snapshot values and sample proprietary fields. Example tags:
-`first-partner`, `field-notes`, `forest`. No catalog HTTP.
+Static inserts only (no catalog HTTP). Exact strings for
+`V3__seed_local_collection.sql` / T009:
+
+| national_number | name | category | types (slot order) | height_m | weight_kg | image_url | generation | synced_at (UTC) | localized_name | location | tags |
+|---:|---|---|---|---:|---:|---|---|---|---|---|---|
+| 1 | Bulbasaur | Seed Pokémon | grass, poison | 0.7 | 6.9 | `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png` | generation-i | `2026-01-01T00:00:00Z` | Bulbasaur (demo) | Pallet Town garden | first-partner, forest |
+| 2 | Ivysaur | Seed Pokémon | grass, poison | 1.0 | 13.0 | `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png` | generation-i | `2026-01-01T00:00:00Z` | Ivysaur (demo) | Route 1 tall grass | field-notes, forest |
+| 3 | Venusaur | Seed Pokémon | grass, poison | 2.0 | 100.0 | `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png` | generation-i | `2026-01-01T00:00:00Z` | Venusaur (demo) | Viridian Forest clearing | first-partner, field-notes |
+
+Never use tag `favorites`. Tags must be stored normalised (lowercase).
 
 ## State transitions
 

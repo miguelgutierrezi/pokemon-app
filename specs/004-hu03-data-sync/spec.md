@@ -169,8 +169,12 @@ values; no outbound catalog calls are required for seed application.
 - **FR-004**: The system MUST reject a second import of the same national
   number with **409 Conflict**, including under concurrency.
 - **FR-005**: The system MUST expose paginated listing of local records
-  (same page/size rules and response shape as the catalog list) ordered by
-  national number, and fetch by national number.
+  using the same page/size rules and the same pagination envelope as HU-01
+  (`content`, `page`, `size`, `totalElements`, `totalPages`; default page 1,
+  default size 9, size 1–20, page ≥ 1), ordered by national number
+  ascending. List **items** are full local records (`LocalPokemon` contract
+  shape), **not** catalog `PokemonSummary`. Fetch by national number MUST
+  also return a full local record.
 - **FR-006**: Get-by-national-number for a Pokémon absent from the local
   store MUST return **404** with a detail distinct from catalog-not-found.
 - **FR-007**: Import MUST map catalog-not-found to **404**, catalog
@@ -234,11 +238,10 @@ values; no outbound catalog calls are required for seed application.
 - Proprietary field length limits (modelled now, enforced on edit in 005):
   localized name ≤ 100 characters; location ≤ 200 characters; each tag ≤
   32 characters; at most 20 tags per record.
-- Seed demo set: Bulbasaur, Ivysaur, Venusaur with static English snapshot
-  values and sample proprietary fields (localized names / locations /
-  tags) chosen for later UI demos; exact strings fixed in the seed
-  migration. Seed tags MUST be lowercase normalised examples such as
-  `first-partner`, `field-notes`, `forest` — do **not** use `favorites`.
+- Seed demo set: Bulbasaur, Ivysaur, Venusaur. Exact snapshot + proprietary
+  strings (including tags `first-partner`, `field-notes`, `forest` — never
+  `favorites`) are listed in `data-model.md` V3 and MUST match
+  `V3__seed_local_collection.sql`.
 - When feature 006 introduces per-user ownership, the HU-03 seed rows
   MUST be assigned to the demo user that 006 seeds with mock credentials
   (so the pre-populated collection remains visible after auth).

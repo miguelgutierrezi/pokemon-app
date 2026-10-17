@@ -466,3 +466,16 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `DuplicateLocalPokemonException` (plain `save()` may fail at commit as
   500). (3) `application.yml`: `spring.jpa.open-in-view=false` and
   `spring.jpa.hibernate.ddl-auto=validate`.
+
+## 2026-10-17 — 004 analyze remediation (I1/U1/G1/A1/I2)
+- **Source**: Miguel's review
+- **Context**: `/speckit-analyze` findings for `004-hu03-data-sync`.
+- **Correction**: (I1) FR-005: same page/size rules and pagination envelope
+  as 002; items are `LocalPokemon`, not `PokemonSummary`. (U1) Register the
+  JPA adapter as a `@Bean` in `web/config` (PokeApiConfiguration pattern);
+  do **not** add `@EnableJpaRepositories` / `@EntityScan` (`PokemonApplication`
+  root-package scan covers infrastructure); in `@DataJpaTest`, construct the
+  adapter with the injected Spring Data repo. (G1) page-beyond-last → 400 in
+  T006 use-case test and T014 e2e IT. (A1) Exact V3 seed strings in
+  `data-model.md` table; T009 must match. (I2) Post-design check cites
+  R1–R8 + R3b. (G2/G3) Manual quickstart measurement in T017 is enough.

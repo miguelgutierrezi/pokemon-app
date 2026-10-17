@@ -131,7 +131,7 @@ paths:
                     generation: generation-i
                     syncedAt: "2026-01-01T00:00:00Z"
                     localizedName: Bulbasaur (demo)
-                    location: Kanto starter route
+                    location: Pallet Town garden
                     tags: [first-partner, forest]
         "400":
           description: Invalid nationalNumber (non-numeric or &lt; 1)

@@ -89,7 +89,8 @@ transaction.
 | X. Traceability | Spec cites HU-03 etc.; no invented stories | PASS |
 
 **Post-design re-check**: PASS with the recorded VI exception — research
-R1–R8; contracts cover collection API; V2/V3 migrations; no new env keys.
+R1–R8 + R3b; contracts cover collection API; V2/V3 migrations; no new env
+keys.
 
 ## Project Structure
 
