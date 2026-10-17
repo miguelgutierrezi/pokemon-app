@@ -129,7 +129,7 @@ test classpath. 002 list domain tests stay green.
   **domain**.
   ⏸ Review — `feat(domain): evolution tree with first detail edge (green)`
 
-- [ ] T010 [HU02] RED: write
+- [x] T010 [HU02] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/CatalogPokemonDetailTest.java`
   (and/or `CatalogSpeciesDetailTest.java`, `PokemonDetailTest.java`) —
   `CatalogPokemonDetail.toSummary()` → 002 `CatalogPokemon` (sprite =
@@ -141,7 +141,7 @@ test classpath. 002 list domain tests stay green.
   not push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect detail records and pokemon detail assemble (red)`
 
-- [ ] T011 [HU02] GREEN: implement
+- [x] T011 [HU02] GREEN: implement
   `CatalogPokemonDetail.java`, `CatalogSpeciesDetail.java`,
   `CatalogDetailEntry.java`, `CatalogEvolutionChain` (if not already),
   `PokemonDetail.java` under
