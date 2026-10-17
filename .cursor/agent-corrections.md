@@ -176,3 +176,24 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Correction**: Tests must not reuse production constants for the values
   they verify. Pin the real external/code value as a literal (here PokeAPI
   language code `"en"`) so a wrong constant cannot make the suite pass.
+
+## 2026-10-16 — PokemonSummary assemble via CatalogPokemon/CatalogSpecies
+- **Source**: Miguel's review
+- **Context**: After T008/T009, `PokemonSummary.assemble` took seven loose
+  args (names/genera easy to swap) and invariants lived only in the factory,
+  so `new PokemonSummary(...)` could bypass them.
+- **Correction**: Put summary invariants in the record compact constructor
+  (`nationalNumber >= 1`, non-blank `name`, non-null `weightKg`, non-null
+  `abilities` → `List.copyOf`). Introduce `CatalogPokemon` and
+  `CatalogSpecies` (each validates nulls / `List.copyOf`) as the assemble
+  inputs and as future `PokemonCatalogPort` return types. Factory becomes
+  `assemble(CatalogPokemon, CatalogSpecies)`.
+
+## 2026-10-16 — Stop if previous reviewed work is uncommitted
+- **Source**: Miguel's review
+- **Context**: Agents started the next task/refactor while prior reviewed
+  changes were still uncommitted, mixing review units.
+- **Correction**: Before any new task or refactor, run `git status`. If the
+  previous task's changes are still uncommitted, stop and ask the user to
+  commit first. Never stack new work on uncommitted reviewed work. Also
+  recorded as rule 9 in `.cursor/rules/agent-corrections.mdc`.

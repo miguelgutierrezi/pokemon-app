@@ -99,14 +99,14 @@ test classpath.
   Tests pass. Coverage: **domain**.
   ⏸ Review — `feat(domain): resolve english category or null (green)`
 
-- [ ] T008 [HU01] RED: write
+- [x] T008 [HU01] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/pokemon/PokemonSummaryTest.java`
   — assemble summary: abilities sorted by catalog `slot` ascending; `hidden`
   flag preserved; `spriteUrl` null when catalog omits sprite; other fields
   wired. Confirm fail. Do not push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect pokemon summary assembly (red)`
 
-- [ ] T009 [HU01] GREEN: implement
+- [x] T009 [HU01] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/pokemon/AbilityRef.java`
   and `PokemonSummary.java` (nullable `spriteUrl` / `category`). Tests pass.
   Coverage: **domain**.
