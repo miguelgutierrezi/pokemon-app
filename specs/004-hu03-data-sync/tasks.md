@@ -111,7 +111,7 @@ local; exceptions.
 
 **Independent Test**: `./mvnw -B -pl application test` with Mockito; no Spring.
 
-- [ ] T006 [HU03] RED: write
+- [x] T006 [HU03] RED: write
   `backend/application/src/test/java/com/miguel/pokemonapp/application/pokemon/ImportPokemonUseCaseTest.java`,
   `ListLocalPokemonUseCaseTest.java`,
   `GetLocalPokemonUseCaseTest.java`
@@ -126,7 +126,7 @@ local; exceptions.
   push RED. Coverage: **application**.
   ⏸ Review — `test(application): expect local collection use cases (red)`
 
-- [ ] T007 [HU03] GREEN: add
+- [x] T007 [HU03] GREEN: add
   `backend/application/src/main/java/com/miguel/pokemonapp/application/port/LocalPokemonRepository.java`
   (`save`, `findByNationalNumber`, `findPage`, `existsByNationalNumber`);
   `DuplicateLocalPokemonException.java`;

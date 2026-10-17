@@ -486,3 +486,11 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Correction**: Do not put the DB surrogate key on the domain aggregate.
   Domain / API identity is `nationalNumber`. The surrogate `id` stays on the
   JPA entity / Flyway table only.
+
+## 2026-10-17 — ImportPokemonUseCase: catch only around snapshotOf
+- **Source**: Miguel's review
+- **Context**: T006/T007 review — try/catch wrapped `snapshotOf` and `save`.
+- **Correction**: Narrow the try/catch to `LocalPokemon.snapshotOf` only.
+  `repository.save` stays outside so an `IllegalArgumentException` from
+  persistence is not misreported as `CatalogUnavailableException` (502).
+  Cover with a test: save throws IAE → propagates as IAE.
