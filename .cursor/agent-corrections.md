@@ -317,3 +317,28 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `application/problem+json` + `ProblemDetail` via `@ApiResponse`; register an
   `OpenAPI` bean (title "Pokéfolio API", version, one-line description). Cover
   with `OpenApiDocsIntegrationTest` against real `/v3/api-docs`.
+
+## 2026-10-16 — 003 spec: three fetch phases + evolution_details first
+- **Source**: Miguel's review
+- **Context**: Spec 003 said “one parallel fan-out”; evolution edges did not
+  define which `evolution_details` entry to use; chain node id semantics
+  were underspecified.
+- **Correction**: Detail fetch is at most three sequential phases, each
+  parallel/cached: (a) pokemon+species, (b) evolution-chain, (c)
+  `fetchEntries` for chain ids (requested id already cached). Use the first
+  `evolution_details` entry; empty list → null trigger/minLevel/item. Chain
+  nodes are species ids; name/image via `fetchEntries` (species id ==
+  default Pokémon id for 1–1025).
+
+## 2026-10-16 — 003 plan: fetchDetail + one cache per URL
+- **Source**: Miguel's review
+- **Context**: Plan repeated the 002 port mistake — exposing
+  `fetchPokemonDetail` + `fetchSpeciesDetail` so parallelism lived in the
+  use case; risked a second cache for the same upstream URL.
+- **Correction**: Phase (a) is **one** port op `fetchDetail(id)` →
+  `CatalogDetailEntry` (adapter fetches pokemon+species concurrently). Use
+  case = three port calls (a/b/c). Pokemon/species Caffeine caches store
+  `CatalogPokemonDetail` / `CatalogSpeciesDetail`; 002 list types are
+  **derived** (`toSummary()` / equivalent). WireMock: for a detail call,
+  `/pokemon/{id}` and `/pokemon-species/{id}` exactly once (phase c reuses
+  phase a). Keep 002 list tests green.
