@@ -99,3 +99,14 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Correction**: Ignore `**/target/`, keep `.idea/`, and add `**/*.iml`.
   Build stage base image is `eclipse-temurin:21-jdk`; Maven version comes
   from the wrapper, matching local and CI.
+
+## 2026-10-16 — Nginx SPA root and frontend image smoke test (T023/T025)
+- **Source**: Miguel's review
+- **Context**: Replacing the image `default.conf` dropped `root`/`index`, so
+  SPA routes and `/` failed at runtime (found by running the stack). Nginx
+  also fails to start unless the `backend` upstream hostname resolves.
+- **Correction**: In `frontend/nginx.conf`, set `root /usr/share/nginx/html;`,
+  `index index.html;`, and `try_files $uri $uri/ /index.html;`; keep `/api/`
+  proxy unchanged. After `docker build frontend` in CI, tag the image, run it
+  detached with `--add-host backend:127.0.0.1`, `curl -f` `/` and assert
+  `index.html`, then stop the container.
