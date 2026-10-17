@@ -156,7 +156,7 @@ renumbered.
 
 **Independent Test**: Follow README on a clean clone.
 
-- [ ] T028 [S5] Write root `README.md`: CI status badge for `ci.yml`; overview (one paragraph, link to `docs/requirements.md`); architecture placeholder (module list + dependency direction); prerequisites (Docker, JDK 21, Node 24); run with Docker (`cp .env.example .env`, `docker compose up --build`, URLs :3000 and :8080/actuator/health); run locally (`docker compose up -d postgres`, `./mvnw -pl web -am spring-boot:run`, `npm run dev`); run tests (`./mvnw -B verify`, frontend scripts); CI/CD (what each job does, images at `ghcr.io/<owner>/pokemonapp-{backend,frontend}`); project workflow (Spec Kit, one branch/PR per feature). ⏸ Review — `docs: add readme skeleton`
+- [x] T028 [S5] Write root `README.md`: CI status badge for `ci.yml`; overview (one paragraph, link to `docs/requirements.md`); architecture placeholder (module list + dependency direction); prerequisites (Docker, JDK 21, Node 24); run with Docker (`cp .env.example .env`, `docker compose up --build`, URLs :3000 and :8080/actuator/health); run locally (`docker compose up -d postgres`, `./mvnw -pl web -am spring-boot:run`, `npm run dev`); run tests (`./mvnw -B verify`, frontend scripts); CI/CD (what each job does, images at `ghcr.io/<owner>/pokemonapp-{backend,frontend}`); project workflow (Spec Kit, one branch/PR per feature). ⏸ Review — `docs: add readme skeleton`
 
 **Checkpoint**: S5 acceptance scenarios 1–2 pass.
 

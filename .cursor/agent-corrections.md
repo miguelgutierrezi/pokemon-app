@@ -110,3 +110,16 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   proxy unchanged. After `docker build frontend` in CI, tag the image, run it
   detached with `--add-host backend:127.0.0.1`, `curl -f` `/` and assert
   `index.html`, then stop the container.
+
+## 2026-10-16 — README local run commands must be executed (T028)
+- **Source**: Miguel's review
+- **Context**: `./mvnw -pl web -am spring-boot:run` fails because `-am` also
+  runs the goal on the parent POM ("Unable to find a suitable main class").
+  Hard-coded DB password in the README diverged from `.env`. Found by running
+  the README commands.
+- **Correction**: Every README command must be executed before marking the
+  docs task done. Local backend: `./mvnw -B install -DskipTests` then
+  `./mvnw -pl web spring-boot:run`. Load credentials from `.env` with
+  `set -a; . ../.env; set +a` and export
+  `SPRING_DATASOURCE_USERNAME="$POSTGRES_USER"` /
+  `SPRING_DATASOURCE_PASSWORD="$POSTGRES_PASSWORD"`.
