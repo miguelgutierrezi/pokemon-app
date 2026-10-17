@@ -57,7 +57,7 @@ class ImportPokemonUseCaseTest {
         .isInstanceOf(DuplicateLocalPokemonException.class);
 
     verifyNoInteractions(catalog);
-    verify(repository, never()).save(any());
+    verify(repository, never()).create(any());
   }
 
   @Test
@@ -65,7 +65,7 @@ class ImportPokemonUseCaseTest {
     CatalogDetailEntry entry = bulbasaurEntry();
     when(repository.existsByNationalNumber(1)).thenReturn(false);
     when(catalog.fetchDetail(1)).thenReturn(entry);
-    when(repository.save(any(LocalPokemon.class)))
+    when(repository.create(any(LocalPokemon.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
     LocalPokemon saved = useCase.execute(1);
@@ -83,7 +83,7 @@ class ImportPokemonUseCaseTest {
     verify(catalog).fetchDetail(1);
     verify(catalog, never()).fetchEvolutionChain(anyInt());
     verify(catalog, never()).fetchEntries(anyList());
-    verify(repository).save(any(LocalPokemon.class));
+    verify(repository).create(any(LocalPokemon.class));
   }
 
   @Test
@@ -96,7 +96,7 @@ class ImportPokemonUseCaseTest {
         .extracting(ex -> ((PokemonNotFoundException) ex).nationalId())
         .isEqualTo(9999);
 
-    verify(repository, never()).save(any());
+    verify(repository, never()).create(any());
   }
 
   @Test
@@ -108,7 +108,7 @@ class ImportPokemonUseCaseTest {
         .isInstanceOf(CatalogUnavailableException.class)
         .hasMessage("down");
 
-    verify(repository, never()).save(any());
+    verify(repository, never()).create(any());
   }
 
   @Test
@@ -120,14 +120,14 @@ class ImportPokemonUseCaseTest {
         .isInstanceOf(CatalogUnavailableException.class)
         .hasMessage("malformed catalog data");
 
-    verify(repository, never()).save(any());
+    verify(repository, never()).create(any());
   }
 
   @Test
-  void propagatesIllegalArgumentExceptionFromSaveUnchanged() {
+  void propagatesIllegalArgumentExceptionFromCreateUnchanged() {
     when(repository.existsByNationalNumber(1)).thenReturn(false);
     when(catalog.fetchDetail(1)).thenReturn(bulbasaurEntry());
-    when(repository.save(any(LocalPokemon.class)))
+    when(repository.create(any(LocalPokemon.class)))
         .thenThrow(new IllegalArgumentException("persistence rejected"));
 
     assertThatThrownBy(() -> useCase.execute(1))
