@@ -292,7 +292,7 @@ bodies are asserted in the advice pair immediately after.
 **Goal**: Full stack IT with WireMock-standalone as PokeAPI. Spring wiring for
 PokeAPI already lives in **`web/config`** (from T021); this IT covers it (R6).
 
-- [ ] T024 [HU01] RED: add test-scoped `org.wiremock:wiremock-standalone`
+- [x] T024 [HU01] RED: add test-scoped `org.wiremock:wiremock-standalone`
   **3.13.2** to `backend/web/pom.xml`. Write
   `backend/web/src/test/java/com/miguel/pokemonapp/web/pokemon/PokemonListIntegrationTest.java`
   — `@SpringBootTest` + existing Postgres Testcontainers;
@@ -302,7 +302,7 @@ PokeAPI already lives in **`web/config`** (from T021); this IT covers it (R6).
   not push RED. Coverage: **web** IT.
   ⏸ Review — `test(web): pokemon list IT against wiremock (red)`
 
-- [ ] T025 [HU01] GREEN: finish list IT against the wiring already added in
+- [x] T025 [HU01] GREEN: finish list IT against the wiring already added in
   T021 under `backend/web/src/main/java/com/miguel/pokemonapp/web/config/`
   (adapter + use-case beans, `application.yml` / `POKEAPI_BASE_URL`). Fix
   anything else needed so T024 passes.
