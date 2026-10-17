@@ -80,3 +80,12 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Correction**: Remove unused Vite template assets and the scaffold
   README (root README is the project docs). Name the npm package
   `pokefolio-frontend` and refresh `package-lock.json` with `npm install`.
+
+## 2026-10-16 — Explicit RTL cleanup and strict TS flags (T017)
+- **Source**: Miguel's review
+- **Context**: Testing Library auto-cleanup only registers when Vitest
+  `globals: true`; this project uses explicit imports. TypeScript 6 enables
+  `strict` by default, but the tsconfigs did not state it.
+- **Correction**: In `src/test/setup.ts`, call `cleanup()` in `afterEach`
+  from `@testing-library/react`. Set `"strict": true` explicitly in
+  `tsconfig.app.json` and `tsconfig.node.json`.
