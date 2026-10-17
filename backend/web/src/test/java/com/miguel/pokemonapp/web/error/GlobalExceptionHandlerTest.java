@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
+import com.miguel.pokemonapp.application.pokemon.GetPokemonDetailUseCase;
 import com.miguel.pokemonapp.application.pokemon.ListPokemonUseCase;
 import com.miguel.pokemonapp.domain.page.PageOutOfRangeException;
 import com.miguel.pokemonapp.web.pokemon.PokemonController;
@@ -28,6 +29,8 @@ class GlobalExceptionHandlerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private ListPokemonUseCase listPokemonUseCase;
+
+  @MockitoBean private GetPokemonDetailUseCase getPokemonDetailUseCase;
 
   @Test
   void beanValidationPageZeroReturnsProblemDetailNamingPage() throws Exception {
