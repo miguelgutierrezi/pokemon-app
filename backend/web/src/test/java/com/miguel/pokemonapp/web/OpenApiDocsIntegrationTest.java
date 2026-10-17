@@ -27,6 +27,22 @@ class OpenApiDocsIntegrationTest {
         .contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
         .expectBody()
         .jsonPath("$.openapi")
+        .exists()
+        .jsonPath("$.info.title")
+        .isEqualTo("Pokéfolio API")
+        .jsonPath("$.paths['/api/v1/pokemon'].get.parameters[?(@.name=='page')].in")
+        .isEqualTo("query")
+        .jsonPath("$.paths['/api/v1/pokemon'].get.parameters[?(@.name=='page')].required")
+        .isEqualTo(false)
+        .jsonPath("$.paths['/api/v1/pokemon'].get.parameters[?(@.name=='size')].in")
+        .isEqualTo("query")
+        .jsonPath("$.paths['/api/v1/pokemon'].get.parameters[?(@.name=='size')].required")
+        .isEqualTo(false)
+        .jsonPath("$.paths['/api/v1/pokemon'].get.responses['200']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/pokemon'].get.responses['400']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/pokemon'].get.responses['502']")
         .exists();
   }
 }
