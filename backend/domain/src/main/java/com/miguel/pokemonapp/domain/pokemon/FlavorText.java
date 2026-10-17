@@ -36,6 +36,9 @@ public record FlavorText(String text, String version) {
       return null;
     }
     String collapsed = WHITESPACE_RUNS.matcher(raw).replaceAll(" ").trim();
-    return collapsed.isEmpty() ? null : collapsed;
+    if (collapsed.isEmpty()) {
+      return null;
+    }
+    return collapsed.replace("POKéMON", "Pokémon");
   }
 }

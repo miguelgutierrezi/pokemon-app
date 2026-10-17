@@ -60,6 +60,20 @@ class FlavorTextTest {
   }
 
   @Test
+  void replacesGenIToIIIPokemonQuirkInRealBulbasaurRedText() {
+    // Exact English red entry from PokeAPI pokemon-species/1 (Gen I–III quirk).
+    String raw =
+        "A strange seed was\nplanted on its\nback at birth.\fThe plant sprouts\nand grows with\nthis POKéMON.";
+    FlavorText result = FlavorText.from(List.of(new FlavorTextEntry("en", raw, "red")));
+
+    assertThat(result)
+        .isEqualTo(
+            new FlavorText(
+                "A strange seed was planted on its back at birth. The plant sprouts and grows with this Pokémon.",
+                "red"));
+  }
+
+  @Test
   void emptyEntriesYieldNullFlavorText() {
     assertThat(FlavorText.from(List.of())).isNull();
   }

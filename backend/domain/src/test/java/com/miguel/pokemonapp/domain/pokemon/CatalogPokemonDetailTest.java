@@ -79,7 +79,10 @@ class CatalogPokemonDetailTest {
         List.of(new LocalizedText("ja", "フシギダネ"), new LocalizedText("en", "Bulbasaur")),
         List.of(new LocalizedText("en", "Seed Pokémon"), new LocalizedText("fr", "Pokémon Graine")),
         List.of(
-            new FlavorTextEntry("en", "A strange seed was\nplanted on its\nback at birth.", "red"),
+            new FlavorTextEntry(
+                "en",
+                "A strange seed was\nplanted on its\nback at birth.\fThe plant sprouts\nand grows with\nthis POKéMON.",
+                "red"),
             new FlavorTextEntry(
                 "en", "It can go for days\nwithout eating a\nsingle morsel.", "yellow")),
         "generation-i",

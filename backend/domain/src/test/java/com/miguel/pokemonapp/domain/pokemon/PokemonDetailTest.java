@@ -50,7 +50,10 @@ class PokemonDetailTest {
     assertThat(detail.imageUrl()).isEqualTo(pokemon.officialArtworkSprite());
     assertThat(detail.stats().total()).isEqualTo(318);
     assertThat(detail.flavorText())
-        .isEqualTo(new FlavorText("A strange seed was planted on its back at birth.", "red"));
+        .isEqualTo(
+            new FlavorText(
+                "A strange seed was planted on its back at birth. The plant sprouts and grows with this Pokémon.",
+                "red"));
     assertThat(detail.evolution().isCurrent()).isTrue();
     assertThat(detail.evolution().nationalNumber()).isEqualTo(1);
     assertThat(detail.evolution().imageUrl()).isEqualTo(pokemon.frontDefaultSprite());

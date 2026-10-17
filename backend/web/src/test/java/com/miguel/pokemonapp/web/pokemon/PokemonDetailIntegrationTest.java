@@ -185,7 +185,8 @@ class PokemonDetailIntegrationTest {
         .jsonPath("$.stats.total")
         .isEqualTo(318)
         .jsonPath("$.flavorText.text")
-        .isEqualTo("A strange seed was planted on its back at birth.")
+        .isEqualTo(
+            "A strange seed was planted on its back at birth. The plant sprouts and grows with this Pokémon.")
         .jsonPath("$.flavorText.version")
         .isEqualTo("red")
         .jsonPath("$.imageUrl")
@@ -381,7 +382,7 @@ class PokemonDetailIntegrationTest {
           ],
           "flavor_text_entries": [
             {
-              "flavor_text": "A strange seed was\\nplanted on its\\nback at birth.",
+              "flavor_text": "A strange seed was\\nplanted on its\\nback at birth.\\fThe plant sprouts\\nand grows with\\nthis POKéMON.",
               "language": { "name": "en" },
               "version": { "name": "red" }
             }
