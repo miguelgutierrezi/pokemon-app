@@ -17,6 +17,7 @@ import com.miguel.pokemonapp.application.auth.AuthSession;
 import com.miguel.pokemonapp.application.auth.AuthenticateUserUseCase;
 import com.miguel.pokemonapp.application.auth.RegisterUserUseCase;
 import com.miguel.pokemonapp.web.error.GlobalExceptionHandler;
+import com.miguel.pokemonapp.web.support.ImportSecurityTestConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -29,6 +30,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(AuthController.class)
 @Import(GlobalExceptionHandler.class)
+@ImportSecurityTestConfig
 class AuthControllerTest {
 
   private static final String TOKEN = "header.payload.sig";

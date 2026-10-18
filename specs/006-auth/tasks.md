@@ -348,8 +348,8 @@ is on the classpath.
 **Independent Test**: security slices + full `./mvnw -B verify` green after
 GREEN.
 
-- [ ] T018 [AUTH] RED: write
-  `backend/web/src/test/java/com/miguel/pokemonapp/web/security/SecurityRoutePolicyTest.java`
+- [x] T018 [AUTH] RED: write
+  `backend/web/src/test/java/com/miguel/pokemonapp/web/security/SecurityRoutePolicyIntegrationTest.java`
   (and/or extend `@WebMvcTest` / `@SpringBootTest` slices) expecting:
   GET catalog/collection with stale/malformed Bearer → **200**;
   `POST /api/v1/collection` **without** token → **401** +
@@ -364,7 +364,7 @@ GREEN.
   Confirm fail (no filter chain). Do not push RED. Coverage: **web**.
   ⏸ Review — `test(web): expect security route policy and problem json (red)`
 
-- [ ] T019 [AUTH] GREEN: **single commit keeps CI green** — in
+- [x] T019 [AUTH] GREEN: **single commit keeps CI green** — in
   `backend/web/pom.xml` add
   `spring-boot-starter-security`,
   `spring-boot-starter-security-oauth2-resource-server` (Boot 4.1 name),

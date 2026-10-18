@@ -21,6 +21,7 @@ import com.miguel.pokemonapp.domain.pokemon.FlavorText;
 import com.miguel.pokemonapp.domain.pokemon.PokemonDetail;
 import com.miguel.pokemonapp.domain.pokemon.PokemonStats;
 import com.miguel.pokemonapp.domain.pokemon.PokemonSummary;
+import com.miguel.pokemonapp.web.support.ImportSecurityTestConfig;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(PokemonController.class)
+@ImportSecurityTestConfig
 class PokemonControllerTest {
 
   @Autowired private MockMvc mockMvc;
