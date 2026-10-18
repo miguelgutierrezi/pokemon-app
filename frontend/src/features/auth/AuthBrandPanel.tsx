@@ -42,7 +42,7 @@ export function AuthBrandPanel() {
             />
           </div>
           <p className="max-w-md text-body-sm leading-relaxed text-nav-muted lg:text-[0.9375rem] lg:leading-[1.6]">
-            Explore the catalog and shape your own Pokémon collection.
+            Explore the catalog and shape the shared Pokémon collection.
           </p>
         </div>
       </div>

@@ -275,7 +275,7 @@ export function EditForm({
               </p>
             ) : (
               <p className="text-[0.6875rem] text-muted-foreground">
-                Your own location or context, not the species’ region.
+                Location or context for this record, not the species’ region.
               </p>
             )}
           </div>

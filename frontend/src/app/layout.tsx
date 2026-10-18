@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import accountIcon from '@/assets/account-icon.svg'
 import pokeballEmblem from '@/assets/pokeball-emblem.svg'
 import { Button } from '@/components/ui/button'
+import { SessionExpiredDialog } from '@/features/auth/SessionExpiredDialog'
 import { useAuth } from '@/features/auth/useAuth'
 import { cn } from '@/lib/utils'
 
@@ -153,6 +154,8 @@ export function AppLayout() {
           </p>
         </div>
       </footer>
+
+      <SessionExpiredDialog />
     </div>
   )
 }

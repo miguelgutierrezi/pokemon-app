@@ -32,6 +32,7 @@ export function closeSessionExpired(): void {
 /** Test helper — resets module state between cases. */
 export function resetSessionExpiredState(): void {
   open = false
+  notify()
 }
 
 export function subscribeSessionExpired(listener: Listener): () => void {

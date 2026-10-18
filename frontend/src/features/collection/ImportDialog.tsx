@@ -121,8 +121,8 @@ export function ImportDialog({
                   to the shared collection.
                 </span>
                 <span className="block text-muted-foreground">
-                  The public catalog is not affected. You can add your own name,
-                  location and tags after saving.
+                  The public catalog is not affected. You can add a localized
+                  name, location and tags after saving.
                 </span>
               </AlertDialogDescription>
             </AlertDialogHeader>

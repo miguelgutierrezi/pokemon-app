@@ -72,7 +72,7 @@ export function LoginForm({
         </div>
         <h1
           tabIndex={-1}
-          className="text-[1.75rem] leading-tight font-semibold tracking-tight text-foreground outline-none md:text-[2.125rem]"
+          className="text-[1.75rem] leading-tight font-semibold tracking-tight text-foreground outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-[2.125rem]"
         >
           Welcome back
         </h1>

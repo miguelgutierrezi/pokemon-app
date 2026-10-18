@@ -593,14 +593,14 @@ inline; **409** stale → **Modified elsewhere — reload**; record **404**.
 
 **Independent Test**: Trigger 401 on mocked mutation → dialog actions.
 
-- [ ] T037 [XCUT] RED: write
+- [x] T037 [XCUT] RED: write
   `frontend/src/features/auth/SessionExpiredDialog.test.tsx` — on 401
   signal: dialog visible; Sign in again uses sanitised redirect +
   `reason=expired`; Browse catalog → `/`; session cleared. Confirm fail.
   Show failing output. Test file only.
   ⏸ Review — `test(frontend): expect session expired dialog (red)`
 
-- [ ] T038 [XCUT] GREEN: implement
+- [x] T038 [XCUT] GREEN: implement
   `frontend/src/features/auth/SessionExpiredDialog.tsx` mounted from
   layout/providers; wire T016 401 signal. T037 green; full gate green.
   ⏸ Review — `feat(frontend): session expired dialog (green)`
@@ -614,18 +614,18 @@ inline; **409** stale → **Modified elsewhere — reload**; record **404**.
 **Purpose**: A11y, responsive vs mobile frames, README, quickstart + empty
 console.
 
-- [ ] T039 [P] A11y pass across screens: landmarks, h1 focus, labels,
+- [x] T039 [P] A11y pass across screens: landmarks, h1 focus, labels,
   dialog title+description, `aria-live`, image alt — fix gaps in the
   owning feature files under `frontend/src/`. Full gate green.
   ⏸ Review — `fix(frontend): a11y pass primary screens`
 
-- [ ] T040 [P] Responsive check vs mobile Figma frames (catalog 8-4385,
+- [x] T040 [P] Responsive check vs mobile Figma frames (catalog 8-4385,
   detail 8-7421/8-7858, collection 8-9713, auth 5-515/5-1019, edit
   8-10536, dialogs as listed in ui-routes): adjust layout classes only;
   keep 1/2/3 column grid. Full gate green.
   ⏸ Review — `fix(frontend): align layouts to mobile figma frames`
 
-- [ ] T041 [P] Expand README frontend section (dev proxy,
+- [x] T041 [P] Expand README frontend section (dev proxy,
   `VITE_API_PROXY_TARGET`, scripts, demo credential, Figma SoT pointer,
   compose UI :3000) in `README.md`. Full gate green.
   ⏸ Review — `docs(readme): frontend 007 usage`

@@ -82,7 +82,10 @@ export function DetailHero({
               {formatNationalNumber(pokemon.nationalNumber)} · National Pokédex
             </p>
           </div>
-          <h1 className="text-[2.25rem] leading-tight font-semibold tracking-tight text-foreground md:text-hero md:leading-[1.1]">
+          <h1
+            tabIndex={-1}
+            className="text-[2.25rem] leading-tight font-semibold tracking-tight text-foreground outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-hero md:leading-[1.1]"
+          >
             {pokemon.name}
           </h1>
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -136,7 +139,7 @@ export function DetailHero({
               <p className={cn('text-caption text-muted-foreground')}>
                 {statusUnavailable
                   ? 'Collection status unavailable. You can still browse this record.'
-                  : 'Keep this Pokémon and add your own collection details.'}
+                  : 'Keep this Pokémon and add collection details.'}
               </p>
             </>
           )}
