@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.miguel.pokemonapp.application.DuplicateEmailException;
 import com.miguel.pokemonapp.domain.user.UserAccount;
 import com.miguel.pokemonapp.infrastructure.InfrastructureTestApplication;
+import com.miguel.pokemonapp.infrastructure.security.BCryptPasswordHasher;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -188,6 +189,8 @@ class UserAccountJpaAdapterTest {
     UserAccount account = demo.orElseThrow();
     assertThat(account.name().value()).isNotBlank();
     assertThat(account.passwordHash()).isNotBlank().matches("^\\$2[aby]\\$.+");
+    assertThat(new BCryptPasswordHasher().matches("Demo-Passw0rd!", account.passwordHash()))
+        .isTrue();
   }
 
   private String uniqueEmail(String prefix) {
