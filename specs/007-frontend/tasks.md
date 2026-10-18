@@ -630,7 +630,7 @@ console.
   compose UI :3000) in `README.md`. Full gate green.
   ⏸ Review — `docs(readme): frontend 007 usage`
 
-- [ ] T042 **User action / validation**: run
+- [x] T042 **User action / validation**: run
   [quickstart.md](./quickstart.md) against `docker compose` — visual
   compare each screen/state to Figma screenshots; empty-console check
   per screen/state; fill Results table. Fix any blockers in follow-up

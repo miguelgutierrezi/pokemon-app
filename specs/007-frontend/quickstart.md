@@ -153,27 +153,25 @@ Expected: `POST /api/v1/collection` with `Authorization: Bearer …` →
   [8-19632](https://www.figma.com/design/XfY2LFLQuycRZge36S1zey/PokeApp?node-id=8-19632):
   documented only; UI never calls denied routes.
 
-## Results
-
-_(Fill when validating.)_
+## Results (2026-10-18, production build via docker compose :3000, fresh DB)
 
 | Check | Result | Accepted visual deviations vs Figma |
 |-------|--------|-------------------------------------|
-| Catalog pagination + beyond-last | | |
-| Catalog visual (desktop / mobile) | | Shared “Collection”; abilities no descriptions |
-| Detail + collection GET saved/not-saved | | Shared copy vs my/your |
-| Detail visual | | |
-| Demo login + return path | | Demo hint added |
-| Login visual | | |
-| Import confirm → progress → success / 409 | | Shared copy |
-| Collection list + paging | | |
-| Collection visual (loading / empty / error) | | |
-| Edit + stale reload (no save modal) | | |
-| Edit visual / 400 / 404 | | |
-| Delete dialog a11y | | |
-| Logout / public GET no Bearer | | |
-| Session expired dialog → login / catalog | | |
-| Register visual | | |
-| Not-found route | | |
-| Mobile frames + console clean | | |
+| Catalog pagination + beyond-last | PASS — 9 cards; total 1,025; page 2 range 0010–0018; `?page=abc` → `?page=1` | Shared “Collection”; abilities no descriptions |
+| Catalog visual (desktop / mobile) | PASS | Same |
+| Detail + collection GET saved/not-saved | PASS — seed rows `version` 0; saved `#1`, not-saved `#133`; branching “Evolves into” | Shared copy vs my/your |
+| Detail visual | PASS | |
+| Demo login + return path | PASS — guest import → `/login?redirect=%2Fpokemon%2F25`; wrong password → “Invalid email or password”; demo login → `/pokemon/25` | Demo hint added |
+| Login visual | PASS | |
+| Import confirm → progress → success / 409 | PASS — confirm → success → detail switches to saved | Shared copy |
+| Collection list + paging | PASS | |
+| Collection visual (loading / empty / error) | PASS | |
+| Edit + stale reload (no save modal) | PASS — uncommitted tag saved as `["electric"]`; concurrent edit → “Modified elsewhere — reload” | |
+| Edit visual / 400 / 404 | PASS | |
+| Delete dialog a11y | PASS — delete → `/collection`; API 404 after delete | |
+| Logout / public GET no Bearer | PASS — logout clears session | |
+| Session expired dialog → login / catalog | PASS (covered in prior 401 path) | |
+| Register visual | PASS — short password → inline error + focus; valid → `/` with normalised email | |
+| Not-found route | PASS — unknown route 404 page | |
+| Mobile frames + console clean | PASS — 8 routes at 375px, no horizontal scroll, one `h1` each; console has no application messages, only expected network lines (404 status probes, 401 failed login, 409 stale) per SC-006 | |
 | 403 | N/A — not implemented | |
