@@ -761,3 +761,35 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   load resource” for expected HTTP (detail not-saved 404, login 401,
   duplicate 409, stale 409) are browser logs, not app errors — document
   in research R9 and quickstart §10 as accepted.
+
+## 2026-10-18 — Auth brand illustration must be the full Poké Ball group
+- **Source**: Miguel's review
+- **Context**: Phase 8 downloaded a single grey-circle layer as
+  `pokeball-auth-diagram.svg` for AuthBrandPanel.
+- **Correction**: Export the whole illustration group from Figma login
+  left panel (5:233) — red top, band, center, rings — or reuse
+  `src/assets/pokeball-archive-diagram.svg` when it is the same artwork.
+  Delete incomplete single-layer exports; never ship temporary Figma
+  layer fragments as the brand illustration.
+
+## 2026-10-18 — Auth info panel: shared-collection browse copy
+- **Source**: Miguel's review
+- **Context**: Login/Register info panels used “Saved Pokémon stay
+  available across devices for trainers who sign in.”
+- **Correction**: Use shared-collection wording, e.g. “Anyone can browse
+  the shared collection. Sign in to add Pokémon or edit their details.”
+  No “saved to your account” / private-account framing.
+
+## 2026-10-18 — Register validation: whitespace-only password is invalid
+- **Source**: Miguel's review
+- **Context**: `validateRegister` allowed whitespace-only passwords that
+  the backend rejects with `@NotBlank`.
+- **Correction**: Reject `password.trim().length === 0` with the same
+  password length/bytes message; keep a unit or page test for it.
+
+## 2026-10-18 — Auth mutations: no unused AbortController
+- **Source**: Miguel's review
+- **Context**: `useLogin` / `useRegister` passed `new AbortController().signal`
+  that nothing cancelled.
+- **Correction**: Call `login` / `register` without fabricating an unused
+  AbortSignal unless the mutation is wired to a real abort.
