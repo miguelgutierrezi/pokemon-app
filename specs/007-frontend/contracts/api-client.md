@@ -22,7 +22,11 @@ Same-origin calls to `/api/v1/...` (Vite proxy in dev; nginx in Docker).
 
 If a protected write is attempted without a valid (non-expired) session,
 the UI redirects to login **before** calling the API when the action is
-user-initiated; MutationCache still handles **401** from the server.
+user-initiated. When the server returns **401** on a protected write,
+clear the session and show the session-expired **dialog** (FR-009) —
+**not** a silent/direct redirect: **Sign in again** →
+`/login?redirect=<sanitised current path+search>&reason=expired`;
+**Browse catalog** → `/`.
 
 ---
 
@@ -50,7 +54,7 @@ type ApiError = {
 | Invalid/missing JSON property | 400 | `urn:problem-type:bad-request` | `Invalid or missing value for property 'x'` | `x` |
 | Page out of range / other 400 | 400 | `urn:problem-type:bad-request` | server detail | if quoted |
 | Login bad credentials | 401 | `urn:problem-type:unauthorized` | `Invalid email or password` | — |
-| Missing/invalid Bearer on write | 401 | `urn:problem-type:unauthorized` | `Missing or invalid access token` (+ WWW-Authenticate) | — → clear session + login `reason=expired` |
+| Missing/invalid Bearer on write | 401 | `urn:problem-type:unauthorized` | `Missing or invalid access token` (+ WWW-Authenticate) | — → clear session + **session-expired dialog** (Sign in again → `/login?redirect=<sanitised>&reason=expired`; Browse catalog → `/`) |
 | Forbidden | 403 | `urn:problem-type:forbidden` | server detail | — |
 | Catalog/local not found | 404 | `urn:problem-type:not-found` | server detail | — |
 | Duplicate import | 409 | `urn:problem-type:conflict` | already in local collection | — → “Already in the collection” |

@@ -149,10 +149,10 @@ sequence for linear chains and as a list when branching.
 
 1. **Given** Pokémon *id* exists in the catalog, **When** a visitor opens
    `/pokemon/:id`, **Then** they see image, core stats including **total**,
-   flavor text, evolution lineage (linear chain as a sequence; branching
-   evolutions as a list), and abilities showing each **name** plus a
-   **Hidden ability** label when `hidden` is true (no ability
-   descriptions).
+   flavor text, **types** as badges, evolution lineage (linear chain as a
+   sequence; branching evolutions as a list), and abilities showing each
+   **name** plus a **Hidden ability** label when `hidden` is true (no
+   ability descriptions).
 2. **Given** the detail page loads, **When** the client calls public
    `GET /api/v1/collection/{id}`, **Then** **404** shows the not-saved
    variant (**Add to collection**) and **200** shows the saved variant
@@ -332,19 +332,21 @@ token; console clean on each main screen/state; narrow viewport shows
 ### Edge Cases
 
 - Unknown application route → not-found (not a blank crash).
-- `page=0` or invalid catalog/collection page → handled as a user-visible
-  error or redirect consistent with the API’s **400** behaviour (no
-  infinite spinner).
+- Invalid catalog/collection `page` (`0`, negative, or non-numeric) →
+  client normalises to page **1** via `navigate(..., { replace: true })`
+  **without** calling the API (no infinite spinner).
 - Page beyond the last page (catalog or collection) → empty state with a
   link back to page 1 (no infinite spinner, no crash).
 - Login/register return path MUST be an internal relative path starting
   with `/` and not `//`; anything else (absolute URLs, protocol-relative
   `//…`, empty, or missing) falls back to `/` (no open redirect).
-- Register/login while already signed in → either complete the new
-  session or redirect to the default signed-in landing (no broken double
-  session UI).
-- Network failure distinct from **502** → user-visible failure with
-  retry where the screen already supports retry.
+- Register/login while already signed in → redirect immediately to the
+  sanitised `redirect` query value or `/` (no broken double-session UI;
+  do not show the auth form).
+- Network failure (`ApiError` `status === 0`) is distinct from upstream
+  **502**: show the connection-error state with **retry** (Figma
+  collection connection-error frames as the visual reference); **502**
+  keeps its upstream-unavailable copy when the design differs.
 - Tags chips: add/remove within API limits; blank or over-limit tags
   surface as field errors.
 - Concurrent edit by another client → stale-version path only (no silent
@@ -366,11 +368,13 @@ token; console clean on each main screen/state; narrow viewport shows
   be implemented (document only).
 - **FR-002**: Login MUST accept email and password; show the demo
   credential hint labelled as demo; show **Invalid email or password** on
-  credential failure; link to register; after success redirect to the
-  return path that required login. The return path MUST be an internal
-  relative path starting with `/` and not `//`; any other value MUST fall
-  back to `/` (no open redirect). Register success MUST use the same
-  return-path rules.
+  credential failure; when `reason=expired` is present show **Your
+  session expired** above the form; link to register; after success
+  redirect to the return path that required login. The return path MUST
+  be an internal relative path starting with `/` and not `//`; any other
+  value MUST fall back to `/` (no open redirect). Register success MUST
+  use the same return-path rules. A signed-in visitor opening `/login` or
+  `/register` MUST be redirected to the sanitised return path or `/`.
 - **FR-003**: Register MUST collect name, email, and password with the
   same rules as the API (name 1–100, valid email, password 8 chars to 72
   UTF-8 bytes); map server **400** to the named field; show **An account
@@ -383,13 +387,14 @@ token; console clean on each main screen/state; narrow viewport shows
   the URL. A page beyond the last page MUST show an empty state with a
   link to page 1.
 - **FR-005**: Detail MUST show image, core stats with total, flavor text,
-  evolution lineage (linear as sequence, branching as list), and
-  abilities (name + **Hidden ability** when applicable; no descriptions).
-  Detail MUST call public `GET /api/v1/collection/{id}` to choose the
-  saved vs not-saved variant (**404** → not saved; **200** → saved with
-  **Already in the collection** / **Saved in the shared collection**).
-  Import MUST follow confirmation → in-progress → success (link to
-  record) or **409** dialog; CTA copy **Add to collection** (login-gated).
+  **types** as badges (API `types[]`, per Figma detail frames), evolution
+  lineage (linear as sequence, branching as list), and abilities (name +
+  **Hidden ability** when applicable; no descriptions). Detail MUST call
+  public `GET /api/v1/collection/{id}` to choose the saved vs not-saved
+  variant (**404** → not saved; **200** → saved with **Already in the
+  collection** / **Saved in the shared collection**). Import MUST follow
+  confirmation → in-progress → success (link to record) or **409**
+  dialog; CTA copy **Add to collection** (login-gated).
 - **FR-006**: Collection list MUST be readable without login; MUST be
   paginated like the catalog (**9** per page by default, API max **20**;
   UI uses **9**) with **1-based** `?page=N` in the URL so links are

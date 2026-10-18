@@ -55,7 +55,9 @@ implement after re-check — see [research.md](./research.md)):
 
 **Testing**: Vitest + Testing Library; `vi.mock` of `src/api`; cover
 problem parsing, session, return-path sanitiser, page states, forms,
-401 → login. CI frontend job **unchanged** (lint, typecheck, test, build,
+and protected-write **401** → session-expired **dialog** (Sign in again →
+`/login?redirect=<sanitised>&reason=expired`; Browse catalog → `/`) per
+FR-009. CI frontend job **unchanged** (lint, typecheck, test, build,
 nginx smoke).
 
 **Target Platform**: SPA in Docker (nginx :3000) and Vite dev (:5173);
@@ -211,7 +213,7 @@ Suggested ordering (not tasks.md):
    shell/layout.
 6. Per screen: desktop + mobile `get_design_context` + `get_screenshot`
    → rebuild with shadcn/tokens (Catalog → Detail with collection GET →
-   Auth → Collection → Edit/Delete; import dialogs).
+   Auth → Import dialogs → Collection → Edit/Delete).
 7. A11y + zero-warnings; quickstart visual check vs Figma frames; CI green.
 
 **TDD**: RED tests at api/session/pages boundaries before UI fill-in;
