@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -57,6 +58,10 @@ class PokemonRecordEntity {
 
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
+
+  @Version
+  @Column(name = "version", nullable = false)
+  private long version;
 
   @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
   @OrderBy("slot ASC")
@@ -165,6 +170,10 @@ class PokemonRecordEntity {
 
   void setUpdatedAt(Instant updatedAt) {
     this.updatedAt = updatedAt;
+  }
+
+  long getVersion() {
+    return version;
   }
 
   List<PokemonRecordTypeEntity> getTypes() {

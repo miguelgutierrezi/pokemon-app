@@ -1,8 +1,10 @@
 package com.miguel.pokemonapp.web.collection;
 
+import com.miguel.pokemonapp.application.pokemon.DeleteLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.GetLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.ImportPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.ListLocalPokemonUseCase;
+import com.miguel.pokemonapp.application.pokemon.UpdateLocalPokemonUseCase;
 import com.miguel.pokemonapp.domain.pokemon.LocalPokemon;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,9 +20,11 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,14 +36,20 @@ public class CollectionController {
   private final ImportPokemonUseCase importPokemonUseCase;
   private final ListLocalPokemonUseCase listLocalPokemonUseCase;
   private final GetLocalPokemonUseCase getLocalPokemonUseCase;
+  private final UpdateLocalPokemonUseCase updateLocalPokemonUseCase;
+  private final DeleteLocalPokemonUseCase deleteLocalPokemonUseCase;
 
   public CollectionController(
       ImportPokemonUseCase importPokemonUseCase,
       ListLocalPokemonUseCase listLocalPokemonUseCase,
-      GetLocalPokemonUseCase getLocalPokemonUseCase) {
+      GetLocalPokemonUseCase getLocalPokemonUseCase,
+      UpdateLocalPokemonUseCase updateLocalPokemonUseCase,
+      DeleteLocalPokemonUseCase deleteLocalPokemonUseCase) {
     this.importPokemonUseCase = importPokemonUseCase;
     this.listLocalPokemonUseCase = listLocalPokemonUseCase;
     this.getLocalPokemonUseCase = getLocalPokemonUseCase;
+    this.updateLocalPokemonUseCase = updateLocalPokemonUseCase;
+    this.deleteLocalPokemonUseCase = deleteLocalPokemonUseCase;
   }
 
   @PostMapping(
@@ -146,5 +156,82 @@ public class CollectionController {
       @Parameter(description = "National Dex number", required = true) @PathVariable @Min(1)
           int nationalNumber) {
     return LocalPokemonResponse.from(getLocalPokemonUseCase.execute(nationalNumber));
+  }
+
+  @PutMapping(
+      value = "/{nationalNumber}",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Replace proprietary fields of a local record (optimistic lock)")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Updated local record (version incremented)",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = LocalPokemonResponse.class))),
+    @ApiResponse(
+        responseCode = "400",
+        description =
+            "Malformed payload — missing property, wrong types, limits, unknown/read-only",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Not in the local collection",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class))),
+    @ApiResponse(
+        responseCode = "409",
+        description = "Stale version (optimistic lock)",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class))),
+    @ApiResponse(
+        responseCode = "415",
+        description = "Non-JSON Content-Type",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class)))
+  })
+  public LocalPokemonResponse update(
+      @Parameter(description = "National Dex number", required = true) @PathVariable @Min(1)
+          int nationalNumber,
+      @Valid @RequestBody UpdateLocalPokemonRequest request) {
+    return LocalPokemonResponse.from(
+        updateLocalPokemonUseCase.execute(nationalNumber, request.toProprietaryUpdate()));
+  }
+
+  @DeleteMapping("/{nationalNumber}")
+  @Operation(summary = "Delete a local record (catalog untouched)")
+  @ApiResponses({
+    @ApiResponse(responseCode = "204", description = "Deleted; no body"),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Invalid nationalNumber",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Not in the local collection",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class)))
+  })
+  public ResponseEntity<Void> delete(
+      @Parameter(description = "National Dex number", required = true) @PathVariable @Min(1)
+          int nationalNumber) {
+    deleteLocalPokemonUseCase.execute(nationalNumber);
+    return ResponseEntity.noContent().build();
   }
 }

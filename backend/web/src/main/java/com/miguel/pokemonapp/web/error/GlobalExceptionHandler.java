@@ -4,10 +4,14 @@ import com.miguel.pokemonapp.application.CatalogUnavailableException;
 import com.miguel.pokemonapp.application.DuplicateLocalPokemonException;
 import com.miguel.pokemonapp.application.LocalPokemonNotFoundException;
 import com.miguel.pokemonapp.application.PokemonNotFoundException;
+import com.miguel.pokemonapp.application.StaleLocalPokemonException;
 import com.miguel.pokemonapp.domain.page.PageOutOfRangeException;
+import jakarta.validation.ConstraintViolation;
 import java.net.URI;
 import java.util.Objects;
+import java.util.Optional;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -15,6 +19,9 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.method.ParameterErrors;
+import org.springframework.validation.method.ParameterValidationResult;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,6 +29,8 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import tools.jackson.databind.exc.MismatchedInputException;
+import tools.jackson.databind.exc.UnrecognizedPropertyException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -29,6 +38,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   private static final URI BAD_REQUEST_TYPE = URI.create("urn:problem-type:bad-request");
   private static final URI NOT_FOUND_TYPE = URI.create("urn:problem-type:not-found");
   private static final URI CONFLICT_TYPE = URI.create("urn:problem-type:conflict");
+  private static final URI STALE_VERSION_TYPE = URI.create("urn:problem-type:stale-version");
+  private static final URI UNSUPPORTED_MEDIA_TYPE =
+      URI.create("urn:problem-type:unsupported-media-type");
   private static final URI BAD_GATEWAY_TYPE = URI.create("urn:problem-type:bad-gateway");
   private static final URI INTERNAL_ERROR_TYPE = URI.create("urn:problem-type:internal");
 
@@ -65,13 +77,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       HttpHeaders headers,
       HttpStatusCode status,
       WebRequest request) {
-    String parameter =
-        ex.getParameterValidationResults().stream()
-            .map(result -> result.getMethodParameter().getParameterName())
-            .filter(Objects::nonNull)
-            .filter(name -> !name.isBlank())
-            .findFirst()
-            .orElse("request");
+    String parameter = firstValidationField(ex).orElse("request");
     return badRequest(ex, headers, request, parameter);
   }
 
@@ -83,9 +89,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       WebRequest request) {
     return handleExceptionInternal(
         ex,
-        problem(HttpStatus.BAD_REQUEST, BAD_REQUEST_TYPE, "Malformed request body"),
+        problem(HttpStatus.BAD_REQUEST, BAD_REQUEST_TYPE, unreadableBodyDetail(ex)),
         headers,
         HttpStatus.BAD_REQUEST,
+        request);
+  }
+
+  @Override
+  protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(
+      HttpMediaTypeNotSupportedException ex,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest request) {
+    return handleExceptionInternal(
+        ex,
+        problem(
+            HttpStatus.UNSUPPORTED_MEDIA_TYPE, UNSUPPORTED_MEDIA_TYPE, "Unsupported media type"),
+        headers,
+        HttpStatus.UNSUPPORTED_MEDIA_TYPE,
         request);
   }
 
@@ -114,6 +135,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         HttpStatus.CONFLICT,
         CONFLICT_TYPE,
         "Pokémon " + ex.nationalNumber() + " is already in the local collection");
+  }
+
+  @ExceptionHandler(StaleLocalPokemonException.class)
+  ProblemDetail handleStaleLocalPokemon(StaleLocalPokemonException ex) {
+    return problem(
+        HttpStatus.CONFLICT,
+        STALE_VERSION_TYPE,
+        "Pokémon " + ex.nationalNumber() + " was modified by another request; reload and retry");
   }
 
   @ExceptionHandler(CatalogUnavailableException.class)
@@ -147,5 +176,65 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
     problem.setType(type);
     return problem;
+  }
+
+  private static String unreadableBodyDetail(HttpMessageNotReadableException ex) {
+    Throwable cause = ex.getMostSpecificCause();
+    if (cause instanceof UnrecognizedPropertyException unrecognized) {
+      return "Unknown or read-only property '" + unrecognized.getPropertyName() + "'";
+    }
+    if (cause instanceof MismatchedInputException mismatched) {
+      String propertyName = propertyNameFromPath(mismatched);
+      if (propertyName != null) {
+        return "Invalid or missing value for property '" + propertyName + "'";
+      }
+    }
+    return "Malformed request body";
+  }
+
+  private static String propertyNameFromPath(MismatchedInputException ex) {
+    var path = ex.getPath();
+    if (path.isEmpty()) {
+      return null;
+    }
+    String name = path.get(path.size() - 1).getPropertyName();
+    if (name == null || name.isBlank()) {
+      return null;
+    }
+    return name;
+  }
+
+  private static Optional<String> firstValidationField(HandlerMethodValidationException ex) {
+    for (ParameterValidationResult result : ex.getParameterValidationResults()) {
+      if (result instanceof ParameterErrors errors && errors.hasFieldErrors()) {
+        FieldError fieldError = errors.getFieldError();
+        if (fieldError != null) {
+          return Optional.of(fieldError.getField());
+        }
+      }
+      for (MessageSourceResolvable resolvable : result.getResolvableErrors()) {
+        ConstraintViolation<?> violation = result.unwrap(resolvable, ConstraintViolation.class);
+        if (violation != null) {
+          String path = simplifyPropertyPath(violation.getPropertyPath().toString());
+          if (!path.isBlank()) {
+            return Optional.of(path);
+          }
+        }
+      }
+      String parameterName = result.getMethodParameter().getParameterName();
+      if (parameterName != null && !parameterName.isBlank()) {
+        return Optional.of(parameterName);
+      }
+    }
+    return Optional.empty();
+  }
+
+  private static String simplifyPropertyPath(String path) {
+    Objects.requireNonNull(path, "path");
+    String suffix = ".<list element>";
+    if (path.endsWith(suffix)) {
+      return path.substring(0, path.length() - suffix.length());
+    }
+    return path;
   }
 }

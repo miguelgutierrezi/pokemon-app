@@ -58,6 +58,7 @@ class GetLocalPokemonUseCaseTest {
         Instant.parse("2026-01-01T00:00:00Z"),
         null,
         null,
-        Tags.empty());
+        Tags.empty(),
+        0L);
   }
 }

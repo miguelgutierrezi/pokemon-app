@@ -68,4 +68,21 @@ class RequireTest {
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("hectograms must be >= 0");
   }
+
+  @Test
+  void atLeastLongReturnsValueWhenEqualToMin() {
+    assertThat(Require.atLeast(0L, 0L, "version")).isEqualTo(0L);
+  }
+
+  @Test
+  void atLeastLongReturnsValueWhenAboveMin() {
+    assertThat(Require.atLeast(3L, 0L, "version")).isEqualTo(3L);
+  }
+
+  @Test
+  void atLeastLongRejectsBelowMin() {
+    assertThatThrownBy(() -> Require.atLeast(-1L, 0L, "version"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("version must be >= 0");
+  }
 }

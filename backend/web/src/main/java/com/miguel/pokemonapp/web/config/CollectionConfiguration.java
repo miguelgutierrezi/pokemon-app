@@ -1,8 +1,10 @@
 package com.miguel.pokemonapp.web.config;
 
+import com.miguel.pokemonapp.application.pokemon.DeleteLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.GetLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.ImportPokemonUseCase;
 import com.miguel.pokemonapp.application.pokemon.ListLocalPokemonUseCase;
+import com.miguel.pokemonapp.application.pokemon.UpdateLocalPokemonUseCase;
 import com.miguel.pokemonapp.application.port.LocalPokemonRepository;
 import com.miguel.pokemonapp.application.port.PokemonCatalogPort;
 import com.miguel.pokemonapp.infrastructure.persistence.LocalPokemonJpaAdapter;
@@ -42,5 +44,15 @@ public class CollectionConfiguration {
   @Bean
   GetLocalPokemonUseCase getLocalPokemonUseCase(LocalPokemonRepository repository) {
     return new GetLocalPokemonUseCase(repository);
+  }
+
+  @Bean
+  UpdateLocalPokemonUseCase updateLocalPokemonUseCase(LocalPokemonRepository repository) {
+    return new UpdateLocalPokemonUseCase(repository);
+  }
+
+  @Bean
+  DeleteLocalPokemonUseCase deleteLocalPokemonUseCase(LocalPokemonRepository repository) {
+    return new DeleteLocalPokemonUseCase(repository);
   }
 }

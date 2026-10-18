@@ -68,7 +68,7 @@ class CollectionIntegrationTest {
   @BeforeEach
   void resetState() {
     WIRE_MOCK.resetAll();
-    jdbcTemplate.update("DELETE FROM pokemon_record WHERE national_number > 3");
+    CollectionSeedReset.restore(jdbcTemplate);
   }
 
   @Test
@@ -96,6 +96,8 @@ class CollectionIntegrationTest {
         .isEqualTo(ARTWORK_1)
         .jsonPath("$.content[0].tags")
         .value(tags -> assertTags(tags, "first-partner", "forest"))
+        .jsonPath("$.content[0].version")
+        .isEqualTo(0)
         .jsonPath("$.content[1].nationalNumber")
         .isEqualTo(2)
         .jsonPath("$.content[1].name")
@@ -108,6 +110,8 @@ class CollectionIntegrationTest {
         .isEqualTo(ARTWORK_2)
         .jsonPath("$.content[1].tags")
         .value(tags -> assertTags(tags, "field-notes", "forest"))
+        .jsonPath("$.content[1].version")
+        .isEqualTo(0)
         .jsonPath("$.content[2].nationalNumber")
         .isEqualTo(3)
         .jsonPath("$.content[2].name")
@@ -119,7 +123,9 @@ class CollectionIntegrationTest {
         .jsonPath("$.content[2].imageUrl")
         .isEqualTo(ARTWORK_3)
         .jsonPath("$.content[2].tags")
-        .value(tags -> assertTags(tags, "first-partner", "field-notes"));
+        .value(tags -> assertTags(tags, "first-partner", "field-notes"))
+        .jsonPath("$.content[2].version")
+        .isEqualTo(0);
   }
 
   @Test
@@ -155,7 +161,8 @@ class CollectionIntegrationTest {
         .contains("\"tags\":[]")
         .contains("\"localizedName\":null")
         .contains("\"location\":null")
-        .contains("\"syncedAt\"");
+        .contains("\"syncedAt\"")
+        .contains("\"version\":0");
 
     assertThat(countByNationalNumber(25)).isEqualTo(1L);
     WIRE_MOCK.verify(exactly(1), getRequestedFor(urlEqualTo("/pokemon/25")));
@@ -203,7 +210,8 @@ class CollectionIntegrationTest {
         .contains("\"name\":\"Pikachu\"")
         .contains("\"localizedName\":null")
         .contains("\"location\":null")
-        .contains("\"tags\":[]");
+        .contains("\"tags\":[]")
+        .contains("\"version\":0");
   }
 
   @Test

@@ -536,3 +536,111 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `jq (optional, used in curl examples)`. (2) Record T017 validation
   results in `specs/004-hu03-data-sync/quickstart.md` (measured run
   against real PokeAPI) and mark T016/T017 done.
+
+## 2026-10-17 — 005 spec: version in responses, two 409 types, lock race
+- **Source**: Miguel's review
+- **Context**: Spec review for `005-hu04-local-update`.
+- **Correction**: (1) Local record responses of ALL collection endpoints
+  (POST import, GET list, GET one, PUT) include `version` — additive change
+  to 004's contract; note it. (2) Distinguish the two 409s by RFC 7807
+  `type`: duplicate import keeps `urn:problem-type:conflict`; stale version
+  uses `urn:problem-type:stale-version` (different detail too). (3) Record
+  missing when read → 404; record deleted between read and write
+  (optimistic lock failure) → 409 stale-version — not a blanket 404.
+
+## 2026-10-17 — 005 plan: in-tx version check, Boot unknown-props, tags null
+- **Source**: Miguel's review
+- **Context**: Plan review for `005-hu04-local-update` — lost-update hole
+  if relying only on setting `@Version` from the domain object.
+- **Correction**: (1) Adapter update MUST, inside its transaction after
+  loading the entity, compare `entity.getVersion()` with the domain
+  object's version and throw `StaleLocalPokemonException` on mismatch;
+  manually setting a managed entity's `@Version` has no effect. `@Version`
+  + OOLFE remain the commit-time backstop. Concurrent test MUST force
+  "B loads after A commits" (latch ordering) → one success + one
+  `StaleLocalPokemonException` (HTTP 200/409 are web/IT — see analyze
+  remediation below).
+  (2) Global `fail-on-unknown-properties=true` also makes
+  `POST /api/v1/collection` reject unknown properties (004 behaviour
+  change — add a test); PokeAPI parsing unaffected (`JsonNode` /
+  own RestClient). (3) Wording: it is **Spring Boot** (not Jackson 3)
+  that disables `FAIL_ON_UNKNOWN_PROPERTIES` by default.
+  (4) `"tags": null` → 400 (tags must be an array); cover with a test.
+
+## 2026-10-17 — 005 analyze remediation (plan/tasks)
+- **Source**: Miguel's review
+- **Context**: `/speckit-analyze` findings I1/G1/G2/G3/U1/U2/I2/G4
+  applied to plan.md and tasks.md (no code).
+- **Correction**: (I1) Infra concurrency asserts one success + one
+  `StaleLocalPokemonException`; 200/409 belong to web/IT. (G1) T012:
+  two sequential PUTs with the same version → first 200, second 409
+  stale-version, stored values = first request; real race stays in T006.
+  (G2) T006 RED: load → delete row → save → `StaleLocalPokemonException`
+  (OOLFE path). (G3) T012 asserts PUT null/`[]` clears fields in DB.
+  (U1) T001: invariant `version ≥ 0` on the record (no “if exposed”).
+  (U2) T008 asserts mocked use-case `version`; real +1 in T006/T012.
+  (I2) plan structure note: `tasks.md` exists. (G4) SC-003 remains
+  manual in T015. (D1) no change.
+
+## 2026-10-17 — Delete: boolean deleteByNationalNumber, one call
+- **Source**: Miguel's review
+- **Context**: T004/T005 review — `DeleteLocalPokemonUseCase` did
+  `findByNationalNumber` then `deleteByNationalNumber` (void).
+- **Correction**: Port method is `boolean deleteByNationalNumber(int)`
+  (`true` when a row was deleted). The use case makes **one** call and
+  throws `LocalPokemonNotFoundException` when it returns `false` — no
+  `findByNationalNumber` pre-check (avoids loading the aggregate and the
+  check-then-act race between concurrent deletes).
+
+## 2026-10-17 — Tags-only update must bump @Version
+- **Source**: Miguel's review
+- **Context**: T006/T007 — tags are an inverse `@OneToMany(mappedBy)`
+  collection; Hibernate does not dirty the parent for inverse collection
+  changes, so a tags-only update with unchanged `updated_at` (fixed Clock
+  equal to stored value) may leave `@Version` unbumped.
+- **Correction**: Cover with a test: fixed Clock = stored `updated_at`,
+  update that changes **only** tags → version +1. Load the entity for
+  update via a repository method annotated with a force-increment lock so
+  the version always increments. On Hibernate 7.4.5,
+  `OPTIMISTIC_FORCE_INCREMENT` does not emit a version UPDATE for this
+  path; use `PESSIMISTIC_FORCE_INCREMENT` on
+  `findByNationalNumberForUpdate`. Compare the domain version **before**
+  the forced load (the lock bumps immediately). Skip the forced load when
+  parent scalars will dirty the entity (avoids a double bump).
+
+## 2026-10-17 — Optimistic update via compare-and-set UPDATE (supersedes the force-increment entry above)
+- **Source**: Claude Code review, validated by Miguel (implemented by Claude Code at Miguel's request)
+- **Context**: The probe → detach → `PESSIMISTIC_FORCE_INCREMENT` re-load path compared the
+  version on the probe but applied changes to the re-loaded row; another update committing
+  between the two loads would be overwritten (lost update on tags-only changes).
+- **Correction**: Update proprietary fields with one atomic JPQL compare-and-set
+  (`updateProprietaryIfVersion`: `set …, version = version + 1 where national_number = :n and
+  version = :expected`, `@Modifying(flushAutomatically, clearAutomatically)`); 0 rows →
+  `StaleLocalPokemonException`. Replace tags in the same transaction (the UPDATE holds the row
+  lock until commit). Do not use probe/detach/force-increment locks or per-field dirty checks.
+  `@Version` stays on the entity. Covered by a forced-concurrency test where both writers change
+  only tags.
+
+## 2026-10-17 — Blank tags: edge @NotBlank, no global IllegalArgumentException→400
+- **Source**: Miguel's review
+- **Context**: T008/T009 — `"tags": ["  "]` passes Bean Validation `@Size` and
+  reaches `Tags.of`, which throws `IllegalArgumentException` → unhandled → 500.
+- **Correction**: Validate at the HTTP edge with
+  `List<@NotBlank @Size(max = Tags.MAX_TAG_LENGTH) String> tags` and cover with
+  a controller test (blank tag → 400). Do **not** map
+  `IllegalArgumentException` globally to 400. Document in `research.md` that
+  edge `@Size` limits apply to the **raw (untrimmed)** value and are therefore
+  slightly stricter than the domain (which trims/normalises first).
+
+## 2026-10-17 — Never branch on library exception message text
+- **Source**: Miguel's review
+- **Context**: T010/T011 — `missingRequiredPropertyName` inspected Jackson's
+  `getOriginalMessage()` for the prefix `"Missing required creator property"`.
+- **Correction**: Never branch on the text of a library's exception message
+  (fragile across versions/locales). For `HttpMessageNotReadableException`:
+  check `UnrecognizedPropertyException` first →
+  `Unknown or read-only property '{name}'`; otherwise any
+  `MismatchedInputException` whose path has a property name →
+  `Invalid or missing value for property '{name}'` (last path element);
+  else `Malformed request body`. Cover omit and wrong-type (e.g.
+  `"version": "abc"`) with the same detail shape.

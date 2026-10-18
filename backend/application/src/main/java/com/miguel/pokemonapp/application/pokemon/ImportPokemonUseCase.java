@@ -38,6 +38,6 @@ public class ImportPokemonUseCase {
     } catch (IllegalArgumentException e) {
       throw new CatalogUnavailableException("malformed catalog data", e);
     }
-    return repository.save(snapshot);
+    return repository.create(snapshot);
   }
 }

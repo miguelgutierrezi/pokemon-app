@@ -7,6 +7,8 @@ import java.util.Optional;
 
 public interface LocalPokemonRepository {
 
+  LocalPokemon create(LocalPokemon pokemon);
+
   LocalPokemon save(LocalPokemon pokemon);
 
   Optional<LocalPokemon> findByNationalNumber(int nationalNumber);
@@ -14,4 +16,6 @@ public interface LocalPokemonRepository {
   Page<LocalPokemon> findPage(PageRequest request);
 
   boolean existsByNationalNumber(int nationalNumber);
+
+  boolean deleteByNationalNumber(int nationalNumber);
 }
