@@ -195,7 +195,7 @@ collection seed reset never touches `app_user`.
 
 **Independent Test**: infrastructure unit tests (encoder built in-test).
 
-- [ ] T008 [AUTH] RED: add dependency
+- [x] T008 [AUTH] RED: add dependency
   `org.springframework.security:spring-security-crypto` (BOM, no version)
   to `backend/infrastructure/pom.xml`. Write
   `backend/infrastructure/src/test/java/com/miguel/pokemonapp/infrastructure/security/BCryptPasswordHasherTest.java`
@@ -204,7 +204,7 @@ collection seed reset never touches `app_user`.
   **infrastructure**.
   ⏸ Review — `test(infrastructure): expect bcrypt password hasher (red)`
 
-- [ ] T009 [AUTH] GREEN: implement
+- [x] T009 [AUTH] GREEN: implement
   `backend/infrastructure/src/main/java/com/miguel/pokemonapp/infrastructure/security/BCryptPasswordHasher.java`
   implementing `PasswordHasher`. Hasher unit tests pass. **Also** extend
   `UserAccountJpaAdapterTest` to load the V5 demo row and assert
