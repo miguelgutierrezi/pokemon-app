@@ -81,22 +81,22 @@ PR.
 present; a deliberate `console.error` in a throwaway test fails the suite
 when guard is on; draft PR open.
 
-- [ ] T001 Configure `@/` path alias in
+- [x] T001 Configure `@/` path alias in
   `frontend/tsconfig.app.json` (`compilerOptions.paths`: `@/*` → `./src/*`),
   `frontend/tsconfig.json` if needed for tooling, and
   `frontend/vite.config.ts` (`resolve.alias` via `path` / `fileURLToPath`).
   Confirm `npm run typecheck` green. No new runtime deps.
   ⏸ Review — `chore(frontend): add @ path alias`
 
-- [ ] T002 Add Vite `/api` dev proxy in `frontend/vite.config.ts`:
+- [x] T002 Add Vite `/api` dev proxy in `frontend/vite.config.ts`:
   `server.proxy['/api']` → `process.env.VITE_API_PROXY_TARGET ??
   'http://localhost:8080'`, `changeOrigin: true`, **no** path rewrite.
-  Document `VITE_API_PROXY_TARGET` in `frontend/.env.example` (create if
-  missing). Confirm `npm run lint && npm run typecheck && npm test &&
-  npm run build` green.
+  Document `VITE_API_PROXY_TARGET` in README later (T041) — not
+  `.env.example` now. Confirm `npm run lint && npm run typecheck && npm
+  test && npm run build` green.
   ⏸ Review — `chore(frontend): vite /api dev proxy`
 
-- [ ] T003 Fail Vitest on any `console.warn` / `console.error` in
+- [x] T003 Fail Vitest on any `console.warn` / `console.error` in
   `frontend/src/test/setup.ts` (spy + `afterEach` / global listeners that
   `expect` zero calls, or equivalent that fails the current test). Confirm
   an intentional console call in a temporary assertion fails, then remove
