@@ -2,45 +2,21 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 
-import { ApiError } from '@/api/api-error'
 import { listPokemon } from '@/api/pokemon'
 import { listQueryOptions } from '@/app/query-client'
 import {
   CATALOG_PAGE_SIZE,
   catalogListQueryKey,
 } from '@/features/catalog/query-keys'
+import { isBeyondLastPageError, parsePageParam } from '@/lib/page-param'
 
-function parsePage(raw: string | null): number | null {
-  if (raw == null || raw.trim() === '') {
-    return 1
-  }
-  if (!/^\d+$/.test(raw)) {
-    return null
-  }
-  const value = Number(raw)
-  if (!Number.isInteger(value) || value < 1) {
-    return null
-  }
-  return value
-}
-
-/** Same contract as collection list: API 400 when page is past the last page. */
-export function isBeyondLastPageError(
-  error: unknown,
-  page: number,
-): boolean {
-  return (
-    page > 1 &&
-    error instanceof ApiError &&
-    error.status === 400
-  )
-}
+export { isBeyondLastPageError } from '@/lib/page-param'
 
 export function useCatalogPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const rawPage = searchParams.get('page')
-  const parsedPage = parsePage(rawPage)
+  const parsedPage = parsePageParam(rawPage)
   const pageInvalid = parsedPage == null
   const page = parsedPage ?? 1
 

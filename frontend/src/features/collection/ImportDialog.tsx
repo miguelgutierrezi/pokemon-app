@@ -118,7 +118,7 @@ export function ImportDialog({
               <AlertDialogDescription className="space-y-3 text-foreground">
                 <span className="block">
                   A copy of {pokemon.name}&apos;s Pokédex record will be added
-                  to the shared collection, available across devices.
+                  to the shared collection.
                 </span>
                 <span className="block text-muted-foreground">
                   The public catalog is not affected. You can add your own name,

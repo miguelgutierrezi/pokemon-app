@@ -9,8 +9,9 @@ import {
 } from '@/components/ui/pagination'
 import { cn } from '@/lib/utils'
 
-function pageHref(page: number): string {
-  return `/?page=${page}`
+function pageHref(basePath: string, page: number): string {
+  const path = basePath === '/' ? '/' : basePath.replace(/\/$/, '')
+  return `${path}?page=${page}`
 }
 
 function buildPages(current: number, total: number): Array<number | 'ellipsis'> {
@@ -36,9 +37,12 @@ function buildPages(current: number, total: number): Array<number | 'ellipsis'> 
 export function CatalogPagination({
   page,
   totalPages,
+  basePath = '/',
 }: {
   page: number
   totalPages: number
+  /** Path used for `?page=` links (catalog `/`, collection `/collection`). */
+  basePath?: string
 }) {
   if (totalPages <= 1) {
     return null
@@ -53,7 +57,7 @@ export function CatalogPagination({
           <PaginationItem>
             {page > 1 ? (
               <Link
-                to={pageHref(page - 1)}
+                to={pageHref(basePath, page - 1)}
                 className={cn(buttonVariants({ variant: 'ghost', size: 'default' }), 'gap-1')}
                 aria-label="Go to previous page"
               >
@@ -79,7 +83,7 @@ export function CatalogPagination({
             ) : (
               <PaginationItem key={item}>
                 <Link
-                  to={pageHref(item)}
+                  to={pageHref(basePath, item)}
                   aria-current={item === page ? 'page' : undefined}
                   className={cn(
                     buttonVariants({
@@ -96,7 +100,7 @@ export function CatalogPagination({
           <PaginationItem>
             {page < totalPages ? (
               <Link
-                to={pageHref(page + 1)}
+                to={pageHref(basePath, page + 1)}
                 className={cn(buttonVariants({ variant: 'ghost', size: 'default' }), 'gap-1')}
                 aria-label="Go to next page"
               >

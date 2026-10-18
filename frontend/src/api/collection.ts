@@ -29,6 +29,14 @@ export function getCollection(
   )
 }
 
+/** Collection list helper — public GET, optional AbortSignal. */
+export function listCollection(
+  query: PageQuery,
+  signal?: AbortSignal,
+): Promise<LocalPokemonPage> {
+  return getCollection(publicClient, query, signal)
+}
+
 export function getLocalPokemon(
   client: ApiClient,
   id: number,

@@ -491,7 +491,7 @@ connection error
 
 **Independent Test**: Mock list page states; `?page=N`; no Bearer on GET.
 
-- [ ] T031 [HU03] RED: write
+- [x] T031 [HU03] RED: write
   `frontend/src/pages/CollectionPage.test.tsx` — loading; success with
   proprietary fields; empty; network `status === 0` → connection-error +
   retry (Figma 8-19215/8-19257; distinct from **502** copy if design
@@ -501,7 +501,7 @@ connection error
   failing output. Test file only.
   ⏸ Review — `test(frontend): expect collection page states (red)`
 
-- [ ] T032 [HU03] GREEN: implement
+- [x] T032 [HU03] GREEN: implement
   `frontend/src/features/collection/` list UI +
   `frontend/src/pages/CollectionPage.tsx`; route `/collection`; list
   query uses `staleTime` / `placeholderData: keepPreviousData` as
