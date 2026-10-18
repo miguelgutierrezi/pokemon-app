@@ -127,7 +127,7 @@ with startup dummy hash, &gt;72-byte short-circuit (no hasher call), single
   Confirm fail (types missing). Do not push RED. Coverage: **application**.
   ⏸ Review — `test(application): expect register and authenticate user (red)`
 
-- [ ] T005 [AUTH] GREEN: add ports
+- [x] T005 [AUTH] GREEN: add ports
   `backend/application/src/main/java/com/miguel/pokemonapp/application/port/UserAccountRepository.java`,
   `PasswordHasher.java`,
   `AccessTokenIssuer.java`;

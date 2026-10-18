@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import com.miguel.pokemonapp.application.InvalidCredentialsException;
 import com.miguel.pokemonapp.application.port.AccessTokenIssuer;
+import com.miguel.pokemonapp.application.port.IssuedAccessToken;
 import com.miguel.pokemonapp.application.port.PasswordHasher;
 import com.miguel.pokemonapp.application.port.UserAccountRepository;
 import com.miguel.pokemonapp.domain.user.UserAccount;
@@ -58,8 +59,7 @@ class AuthenticateUserUseCaseTest {
 
   @Test
   void wrongPasswordThrowsSameInvalidCredentialsMessage() {
-    UserAccount account =
-        UserAccount.restore(7L, "Ash", "ash@pokefolio.dev", HASH, CREATED_AT);
+    UserAccount account = UserAccount.restore(7L, "Ash", "ash@pokefolio.dev", HASH, CREATED_AT);
     when(repository.findByEmail("ash@pokefolio.dev")).thenReturn(Optional.of(account));
     when(hasher.matches("wrong-password", HASH)).thenReturn(false);
 
@@ -73,8 +73,7 @@ class AuthenticateUserUseCaseTest {
 
   @Test
   void successReturnsAuthSession() {
-    UserAccount account =
-        UserAccount.restore(7L, "Ash", "ash@pokefolio.dev", HASH, CREATED_AT);
+    UserAccount account = UserAccount.restore(7L, "Ash", "ash@pokefolio.dev", HASH, CREATED_AT);
     when(repository.findByEmail("ash@pokefolio.dev")).thenReturn(Optional.of(account));
     when(hasher.matches("password1", HASH)).thenReturn(true);
     when(issuer.issue(7L)).thenReturn(new IssuedAccessToken(TOKEN, 3600L));

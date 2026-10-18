@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import com.miguel.pokemonapp.application.DuplicateEmailException;
 import com.miguel.pokemonapp.application.port.AccessTokenIssuer;
+import com.miguel.pokemonapp.application.port.IssuedAccessToken;
 import com.miguel.pokemonapp.application.port.PasswordHasher;
 import com.miguel.pokemonapp.application.port.UserAccountRepository;
 import com.miguel.pokemonapp.domain.user.UserAccount;
