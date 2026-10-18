@@ -836,3 +836,19 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Context**: Edit form used “Make this record your own”.
 - **Correction**: Prefer shared-collection copy such as “Collection details”
   (no “your own” framing).
+
+## 2026-10-18 — GenAI sample: overdue tasks must remain updatable
+- **Source**: Miguel's review
+- **Context**: Task API GenAI review — `@FutureOrPresent` on update DTO and
+  domain `dueDate >= today` blocked marking an overdue task DONE.
+- **Correction**: Enforce future/present only on create, or on update only when
+  `dueDate` changes; accept an unchanged past due date. Do not put
+  `@FutureOrPresent` on update request DTOs.
+
+## 2026-10-18 — GenAI sample: inject Clock instead of LocalDate.now() in domain
+- **Source**: Miguel's review
+- **Context**: Domain used `LocalDate.now()` (JVM default zone) while docs
+  claimed UTC; due-date policy was untestable.
+- **Correction**: Inject a UTC `Clock` into use cases; pass `today` into
+  domain factories/updates. Tests use a fixed `Clock`. Domain must not call
+  `LocalDate.now()`.
