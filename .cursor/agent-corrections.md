@@ -4,7 +4,7 @@ Log of user corrections for the agent to apply in future sessions. Maintained
 by the agent per `.cursor/rules/agent-corrections.mdc`.
 
 ## 2026-10-16 — Corrections log language
-- **Source**: user
+- **Source**: Miguel's review
 - **Context**: The first version of the agent-corrections rule and log was
   written in Spanish.
 - **Correction**: Always write `.cursor/rules/agent-corrections.mdc` and
@@ -16,7 +16,7 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   binding project docs, and entries had no origin field.
 - **Correction**: (1) Corrections never override the constitution or the
   feature's spec/plan/tasks — on conflict, stop and ask. (2) Every entry
-  must include `Source`: `user` or `Miguel's review`.
+  must include `Source`: `Miguel's review` (never `user` or a tool name).
 
 ## 2026-10-16 — Maven module naming and package-info accuracy (T002–T003)
 - **Source**: Miguel's review
@@ -609,7 +609,7 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   parent scalars will dirty the entity (avoids a double bump).
 
 ## 2026-10-17 — Optimistic update via compare-and-set UPDATE (supersedes the force-increment entry above)
-- **Source**: Claude Code review, validated by Miguel (implemented by Claude Code at Miguel's request)
+- **Source**: Miguel's review
 - **Context**: The probe → detach → `PESSIMISTIC_FORCE_INCREMENT` re-load path compared the
   version on the probe but applied changes to the re-loaded row; another update committing
   between the two loads would be overwritten (lost update on tags-only changes).
@@ -646,7 +646,7 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `"version": "abc"`) with the same detail shape.
 
 ## 2026-10-17 — Mark completed tasks in tasks.md
-- **Source**: user
+- **Source**: Miguel's review
 - **Context**: After implementing 006-auth T001/T002, the agent stopped for
   review without checking off the tasks in `specs/006-auth/tasks.md`.
 - **Correction**: When a Spec Kit task is finished (RED or GREEN) and ready
@@ -654,7 +654,7 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `tasks.md` in the same turn. Do not leave completed work unchecked.
 
 ## 2026-10-17 — Maven module tests with -am
-- **Source**: user
+- **Source**: Miguel's review
 - **Context**: `./mvnw -B -pl application test` used a stale
   `pokemonapp-domain` jar from `~/.m2`, so RED compile errors incorrectly
   included `UserAccount` as missing.
@@ -663,3 +663,176 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `./mvnw -B -pl application -am test`,
   `./mvnw -B -pl domain -am verify`). Do not rely on stale local Maven
   cache jars for sibling modules.
+
+## 2026-10-17 — Vitest console guard: cleanup before collecting spies
+- **Source**: Miguel's review
+- **Context**: 007-frontend T003 — `afterEach` checked `console.warn` /
+  `console.error` spies before `cleanup()`, so React/Radix warnings that
+  fire on unmount were missed.
+- **Correction**: In `frontend/src/test/setup.ts` `afterEach`: call
+  `cleanup()` **first** (unmount while spies are still active), then
+  collect spy call messages, then `vi.restoreAllMocks()` in a `finally`
+  block, then throw if anything was collected. Vite `/api` proxy target
+  must use `defineConfig(({ mode }) => …)` + `loadEnv(mode, process.cwd(),
+  '')` so `VITE_API_PROXY_TARGET` is read from `frontend/.env`, not only
+  `process.env`.
+
+## 2026-10-17 — Source in agent-corrections is always Miguel's review
+- **Source**: Miguel's review
+- **Context**: Agent logged T003/setup and other entries with
+  `Source: user`, against the project rule that Source is always
+  Miguel's review.
+- **Correction**: Every new (and corrected) entry in
+  `.cursor/agent-corrections.md` MUST use
+  `**Source**: Miguel's review`. Never `user`, never a tool name.
+  The rule file `.cursor/rules/agent-corrections.mdc` matches this.
+
+## 2026-10-18 — Post-review fixes must be logged in agent-corrections
+- **Source**: Miguel's review
+- **Context**: T022 fixes were implemented in code, but only one item
+  (beyond-last 400) was appended to `.cursor/agent-corrections.md`.
+- **Correction**: When Miguel gives post-review fixes (numbered lists,
+  “T0xx fixes”, polish after GREEN), log **every** durable rule from
+  that list in `.cursor/agent-corrections.md` in the same turn as the
+  code changes. Implementing alone is not enough. Rule file
+  `.cursor/rules/agent-corrections.mdc` item 11 matches this.
+
+## 2026-10-18 — Paginated list beyond-last is API 400, not empty 200
+- **Source**: Miguel's review
+- **Context**: T022 catalog treated beyond-last as an empty 200 page;
+  the real API returns 400 with detail `page N is beyond last page M`.
+- **Correction**: For catalog and collection lists, treat
+  `ApiError` with status 400 when `page > 1` as the beyond-last UI
+  state (empty + link to page 1). Never show it as a generic error.
+  Tests must mock the 400 contract, not an empty 200.
+
+## 2026-10-18 — Custom font-size tokens via extendTailwindMerge
+- **Source**: Miguel's review
+- **Context**: T022 — default `twMerge` treated custom `text-*` size
+  tokens as text-color and dropped them next to `text-foreground`.
+- **Correction**: Use `extendTailwindMerge` so custom font-size tokens
+  (`label`, `caption`, `body-sm`, `body`, `title`, `display`, `hero`)
+  live in the `font-size` group. Keep a `utils.test.ts` contract:
+  `cn('text-display','text-foreground')` keeps both;
+  `cn('text-xs','text-caption')` keeps only `text-caption`. PageHeading
+  stays `text-display`; ability badges stay `text-caption`.
+
+## 2026-10-18 — Figma catalog polish: assets, intro, H, pixelated sprites
+- **Source**: Miguel's review
+- **Context**: T022 catalog UI drifted from Figma 8-3955 / 8-4385.
+- **Correction**: Match those frames: intro with large total count +
+  “Pokémon · all generations” + Poké Ball archive diagram downloaded
+  into `src/assets` (no temporary Figma MCP URLs). Records bar
+  `0001–0009 of N` + “H = Hidden ability” legend (visible `H` with
+  accessible “Hidden ability”, e.g. sr-only). Larger sprites with
+  `image-rendering: pixelated`.
+
+## 2026-10-18 — Prefer instanceof ApiError for HTTP status
+- **Source**: Miguel's review
+- **Context**: CatalogPage used duck-typed status extraction on errors.
+- **Correction**: Prefer `error instanceof ApiError ? error.status : null`
+  (or equivalent) over duck-typing `{ status?: number }` on unknown errors.
+
+## 2026-10-18 — Collection details card: shared-collection copy (R11 #1)
+- **Source**: Miguel's review
+- **Context**: T024 CollectionDetailsCard used Figma “your account /
+  private” wording against spec R11 conflict 1.
+- **Correction**: Title **Collection details**; footnote **Stored in the
+  shared collection on the server.** Never “your account” / “private”
+  on that card.
+
+## 2026-10-18 — Evolution branching: Evolves-into grid, not sibling arrows
+- **Source**: Miguel's review
+- **Context**: T024 branching evolutions used vertical connectors between
+  siblings (Eevee-style).
+- **Correction**: Linear chains stay a sequence with Lv./trigger
+  connectors. When a node has **more than one** child: parent card +
+  **Evolves into** heading + responsive grid (1/2/3 cols); each child
+  card shows its own condition (formatted trigger/minLevel/item) inside
+  the card — no vertical arrows between siblings. Keep linear +
+  branching (Eevee) tests.
+
+## 2026-10-18 — SC-006 excludes Chrome expected-HTTP network logs
+- **Source**: Miguel's review
+- **Context**: Manual console checks could be misread as failing on
+  Chrome “Failed to load resource” for expected 404/401/409.
+- **Correction**: SC-006 covers application console output
+  (`console.*`, React/Radix warnings). Chrome network-level “Failed to
+  load resource” for expected HTTP (detail not-saved 404, login 401,
+  duplicate 409, stale 409) are browser logs, not app errors — document
+  in research R9 and quickstart §10 as accepted.
+
+## 2026-10-18 — Auth brand illustration must be the full Poké Ball group
+- **Source**: Miguel's review
+- **Context**: Phase 8 downloaded a single grey-circle layer as
+  `pokeball-auth-diagram.svg` for AuthBrandPanel.
+- **Correction**: Export the whole illustration group from Figma login
+  left panel (5:233) — red top, band, center, rings — or reuse
+  `src/assets/pokeball-archive-diagram.svg` when it is the same artwork.
+  Delete incomplete single-layer exports; never ship temporary Figma
+  layer fragments as the brand illustration.
+
+## 2026-10-18 — Auth info panel: shared-collection browse copy
+- **Source**: Miguel's review
+- **Context**: Login/Register info panels used “Saved Pokémon stay
+  available across devices for trainers who sign in.”
+- **Correction**: Use shared-collection wording, e.g. “Anyone can browse
+  the shared collection. Sign in to add Pokémon or edit their details.”
+  No “saved to your account” / private-account framing.
+
+## 2026-10-18 — Register validation: whitespace-only password is invalid
+- **Source**: Miguel's review
+- **Context**: `validateRegister` allowed whitespace-only passwords that
+  the backend rejects with `@NotBlank`.
+- **Correction**: Reject `password.trim().length === 0` with the same
+  password length/bytes message; keep a unit or page test for it.
+
+## 2026-10-18 — Auth mutations: no unused AbortController
+- **Source**: Miguel's review
+- **Context**: `useLogin` / `useRegister` passed `new AbortController().signal`
+  that nothing cancelled.
+- **Correction**: Call `login` / `register` without fabricating an unused
+  AbortSignal unless the mutation is wired to a real abort.
+
+## 2026-10-18 — Collection list desktop columns must fit without clipping actions
+- **Source**: Miguel's review
+- **Context**: At ~1280px the collection table was wider than its
+  overflow-hidden card, clipping “View details” and hiding “Remove”.
+- **Correction**: Use a shared flexible grid (flexible Pokémon/location/tags,
+  fixed actions column, tags wrap). Prefer `overflow-x-auto` with an inner
+  content wrapper for rounded corners as a fallback. Assert each row exposes
+  View details, Edit, and Remove in tests.
+
+## 2026-10-18 — Drop “available across devices” from shared-collection copy
+- **Source**: Miguel's review
+- **Context**: Collection intro and ImportDialog confirmation still said
+  “available across devices”.
+- **Correction**: Shared-collection wording only — omit “available across
+  devices” from CollectionPage intro and ImportDialog confirmation.
+
+## 2026-10-18 — Commit pending tag draft on edit Save
+- **Source**: Miguel's review
+- **Context**: Typing a tag without Enter/Add left it out of the PUT body.
+- **Correction**: On edit submit, run the pending tag draft through the same
+  commit/validation rules before building the body; on invalid draft, block
+  save, show the tag-field error, and focus the input.
+
+## 2026-10-18 — TagInput splits commas on change (paste / mobile)
+- **Source**: Miguel's review
+- **Context**: Paste and some mobile keyboards do not emit a reliable `,` key.
+- **Correction**: In TagInput `onChange`, split on commas: add every complete
+  part, keep the trailing fragment as the draft.
+
+## 2026-10-18 — Delete clears item query; invalidate list only
+- **Source**: Miguel's review
+- **Context**: Invalidating `['collection']` after DELETE refetched
+  `GET /collection/:id` for the removed record.
+- **Correction**: `removeQueries` for the record key
+  (`['collection','item',id]`) and `invalidateQueries` only for
+  `['collection','list']`.
+
+## 2026-10-18 — Edit form heading uses shared-collection wording
+- **Source**: Miguel's review
+- **Context**: Edit form used “Make this record your own”.
+- **Correction**: Prefer shared-collection copy such as “Collection details”
+  (no “your own” framing).

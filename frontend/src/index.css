@@ -1,1 +1,131 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* Figma PokeApp tokens (catalog 8:3955, detail 8:7626 + alert frames).
+   Single source — no hex in TSX. */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted: var(--success-muted);
+  --color-danger-muted: var(--danger-muted);
+  --color-danger-border: var(--danger-border);
+  --color-nav: var(--nav);
+  --color-nav-foreground: var(--nav-foreground);
+  --color-nav-muted: var(--nav-muted);
+  --color-surface: var(--surface);
+  --color-overlay: var(--overlay);
+  --color-type-grass: var(--type-grass);
+  --color-type-grass-foreground: var(--type-grass-foreground);
+  --color-type-poison: var(--type-poison);
+  --color-type-poison-foreground: var(--type-poison-foreground);
+  --color-type-normal: var(--type-normal);
+  --color-type-normal-foreground: var(--type-normal-foreground);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  --shadow-dialog: 0 12px 36px rgb(24 33 38 / 0.14);
+
+  --text-label: 0.625rem;
+  --text-caption: 0.6875rem;
+  --text-body-sm: 0.8125rem;
+  --text-body: 0.875rem;
+  --text-title: 1.25rem;
+  --text-display: 1.5625rem;
+  --text-hero: 3.5rem;
+}
+
+:root {
+  /* Palette from Figma */
+  --pokefolio-ink: #182126;
+  --pokefolio-accent: #c83738;
+  --pokefolio-page: #f5f7f8;
+  --pokefolio-white: #ffffff;
+  --pokefolio-surface: #fafbfc;
+  --pokefolio-border: #e8ebed;
+  --pokefolio-border-strong: #dde2e5;
+  --pokefolio-muted: #626d75;
+  --pokefolio-muted-soft: #aab6bc;
+  --pokefolio-success: #416a43;
+  --pokefolio-success-muted: #edf4ed;
+  --pokefolio-danger-muted: #f9eeee;
+  --pokefolio-danger-border: #e9c5c5;
+  --pokefolio-overlay: rgb(24 33 38 / 0.5);
+
+  /* shadcn semantic mapping */
+  --background: var(--pokefolio-page);
+  --foreground: var(--pokefolio-ink);
+  --card: var(--pokefolio-white);
+  --card-foreground: var(--pokefolio-ink);
+  --popover: var(--pokefolio-white);
+  --popover-foreground: var(--pokefolio-ink);
+  --primary: var(--pokefolio-accent);
+  --primary-foreground: var(--pokefolio-white);
+  --secondary: var(--pokefolio-surface);
+  --secondary-foreground: var(--pokefolio-ink);
+  --muted: var(--pokefolio-surface);
+  --muted-foreground: var(--pokefolio-muted);
+  --accent: var(--pokefolio-surface);
+  --accent-foreground: var(--pokefolio-ink);
+  --destructive: var(--pokefolio-accent);
+  --destructive-foreground: var(--pokefolio-white);
+  --border: var(--pokefolio-border-strong);
+  --input: var(--pokefolio-border-strong);
+  --ring: var(--pokefolio-accent);
+  --success: var(--pokefolio-success);
+  --success-foreground: var(--pokefolio-success);
+  --success-muted: var(--pokefolio-success-muted);
+  --danger-muted: var(--pokefolio-danger-muted);
+  --danger-border: var(--pokefolio-danger-border);
+  --nav: var(--pokefolio-ink);
+  --nav-foreground: var(--pokefolio-white);
+  --nav-muted: var(--pokefolio-muted-soft);
+  --surface: var(--pokefolio-surface);
+  --overlay: var(--pokefolio-overlay);
+  --type-grass: #edf4ed;
+  --type-grass-foreground: #416a43;
+  --type-poison: #f2edf5;
+  --type-poison-foreground: #785288;
+  --type-normal: #eef1f3;
+  --type-normal-foreground: #626d75;
+
+  /* Radii: chips 6 / buttons 10 / panels 12 — theme radii set in @theme */
+  --radius: 0.625rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+}
