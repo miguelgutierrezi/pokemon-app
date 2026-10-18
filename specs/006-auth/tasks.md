@@ -97,7 +97,7 @@ classpath.
   pass. Coverage: **domain**.
   ⏸ Review — `feat(domain): user account email name password vos (green)`
 
-- [ ] T003 **User action**: push `006-auth` and open a **draft** PR to
+- [x] T003 **User action**: push `006-auth` and open a **draft** PR to
   `main` (`gh pr create --draft --base main`). Confirm CI green on the
   current tip. If red, fix before continuing. ⏸ Review
 
@@ -113,7 +113,7 @@ with startup dummy hash, &gt;72-byte short-circuit (no hasher call), single
 
 **Independent Test**: `./mvnw -B -pl application test` with Mockito; no Spring.
 
-- [ ] T004 [AUTH] RED: write
+- [x] T004 [AUTH] RED: write
   `backend/application/src/test/java/com/miguel/pokemonapp/application/auth/RegisterUserUseCaseTest.java`
   and
   `AuthenticateUserUseCaseTest.java` —
