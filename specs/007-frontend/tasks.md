@@ -238,7 +238,7 @@ Nav labels: **Pokémon catalog**, **Collection** (not “My collection”).
 **Independent Test**: Not-found route renders; layout landmarks present;
 retry/401 wiring unit-tested; `npm test` + build green.
 
-- [ ] T015 RED: write
+- [x] T015 RED: write
   `frontend/src/app/query-client.test.ts` — assert a pure config /
   defaults factory (no `@tanstack/react-query` package in this task):
   retry never on 4xx `ApiError`; at most once on `status === 0` or
@@ -249,7 +249,7 @@ retry/401 wiring unit-tested; `npm test` + build green.
   Test file only — **do not** add the dependency here (U4 / IX → T016).
   ⏸ Review — `test(frontend): expect query client retry 401 (red)`
 
-- [ ] T016 GREEN: add `@tanstack/react-query` (re-verify latest 5.x —
+- [x] T016 GREEN: add `@tanstack/react-query` (re-verify latest 5.x —
   first use); implement `frontend/src/app/query-client.ts` with those
   defaults (`staleTime` 5 min, `placeholderData: keepPreviousData` for
   list queries, retry policy, MutationCache 401 → session-expired
@@ -257,13 +257,13 @@ retry/401 wiring unit-tested; `npm test` + build green.
   `frontend/src/app/` as needed. T015 green; full gate green.
   ⏸ Review — `feat(frontend): QueryClient retry and 401 signal (green)`
 
-- [ ] T017 RED: write
+- [x] T017 RED: write
   `frontend/src/app/not-found.test.tsx` — unknown route shows not-found
   UI with link home; accessible heading. Confirm fail. Show failing
   output. Test file only.
   ⏸ Review — `test(frontend): expect not-found page (red)`
 
-- [ ] T018 GREEN: add `react-router` (re-verify latest 8.x; **not**
+- [x] T018 GREEN: add `react-router` (re-verify latest 8.x; **not**
   `react-router-dom`); implement `frontend/src/app/not-found.tsx`,
   `frontend/src/app/router.tsx` (`createBrowserRouter` +
   `RouterProvider`), wire `frontend/src/main.tsx` /
@@ -273,7 +273,7 @@ retry/401 wiring unit-tested; `npm test` + build green.
   8-10806 / 8-10853 as reference before styling.
   ⏸ Review — `feat(frontend): router and not-found page (green)`
 
-- [ ] T019 RED: write `frontend/src/app/layout.test.tsx` — `header` /
+- [x] T019 RED: write `frontend/src/app/layout.test.tsx` — `header` /
   `main` / `nav`; brand; nav **Pokémon catalog** + **Collection**;
   `aria-live="polite"` region; focuses page `h1` on route change
   (simulate navigation); when signed in, account control exposes
@@ -283,7 +283,7 @@ retry/401 wiring unit-tested; `npm test` + build green.
   Show failing output. Test file only.
   ⏸ Review — `test(frontend): expect app layout shell (red)`
 
-- [ ] T020 GREEN: implement `frontend/src/app/layout.tsx` from Figma nav
+- [x] T020 GREEN: implement `frontend/src/app/layout.tsx` from Figma nav
   chrome (tokens + `button`; lucide icons). Shared-collection nav copy;
   signed-in account control + Logout per T019. T019 green; full gate
   green.
