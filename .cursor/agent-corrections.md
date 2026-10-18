@@ -793,3 +793,46 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   that nothing cancelled.
 - **Correction**: Call `login` / `register` without fabricating an unused
   AbortSignal unless the mutation is wired to a real abort.
+
+## 2026-10-18 — Collection list desktop columns must fit without clipping actions
+- **Source**: Miguel's review
+- **Context**: At ~1280px the collection table was wider than its
+  overflow-hidden card, clipping “View details” and hiding “Remove”.
+- **Correction**: Use a shared flexible grid (flexible Pokémon/location/tags,
+  fixed actions column, tags wrap). Prefer `overflow-x-auto` with an inner
+  content wrapper for rounded corners as a fallback. Assert each row exposes
+  View details, Edit, and Remove in tests.
+
+## 2026-10-18 — Drop “available across devices” from shared-collection copy
+- **Source**: Miguel's review
+- **Context**: Collection intro and ImportDialog confirmation still said
+  “available across devices”.
+- **Correction**: Shared-collection wording only — omit “available across
+  devices” from CollectionPage intro and ImportDialog confirmation.
+
+## 2026-10-18 — Commit pending tag draft on edit Save
+- **Source**: Miguel's review
+- **Context**: Typing a tag without Enter/Add left it out of the PUT body.
+- **Correction**: On edit submit, run the pending tag draft through the same
+  commit/validation rules before building the body; on invalid draft, block
+  save, show the tag-field error, and focus the input.
+
+## 2026-10-18 — TagInput splits commas on change (paste / mobile)
+- **Source**: Miguel's review
+- **Context**: Paste and some mobile keyboards do not emit a reliable `,` key.
+- **Correction**: In TagInput `onChange`, split on commas: add every complete
+  part, keep the trailing fragment as the draft.
+
+## 2026-10-18 — Delete clears item query; invalidate list only
+- **Source**: Miguel's review
+- **Context**: Invalidating `['collection']` after DELETE refetched
+  `GET /collection/:id` for the removed record.
+- **Correction**: `removeQueries` for the record key
+  (`['collection','item',id]`) and `invalidateQueries` only for
+  `['collection','list']`.
+
+## 2026-10-18 — Edit form heading uses shared-collection wording
+- **Source**: Miguel's review
+- **Context**: Edit form used “Make this record your own”.
+- **Correction**: Prefer shared-collection copy such as “Collection details”
+  (no “your own” framing).
