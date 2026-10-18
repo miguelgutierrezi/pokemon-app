@@ -443,7 +443,7 @@ login &gt;72 bytes.
 
 **Independent Test**: Auth IT class green on Testcontainers Postgres.
 
-- [ ] T023 [AUTH] Write
+- [x] T023 [AUTH] Write
   `backend/web/src/test/java/com/miguel/pokemonapp/web/auth/AuthIntegrationTest.java`
   (unique emails via `UUID`) covering:
   register → token → protected write succeeds; no token write → **401**;
