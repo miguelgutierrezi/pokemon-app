@@ -11,6 +11,7 @@ import type {
 } from '@/api/types'
 import { AppProviders } from '@/app/providers'
 import { routerConfig } from '@/app/routes'
+import { resetSessionExpiredState } from '@/features/auth/session-expired'
 import { SESSION_KEY } from '@/lib/session'
 
 vi.mock('@/api/pokemon', () => ({
@@ -133,6 +134,7 @@ async function openConfirmDialog(user: ReturnType<typeof userEvent.setup>) {
 
 describe('PokemonDetailPage import flow', () => {
   beforeEach(() => {
+    resetSessionExpiredState()
     getPokemonByIdMock.mockReset()
     getLocalPokemonByIdMock.mockReset()
     importPokemonMock.mockReset()
@@ -305,7 +307,7 @@ describe('PokemonDetailPage import flow', () => {
     expect(screen.queryByText(/View in the collection/i)).not.toBeInTheDocument()
   })
 
-  it('401 closes the dialog without showing success', async () => {
+  it('401 closes the import dialog and opens session-expired without success', async () => {
     seedSession()
     importPokemonMock.mockRejectedValue(
       new ApiError({
@@ -325,9 +327,13 @@ describe('PokemonDetailPage import flow', () => {
       }),
     )
 
-    await waitFor(() => {
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    const expired = await screen.findByRole('alertdialog', {
+      name: /Your session has expired/i,
     })
+    expect(
+      within(expired).getByText('Pokémon details / Bulbasaur'),
+    ).toBeInTheDocument()
     expect(screen.queryByText(/View in the collection/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Add to the collection\?/i)).not.toBeInTheDocument()
   })
 })

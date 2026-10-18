@@ -7,6 +7,7 @@ import { ApiError } from '@/api/api-error'
 import type { LocalPokemon } from '@/api/types'
 import { AppProviders } from '@/app/providers'
 import { routerConfig } from '@/app/routes'
+import { resetSessionExpiredState } from '@/features/auth/session-expired'
 import { SESSION_KEY } from '@/lib/session'
 
 vi.mock('@/api/collection', () => ({
@@ -77,6 +78,7 @@ function renderEdit(initialEntry = '/collection/1') {
 
 describe('CollectionEditPage', () => {
   beforeEach(() => {
+    resetSessionExpiredState()
     getLocalMock.mockReset()
     updateMock.mockReset()
     deleteMock.mockReset()
