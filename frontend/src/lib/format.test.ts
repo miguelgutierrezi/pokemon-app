@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  formatEvolutionEdgeLabel,
+  formatFlavorSource,
   formatGeneration,
   formatHeightM,
   formatNationalNumber,
+  formatOptionalText,
   formatSlug,
   formatWeightKg,
 } from '@/lib/format'
@@ -37,5 +40,41 @@ describe('formatHeightM', () => {
 describe('formatGeneration', () => {
   it('maps generation slugs to Generation + Roman numeral', () => {
     expect(formatGeneration('generation-iv')).toBe('Generation IV')
+  })
+})
+
+describe('formatFlavorSource', () => {
+  it('prefixes the formatted version slug', () => {
+    expect(formatFlavorSource('red')).toBe('Pokémon Red · via PokéAPI')
+  })
+})
+
+describe('formatEvolutionEdgeLabel', () => {
+  it('prefers Lv. when minLevel is set', () => {
+    expect(
+      formatEvolutionEdgeLabel({
+        trigger: 'level-up',
+        minLevel: 16,
+        itemSlug: null,
+      }),
+    ).toBe('Lv. 16')
+  })
+
+  it('falls back to item then trigger when minLevel is null', () => {
+    expect(
+      formatEvolutionEdgeLabel({
+        trigger: 'use-item',
+        minLevel: null,
+        itemSlug: 'water-stone',
+      }),
+    ).toBe('Water Stone')
+  })
+})
+
+describe('formatOptionalText', () => {
+  it('shows an em dash for empty values', () => {
+    expect(formatOptionalText(null)).toBe('—')
+    expect(formatOptionalText('')).toBe('—')
+    expect(formatOptionalText('Bulbizarre')).toBe('Bulbizarre')
   })
 })
