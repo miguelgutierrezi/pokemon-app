@@ -50,6 +50,7 @@ export function createAppQueryClient(
       queries: {
         staleTime: STALE_TIME_MS,
         retry: queryRetry,
+        retryDelay: 0,
       },
       mutations: {
         retry: false,

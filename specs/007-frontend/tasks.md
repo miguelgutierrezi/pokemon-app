@@ -311,7 +311,7 @@ Network/connection-error visual reference:
 **Independent Test**: Mock `api` → page states; URL `?page=2`; beyond-last
 empty + link page 1; invalid page → replace to page 1 without API.
 
-- [ ] T021 [HU01] RED: write
+- [x] T021 [HU01] RED: write
   `frontend/src/pages/CatalogPage.test.tsx` — loading skeletons; success
   grid (sprite alt, name, category, weight 1 decimal, abilities name /
   Hidden); `?page=2`; while paginating, previous grid stays visible
@@ -323,7 +323,7 @@ empty + link page 1; invalid page → replace to page 1 without API.
   `vi.mock` api. Confirm fail. Show failing output. Test file only.
   ⏸ Review — `test(frontend): expect catalog page states (red)`
 
-- [ ] T022 [HU01] GREEN: add shadcn `card`, `badge`, `skeleton`,
+- [x] T022 [HU01] GREEN: add shadcn `card`, `badge`, `skeleton`,
   `pagination`, `alert` (IX — first use). Implement
   `frontend/src/features/catalog/` hooks (`staleTime` 5 min +
   `placeholderData: keepPreviousData`) + presentational components and

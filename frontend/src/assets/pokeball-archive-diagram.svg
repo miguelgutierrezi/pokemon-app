@@ -1,0 +1,31 @@
+<svg width="134" height="134" viewBox="0 0 134 134" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="134" height="134" fill="#1E1E1E"/>
+<g id="Pok&#195;&#169;folio catalog &#226;&#128;&#148; Desktop">
+<rect width="1440" height="1583" transform="translate(-1250 -120)" fill="#F5F7F8"/>
+<g id="Catalog introduction">
+<mask id="path-1-inside-1_0_1" fill="white">
+<path d="M-1250 -32H190V166H-1250V-32Z"/>
+</mask>
+<path d="M-1250 -32H190V166H-1250V-32Z" fill="white"/>
+<path d="M190 166V165H-1250V166V167H190V166Z" fill="#E8EBED" mask="url(#path-1-inside-1_0_1)"/>
+<g id="Archive scope">
+<g id="Pok&#195;&#169; Ball archive diagram" clip-path="url(#clip0_0_1)">
+<rect id="Vertical axis" x="67" width="1" height="134" fill="#DDE2E5"/>
+<rect id="Horizontal axis" y="67" width="134" height="1" fill="#DDE2E5"/>
+<circle id="Outer orbit" cx="67" cy="67" r="59.5" stroke="#DDE2E5"/>
+<circle id="Inner orbit" cx="67" cy="67" r="51.5" stroke="#DDE2E5" stroke-dasharray="2 4"/>
+<circle id="Body" cx="67" cy="67" r="40" fill="#E2E7E9"/>
+<path id="Hemisphere" d="M27 67C27 61.7471 28.0346 56.5457 30.0448 51.6927C32.055 46.8396 35.0014 42.4301 38.7157 38.7157C42.4301 35.0014 46.8396 32.055 51.6927 30.0448C56.5457 28.0346 61.7471 27 67 27C72.2529 27 77.4543 28.0346 82.3073 30.0448C87.1604 32.055 91.5699 35.0014 95.2843 38.7157C98.9986 42.4301 101.945 46.8396 103.955 51.6927C105.965 56.5457 107 61.7471 107 67L67 67L27 67Z" fill="#C83738"/>
+<rect id="Division" x="27" y="65" width="80" height="4" fill="#182126"/>
+<circle id="Ring" cx="67" cy="67" r="11" fill="#182126"/>
+<circle id="Core" cx="67" cy="67" r="6" fill="white"/>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_1">
+<rect width="134" height="134" fill="white"/>
+</clipPath>
+</defs>
+</svg>

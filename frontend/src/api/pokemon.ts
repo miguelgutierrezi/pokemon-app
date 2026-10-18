@@ -1,4 +1,5 @@
 import type { ApiClient } from '@/api/client'
+import { createApiClient } from '@/api/client'
 import type { PageQuery, PokemonDetail, PokemonPage } from '@/api/types'
 
 function pageQuery(query: PageQuery): string {
@@ -9,6 +10,8 @@ function pageQuery(query: PageQuery): string {
   return params.toString()
 }
 
+const publicClient = createApiClient({ getToken: () => null })
+
 export function getPokemonPage(
   client: ApiClient,
   query: PageQuery,
@@ -18,6 +21,14 @@ export function getPokemonPage(
     `/api/v1/pokemon?${pageQuery(query)}`,
     { signal },
   )
+}
+
+/** Catalog list helper — public GET, optional AbortSignal. */
+export function listPokemon(
+  query: PageQuery,
+  signal?: AbortSignal,
+): Promise<PokemonPage> {
+  return getPokemonPage(publicClient, query, signal)
 }
 
 export function getPokemon(
