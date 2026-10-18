@@ -212,7 +212,7 @@ collection seed reset never touches `app_user`.
   once the hasher exists). Coverage: **infrastructure**.
   ⏸ Review — `feat(infrastructure): bcrypt password hasher (green)`
 
-- [ ] T010 [AUTH] RED: add dependency
+- [x] T010 [AUTH] RED: add dependency
   `org.springframework.security:spring-security-oauth2-jose` (BOM) to
   `backend/infrastructure/pom.xml`. Write
   `backend/infrastructure/src/test/java/com/miguel/pokemonapp/infrastructure/security/JwtAccessTokenIssuerTest.java`
@@ -223,7 +223,7 @@ collection seed reset never touches `app_user`.
   **infrastructure**.
   ⏸ Review — `test(infrastructure): expect jwt access token issuer (red)`
 
-- [ ] T011 [AUTH] GREEN: implement
+- [x] T011 [AUTH] GREEN: implement
   `backend/infrastructure/src/main/java/com/miguel/pokemonapp/infrastructure/security/JwtAccessTokenIssuer.java`
   implementing `AccessTokenIssuer` (inject `JwtEncoder`, issuer string,
   expiry `Duration`, `Clock`). Tests pass. Coverage: **infrastructure**.
