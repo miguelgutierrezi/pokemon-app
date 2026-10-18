@@ -116,6 +116,64 @@ class OpenApiDocsIntegrationTest {
             "$.paths['/api/v1/collection/{nationalNumber}'].delete.responses['404'].content['application/problem+json']")
         .exists()
         .jsonPath("$.components.schemas.LocalPokemonResponse.properties.version")
+        .exists()
+        .jsonPath("$.components.securitySchemes.bearerAuth.type")
+        .isEqualTo("http")
+        .jsonPath("$.components.securitySchemes.bearerAuth.scheme")
+        .isEqualTo("bearer")
+        .jsonPath("$.components.securitySchemes.bearerAuth.bearerFormat")
+        .isEqualTo("JWT")
+        .jsonPath("$.paths['/api/v1/collection'].post.security[0].bearerAuth")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection'].post.responses['401'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection'].post.responses['403'].content['application/problem+json']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/collection/{nationalNumber}'].put.security[0].bearerAuth")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].put.responses['401'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].put.responses['403'].content['application/problem+json']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/collection/{nationalNumber}'].delete.security[0].bearerAuth")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].delete.responses['401'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/collection/{nationalNumber}'].delete.responses['403'].content['application/problem+json']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/pokemon'].get.security")
+        .doesNotExist()
+        .jsonPath("$.paths['/api/v1/pokemon/{id}'].get.security")
+        .doesNotExist()
+        .jsonPath("$.paths['/api/v1/collection'].get.security")
+        .doesNotExist()
+        .jsonPath("$.paths['/api/v1/collection/{nationalNumber}'].get.security")
+        .doesNotExist()
+        .jsonPath("$.paths['/api/v1/auth/register'].post.security")
+        .doesNotExist()
+        .jsonPath("$.paths['/api/v1/auth/login'].post.security")
+        .doesNotExist()
+        .jsonPath("$.paths['/api/v1/auth/register'].post.responses['201']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/auth/register'].post.responses['400'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/auth/register'].post.responses['409'].content['application/problem+json']")
+        .exists()
+        .jsonPath("$.paths['/api/v1/auth/login'].post.responses['200']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/auth/login'].post.responses['400'].content['application/problem+json']")
+        .exists()
+        .jsonPath(
+            "$.paths['/api/v1/auth/login'].post.responses['401'].content['application/problem+json']")
         .exists();
   }
 }
