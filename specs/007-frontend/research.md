@@ -351,12 +351,16 @@ Constitution Technology Stack: **UI designed in Figma**. For 007:
    `frontend/src/index.css` (`@theme` + shadcn CSS vars). Components use
    semantic utilities / CSS vars — **no hardcoded hex** in TSX.
 
-   | Token group | Values from catalog + detail frames |
+   | Token group | Values (catalog `8:3955`, detail `8:7626`; alerts `8:19215` / `8:18857`) → `frontend/src/index.css` |
    |---|---|
-   | Colors | `#182126` (ink/nav), `#c83738` (accent/CTA), `#f5f7f8` (page bg), `#ffffff` / `#fafbfc` (surfaces), `#e8ebed` / `#dde2e5` (borders), `#626d75` (muted), `#aab6bc` (nav inactive), type chips e.g. Grass `#edf4ed`/`#416a43`, Poison `#f2edf5`/`#785288`, current-evo tint `#f9eeee`/`#e9c5c5` |
-   | Typography | **Inter** Regular / Medium / Semi Bold; **IBM Plex Mono** Regular. Sizes seen: 9–16, 18, 20, 24, 25, 56 (hero name) |
-   | Radii | `6px` (chips), `10px` (buttons / evo cards), `12px` (panels) |
-   | Shadows | None significant in catalog/detail contexts — rely on border + surface contrast unless a later frame introduces one |
+   | Surfaces / ink | `#182126` nav/ink (`--nav`, `--foreground`); `#f5f7f8` page (`--background`); `#ffffff` card; `#fafbfc` surface/muted (`--surface`, `--muted`) |
+   | Accent | `#c83738` Pokéball red (`--primary`, `--destructive`, `--ring`) |
+   | Neutrals / borders | `#626d75` muted text; `#aab6bc` nav inactive (`--nav-muted`); `#e8ebed` / `#dde2e5` borders (`--border`, `--input`) |
+   | Success / danger tints | Success text `#416a43`, muted `#edf4ed`; danger muted `#f9eeee`, border `#e9c5c5` (connection-error emblem / evo current); overlay `rgb(24 33 38 / 0.5)` |
+   | Type chips (optional) | Grass `#edf4ed`/`#416a43`; Poison `#f2edf5`/`#785288` (detail frames; not wired as shadcn core vars) |
+   | Typography | **Inter** 400/500/600 (`--font-sans`); **IBM Plex Mono** 400 (`--font-mono`) for uppercase labels e.g. “NATIONAL POKÉDEX”. Loaded via Google Fonts `<link display=swap>` in `index.html`. Sizes: 9–16, 18, 20, 21, 24–25, 32, 36, 56 (hero) |
+   | Radii | `6px` chips (`--radius-sm`); `10px` buttons (`--radius` / `--radius-md`); `12px` panels (`--radius-lg`); stat bar `3px` (local utility later) |
+   | Shadows | Dialog: `0 12px 36px rgb(24 33 38 / 0.14)` (`--shadow-dialog`); catalog/detail surfaces otherwise border-only |
 
 3. **Per screen** — Before implementing a page: `get_design_context` +
    `get_screenshot` for **desktop and mobile** frames. Generated code is

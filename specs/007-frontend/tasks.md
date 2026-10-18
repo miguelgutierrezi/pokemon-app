@@ -104,7 +104,7 @@ when guard is on; draft PR open.
   `npm run lint && npm run typecheck && npm test && npm run build` green.
   ⏸ Review — `test(frontend): fail suite on console warn/error`
 
-- [ ] T004 **User action**: ensure branch `007-frontend` exists; commit any
+- [x] T004 **User action**: ensure branch `007-frontend` exists; commit any
   agreed 007 docs/tooling tip; push and open a **draft** PR to `main`
   (`gh pr create --draft --base main`). Confirm CI green on the tip. If
   red, fix before continuing. ⏸ Review
@@ -128,7 +128,7 @@ R11).
 **Independent Test**: CSS variables / `@theme` present; `cn()` works;
 `button` importable; build green.
 
-- [ ] T005 Define design tokens once in `frontend/src/index.css`: Tailwind
+- [x] T005 Define design tokens once in `frontend/src/index.css`: Tailwind
   v4 `@theme` + shadcn CSS variables from catalog `8:3955` + detail
   `8:7626` (colors `#182126`, `#c83738`, `#f5f7f8`, surfaces/borders/muted,
   Inter + IBM Plex Mono, radii 6/10/12). No hex in later TSX. Fonts via
@@ -136,7 +136,7 @@ R11).
   build. Confirm lint/typecheck/test/build green.
   ⏸ Review — `style(frontend): figma tokens in index.css`
 
-- [ ] T006 Init shadcn (Tailwind v4) into `frontend/` (`components.json`,
+- [x] T006 Init shadcn (Tailwind v4) into `frontend/` (`components.json`,
   `frontend/src/lib/utils.ts` `cn`) and add **only** components needed so
   far: `button` (pulls `class-variance-authority`, `clsx`,
   `tailwind-merge`, `@radix-ui/react-slot`, `lucide-react` as CLI
