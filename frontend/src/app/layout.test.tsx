@@ -121,21 +121,25 @@ describe('AuthLayout', () => {
   it('renders login without app nav or footer', () => {
     renderAt('/login')
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Sign in' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Welcome back' }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('main')).toBeInTheDocument()
     expect(screen.queryByRole('banner')).not.toBeInTheDocument()
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
     expect(
       screen.queryByRole('navigation', { name: /primary/i }),
     ).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 1, name: 'Sign in' })).toHaveFocus()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Welcome back' }),
+    ).toHaveFocus()
   })
 
   it('renders register without app nav or footer', () => {
     renderAt('/register')
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Create account' }),
+      screen.getByRole('heading', { level: 1, name: 'Create an account' }),
     ).toBeInTheDocument()
     expect(screen.queryByRole('banner')).not.toBeInTheDocument()
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
