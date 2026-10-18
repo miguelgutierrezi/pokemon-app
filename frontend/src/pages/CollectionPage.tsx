@@ -1,4 +1,5 @@
 import { WifiOff } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { ApiError } from '@/api/api-error'
@@ -12,16 +13,16 @@ import { CatalogPagination } from '@/features/catalog/CatalogPagination'
 import { CollectionList } from '@/features/collection/CollectionList'
 import { CollectionSkeleton } from '@/features/collection/CollectionSkeleton'
 import { EmptyCollection } from '@/features/collection/EmptyCollection'
+import { RemoveDialog } from '@/features/collection/RemoveDialog'
 import { useCollectionPage } from '@/features/collection/useCollectionPage'
+import { useDeleteLocalPokemon } from '@/features/collection/useDeleteLocalPokemon'
 
-export type CollectionPageProps = {
-  onRemove?: (pokemon: LocalPokemon) => void
-}
-
-export function CollectionPage({ onRemove }: CollectionPageProps = {}) {
+export function CollectionPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
+  const deleteMutation = useDeleteLocalPokemon()
+  const [removeTarget, setRemoveTarget] = useState<LocalPokemon | null>(null)
   const {
     page,
     pageInvalid,
@@ -48,7 +49,29 @@ export function CollectionPage({ onRemove }: CollectionPageProps = {}) {
       void navigate(loginHref)
       return
     }
-    onRemove?.(pokemon)
+    setRemoveTarget(pokemon)
+  }
+
+  async function handleConfirmRemove() {
+    if (removeTarget == null) {
+      return
+    }
+    try {
+      await deleteMutation.mutateAsync({
+        id: removeTarget.nationalNumber,
+        name: removeTarget.name,
+      })
+      setRemoveTarget(null)
+      void navigate('/collection')
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        setRemoveTarget(null)
+        void navigate('/collection')
+      }
+      if (error instanceof ApiError && error.status === 401) {
+        setRemoveTarget(null)
+      }
+    }
   }
 
   if (pageInvalid) {
@@ -72,6 +95,7 @@ export function CollectionPage({ onRemove }: CollectionPageProps = {}) {
     data.content.length === 0
 
   return (
+    <>
     <div className="mx-auto max-w-6xl px-6 py-8 md:px-14 md:py-10">
       <div className="mb-8 flex flex-col gap-6 border-b border-border pb-8 md:flex-row md:items-end md:justify-between">
         <div className="max-w-3xl space-y-3.5">
@@ -219,5 +243,18 @@ export function CollectionPage({ onRemove }: CollectionPageProps = {}) {
         </div>
       ) : null}
     </div>
+
+    <RemoveDialog
+      open={removeTarget != null}
+      pokemon={removeTarget}
+      busy={deleteMutation.isPending}
+      onOpenChange={(open) => {
+        if (!open) {
+          setRemoveTarget(null)
+        }
+      }}
+      onConfirm={() => void handleConfirmRemove()}
+    />
+    </>
   )
 }

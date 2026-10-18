@@ -532,7 +532,7 @@ inline; **409** stale → **Modified elsewhere — reload**; record **404**.
 
 **Independent Test**: Mock GET/PUT; stale + validation paths.
 
-- [ ] T033 [HU04] RED: write
+- [x] T033 [HU04] RED: write
   `frontend/src/pages/CollectionEditPage.test.tsx` — load form with
   `version`; save success no confirm modal; **400** field;
   **409** stale-version copy + reload; **404** record. Client limits:
@@ -540,7 +540,7 @@ inline; **409** stale → **Modified elsewhere — reload**; record **404**.
   fail. Show failing output. Test file only.
   ⏸ Review — `test(frontend): expect collection edit page (red)`
 
-- [ ] T034 [HU04] GREEN: implement edit form under
+- [x] T034 [HU04] GREEN: implement edit form under
   `frontend/src/features/collection/` +
   `frontend/src/pages/CollectionEditPage.tsx`; route `/collection/:id`.
   T033 green; full gate green.
@@ -562,13 +562,13 @@ inline; **409** stale → **Modified elsewhere — reload**; record **404**.
 
 **Independent Test**: Confirm deletes; cancel keeps record.
 
-- [ ] T035 [FECRUD] RED: write
+- [x] T035 [FECRUD] RED: write
   `frontend/src/features/collection/DeleteLocalPokemonDialog.test.tsx`
   — dialog title+description; confirm → success navigates `/collection`;
   cancel → no delete. Confirm fail. Show failing output. Test file only.
   ⏸ Review — `test(frontend): expect delete dialog (red)`
 
-- [ ] T036 [FECRUD] GREEN: implement
+- [x] T036 [FECRUD] GREEN: implement
   `frontend/src/features/collection/DeleteLocalPokemonDialog.tsx` wired
   from edit (and list if applicable). T035 green; full gate green.
   ⏸ Review — `feat(frontend): delete local pokemon dialog (green)`
