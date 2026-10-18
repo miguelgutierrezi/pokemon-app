@@ -5,7 +5,7 @@ import java.time.Instant;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Restores Flyway V3 seed rows 1–3 (with version 0) and deletes national_number > 3. */
-final class CollectionSeedReset {
+public final class CollectionSeedReset {
 
   private static final Instant SEED_INSTANT = Instant.parse("2026-01-01T00:00:00Z");
   private static final String ARTWORK_1 =
@@ -17,7 +17,7 @@ final class CollectionSeedReset {
 
   private CollectionSeedReset() {}
 
-  static void restore(JdbcTemplate jdbcTemplate) {
+  public static void restore(JdbcTemplate jdbcTemplate) {
     jdbcTemplate.update("DELETE FROM pokemon_record WHERE national_number > 3");
     jdbcTemplate.update("DELETE FROM pokemon_record WHERE national_number IN (1, 2, 3)");
     Timestamp seedTs = Timestamp.from(SEED_INSTANT);
