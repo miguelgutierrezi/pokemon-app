@@ -154,7 +154,7 @@ collection seed reset never touches `app_user`.
 
 **Independent Test**: infrastructure Testcontainers tests green.
 
-- [ ] T006 [AUTH] RED: write
+- [x] T006 [AUTH] RED: write
   `backend/infrastructure/src/test/java/com/miguel/pokemonapp/infrastructure/persistence/user/UserAccountJpaAdapterTest.java`
   — create persists normalised email; second create same email (any casing)
   → `DuplicateEmailException` (constraint **`uq_app_user_email`**); concurrent
@@ -164,7 +164,7 @@ collection seed reset never touches `app_user`.
   Do not push RED. Coverage: **infrastructure**.
   ⏸ Review — `test(infrastructure): expect app_user jpa adapter (red)`
 
-- [ ] T007 [AUTH] GREEN: add
+- [x] T007 [AUTH] GREEN: add
   `backend/infrastructure/src/main/resources/db/migration/V5__app_user.sql`
   (`app_user` columns per data-model; `uq_app_user_email`; seed demo user
   `demo@pokefolio.dev`). Generate the BCrypt hash **reproducibly**, e.g.:
