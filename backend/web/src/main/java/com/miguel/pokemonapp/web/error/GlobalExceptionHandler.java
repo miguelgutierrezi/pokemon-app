@@ -1,7 +1,9 @@
 package com.miguel.pokemonapp.web.error;
 
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
+import com.miguel.pokemonapp.application.DuplicateEmailException;
 import com.miguel.pokemonapp.application.DuplicateLocalPokemonException;
+import com.miguel.pokemonapp.application.InvalidCredentialsException;
 import com.miguel.pokemonapp.application.LocalPokemonNotFoundException;
 import com.miguel.pokemonapp.application.PokemonNotFoundException;
 import com.miguel.pokemonapp.application.StaleLocalPokemonException;
@@ -15,9 +17,12 @@ import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.method.ParameterErrors;
 import org.springframework.validation.method.ParameterValidationResult;
@@ -43,6 +48,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       URI.create("urn:problem-type:unsupported-media-type");
   private static final URI BAD_GATEWAY_TYPE = URI.create("urn:problem-type:bad-gateway");
   private static final URI INTERNAL_ERROR_TYPE = URI.create("urn:problem-type:internal");
+
+  /** Shared with the security entry point for missing/invalid Bearer tokens. */
+  public static final URI UNAUTHORIZED_TYPE = URI.create("urn:problem-type:unauthorized");
+
+  private static final URI FORBIDDEN_TYPE = URI.create("urn:problem-type:forbidden");
+
+  public static final String MISSING_OR_INVALID_TOKEN_DETAIL = "Missing or invalid access token";
+  public static final String ACCESS_DENIED_DETAIL = "Access to this resource is not allowed";
 
   @Override
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -143,6 +156,29 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         HttpStatus.CONFLICT,
         STALE_VERSION_TYPE,
         "Pokémon " + ex.nationalNumber() + " was modified by another request; reload and retry");
+  }
+
+  @ExceptionHandler(InvalidCredentialsException.class)
+  ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
+    return problem(HttpStatus.UNAUTHORIZED, UNAUTHORIZED_TYPE, InvalidCredentialsException.DETAIL);
+  }
+
+  @ExceptionHandler(DuplicateEmailException.class)
+  ProblemDetail handleDuplicateEmail(DuplicateEmailException ex) {
+    return problem(HttpStatus.CONFLICT, CONFLICT_TYPE, "An account with this email already exists");
+  }
+
+  @ExceptionHandler(AuthenticationException.class)
+  ResponseEntity<ProblemDetail> handleAuthenticationException(AuthenticationException ex) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .header(HttpHeaders.WWW_AUTHENTICATE, "Bearer")
+        .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+        .body(problem(HttpStatus.UNAUTHORIZED, UNAUTHORIZED_TYPE, MISSING_OR_INVALID_TOKEN_DETAIL));
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  ProblemDetail handleAccessDenied(AccessDeniedException ex) {
+    return problem(HttpStatus.FORBIDDEN, FORBIDDEN_TYPE, ACCESS_DENIED_DETAIL);
   }
 
   @ExceptionHandler(CatalogUnavailableException.class)

@@ -5,16 +5,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
+import com.miguel.pokemonapp.application.DuplicateEmailException;
 import com.miguel.pokemonapp.application.DuplicateLocalPokemonException;
+import com.miguel.pokemonapp.application.InvalidCredentialsException;
 import com.miguel.pokemonapp.application.LocalPokemonNotFoundException;
 import com.miguel.pokemonapp.application.PokemonNotFoundException;
 import com.miguel.pokemonapp.application.StaleLocalPokemonException;
@@ -29,17 +33,22 @@ import com.miguel.pokemonapp.application.pokemon.UpdateLocalPokemonUseCase;
 import com.miguel.pokemonapp.domain.page.PageOutOfRangeException;
 import com.miguel.pokemonapp.web.collection.CollectionController;
 import com.miguel.pokemonapp.web.pokemon.PokemonController;
+import com.miguel.pokemonapp.web.support.ImportSecurityTestConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(controllers = {PokemonController.class, CollectionController.class})
 @Import(GlobalExceptionHandler.class)
+@ImportSecurityTestConfig
 class GlobalExceptionHandlerTest {
 
   private static final String CATALOG_NOT_FOUND_DETAIL = "Pokémon 25 was not found";
@@ -205,6 +214,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     post("/api/v1/collection")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nationalNumber\":25}")),
                 409)
@@ -214,6 +224,100 @@ class GlobalExceptionHandlerTest {
             .getResponse()
             .getContentAsString();
 
+    assertNoLeak(body);
+  }
+
+  @Test
+  void invalidCredentialsReturnsUnauthorizedProblemWithoutWwwAuthenticate() throws Exception {
+    when(importPokemonUseCase.execute(25)).thenThrow(new InvalidCredentialsException());
+
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    post("/api/v1/collection")
+                        .with(jwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nationalNumber\":25}")),
+                401)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
+            .andExpect(jsonPath("$.title").value("Unauthorized"))
+            .andExpect(jsonPath("$.detail").value("Invalid email or password"))
+            .andExpect(header().doesNotExist(HttpHeaders.WWW_AUTHENTICATE))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertNoLeak(body);
+  }
+
+  @Test
+  void duplicateEmailReturnsConflictProblemWithoutEchoingEmail() throws Exception {
+    String email = "ash@pokefolio.dev";
+    when(importPokemonUseCase.execute(25)).thenThrow(new DuplicateEmailException(email));
+
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    post("/api/v1/collection")
+                        .with(jwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nationalNumber\":25}")),
+                409)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:conflict"))
+            .andExpect(jsonPath("$.detail").value("An account with this email already exists"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).doesNotContain(email).doesNotContain("Email is already registered");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void authenticationExceptionReturnsUnauthorizedWithWwwAuthenticateAndGenericDetail()
+      throws Exception {
+    when(importPokemonUseCase.execute(25))
+        .thenThrow(new BadCredentialsException("Jwt expired at secret-timestamp"));
+
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    post("/api/v1/collection")
+                        .with(jwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nationalNumber\":25}")),
+                401)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
+            .andExpect(
+                jsonPath("$.detail").value(GlobalExceptionHandler.MISSING_OR_INVALID_TOKEN_DETAIL))
+            .andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, "Bearer"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).doesNotContain("Jwt expired").doesNotContain("secret-timestamp");
+    assertNoLeak(body);
+  }
+
+  @Test
+  void accessDeniedExceptionReturnsForbiddenProblem() throws Exception {
+    when(importPokemonUseCase.execute(25)).thenThrow(new AccessDeniedException("role missing"));
+
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    post("/api/v1/collection")
+                        .with(jwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nationalNumber\":25}")),
+                403)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:forbidden"))
+            .andExpect(jsonPath("$.detail").value(GlobalExceptionHandler.ACCESS_DENIED_DETAIL))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).doesNotContain("role missing");
     assertNoLeak(body);
   }
 
@@ -240,6 +344,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     post("/api/v1/collection")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}")),
                 400)
@@ -257,6 +362,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     post("/api/v1/collection")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nationalNumber\":0}")),
                 400)
@@ -274,6 +380,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     post("/api/v1/collection")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nationalNumber\":\"abc\"}")),
                 400)
@@ -299,6 +406,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     post("/api/v1/collection")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{")),
                 400)
@@ -349,6 +457,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     post("/api/v1/collection")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nationalNumber\":9999}")),
                 404)
@@ -372,6 +481,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     post("/api/v1/collection")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nationalNumber\":1}")),
                 502)
@@ -393,6 +503,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     put("/api/v1/collection/1")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_PUT_BODY)),
                 409)
@@ -415,6 +526,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     put("/api/v1/collection/1")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(
                             """
@@ -446,6 +558,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     put("/api/v1/collection/1")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(
                             """
@@ -475,6 +588,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     put("/api/v1/collection/1")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(
                             """
@@ -506,6 +620,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     put("/api/v1/collection/1")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(
                             """
@@ -532,6 +647,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     put("/api/v1/collection/1")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(
                             """
@@ -561,6 +677,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     put("/api/v1/collection/150")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_PUT_BODY)),
                 404)
@@ -579,7 +696,7 @@ class GlobalExceptionHandlerTest {
     doThrow(new LocalPokemonNotFoundException(150)).when(deleteLocalPokemonUseCase).execute(150);
 
     String body =
-        expectProblem(mockMvc.perform(delete("/api/v1/collection/150")), 404)
+        expectProblem(mockMvc.perform(delete("/api/v1/collection/150").with(jwt())), 404)
             .andExpect(jsonPath("$.type").value("urn:problem-type:not-found"))
             .andExpect(jsonPath("$.detail").value("Pokémon 150 is not in the local collection"))
             .andReturn()
@@ -596,6 +713,7 @@ class GlobalExceptionHandlerTest {
         expectProblem(
                 mockMvc.perform(
                     put("/api/v1/collection/1")
+                        .with(jwt())
                         .contentType(MediaType.TEXT_PLAIN)
                         .content(VALID_PUT_BODY)),
                 415)
@@ -622,6 +740,10 @@ class GlobalExceptionHandlerTest {
         .doesNotContain("CatalogUnavailableException")
         .doesNotContain("PokemonNotFoundException")
         .doesNotContain("DuplicateLocalPokemonException")
+        .doesNotContain("DuplicateEmailException")
+        .doesNotContain("InvalidCredentialsException")
+        .doesNotContain("BadCredentialsException")
+        .doesNotContain("AccessDeniedException")
         .doesNotContain("LocalPokemonNotFoundException")
         .doesNotContain("StaleLocalPokemonException")
         .doesNotContain("MethodArgumentNotValidException")

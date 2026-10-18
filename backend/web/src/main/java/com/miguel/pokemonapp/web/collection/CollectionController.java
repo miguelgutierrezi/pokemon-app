@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.net.URI;
@@ -56,6 +57,7 @@ public class CollectionController {
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(summary = "Import (sync) a Pokémon from the catalog into the local store")
+  @SecurityRequirement(name = "bearerAuth")
   @ApiResponses({
     @ApiResponse(
         responseCode = "201",
@@ -72,6 +74,20 @@ public class CollectionController {
     @ApiResponse(
         responseCode = "400",
         description = "Invalid body (missing/invalid nationalNumber)",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class))),
+    @ApiResponse(
+        responseCode = "401",
+        description = "Missing or invalid access token",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Authenticated but not allowed",
         content =
             @Content(
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
@@ -163,6 +179,7 @@ public class CollectionController {
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(summary = "Replace proprietary fields of a local record (optimistic lock)")
+  @SecurityRequirement(name = "bearerAuth")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -175,6 +192,20 @@ public class CollectionController {
         responseCode = "400",
         description =
             "Malformed payload — missing property, wrong types, limits, unknown/read-only",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class))),
+    @ApiResponse(
+        responseCode = "401",
+        description = "Missing or invalid access token",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Authenticated but not allowed",
         content =
             @Content(
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
@@ -211,11 +242,26 @@ public class CollectionController {
 
   @DeleteMapping("/{nationalNumber}")
   @Operation(summary = "Delete a local record (catalog untouched)")
+  @SecurityRequirement(name = "bearerAuth")
   @ApiResponses({
     @ApiResponse(responseCode = "204", description = "Deleted; no body"),
     @ApiResponse(
         responseCode = "400",
         description = "Invalid nationalNumber",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class))),
+    @ApiResponse(
+        responseCode = "401",
+        description = "Missing or invalid access token",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                schema = @Schema(implementation = ProblemDetail.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Authenticated but not allowed",
         content =
             @Content(
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,

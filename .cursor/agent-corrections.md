@@ -644,3 +644,22 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `Invalid or missing value for property '{name}'` (last path element);
   else `Malformed request body`. Cover omit and wrong-type (e.g.
   `"version": "abc"`) with the same detail shape.
+
+## 2026-10-17 — Mark completed tasks in tasks.md
+- **Source**: user
+- **Context**: After implementing 006-auth T001/T002, the agent stopped for
+  review without checking off the tasks in `specs/006-auth/tasks.md`.
+- **Correction**: When a Spec Kit task is finished (RED or GREEN) and ready
+  for the user's review/commit, mark that task `[x]` in the feature's
+  `tasks.md` in the same turn. Do not leave completed work unchecked.
+
+## 2026-10-17 — Maven module tests with -am
+- **Source**: user
+- **Context**: `./mvnw -B -pl application test` used a stale
+  `pokemonapp-domain` jar from `~/.m2`, so RED compile errors incorrectly
+  included `UserAccount` as missing.
+- **Correction**: Always run module tests with `-am` so upstream reactor
+  modules are built from source (e.g.
+  `./mvnw -B -pl application -am test`,
+  `./mvnw -B -pl domain -am verify`). Do not rely on stale local Maven
+  cache jars for sibling modules.

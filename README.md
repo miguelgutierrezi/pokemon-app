@@ -40,13 +40,18 @@ Frontend: Vite + React 19 + TypeScript + Tailwind v4 under `frontend/`. Nginx se
 
 ```bash
 cp .env.example .env
+# set JWT_SECRET in .env (≥ 32 bytes; never commit the real value), e.g. paste:
+openssl rand -base64 48
 docker compose up --build
 ```
+
+Compose fails fast if `JWT_SECRET` is unset or empty (see `.env.example`).
 
 - UI: http://localhost:3000
 - Health: http://localhost:8080/actuator/health
 - List API: http://localhost:8080/api/v1/pokemon
 - Detail API: http://localhost:8080/api/v1/pokemon/1
+- Auth API: http://localhost:8080/api/v1/auth
 - Collection API: http://localhost:8080/api/v1/collection
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
@@ -54,6 +59,70 @@ docker compose up --build
 Tear down: `docker compose down -v`.
 
 ## API
+
+| Method | Path | Auth |
+|---|---|---|
+| `POST` | `/api/v1/auth/register` | Public |
+| `POST` | `/api/v1/auth/login` | Public |
+| `GET` | `/api/v1/pokemon` | Public (stale/missing Bearer ignored) |
+| `GET` | `/api/v1/pokemon/{id}` | Public (stale/missing Bearer ignored) |
+| `GET` | `/api/v1/collection` | Public (stale/missing Bearer ignored) |
+| `GET` | `/api/v1/collection/{nationalNumber}` | Public (stale/missing Bearer ignored) |
+| `POST` | `/api/v1/collection` | **Bearer JWT required** |
+| `PUT` | `/api/v1/collection/{nationalNumber}` | **Bearer JWT required** |
+| `DELETE` | `/api/v1/collection/{nationalNumber}` | **Bearer JWT required** |
+
+### Authentication
+
+Register or log in to receive a JWT (`accessToken`). Tokens last **1 hour**.
+There is **no refresh** and **no logout** endpoint — the client discards the
+token when done. Public `GET`s do not require a token; a stale or garbage
+`Authorization` header on those routes is ignored.
+
+**Demo credential (not a secret):** after Flyway runs, you can log in as
+`demo@pokefolio.dev` / `Demo-Passw0rd!` for local demos only.
+
+Register:
+
+```bash
+curl -sS -X POST http://localhost:8080/api/v1/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Ash","email":"ash@example.com","password":"Pikachu12"}' | jq .
+```
+
+Login (capture token with jq):
+
+```bash
+TOKEN=$(curl -sS -X POST http://localhost:8080/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"demo@pokefolio.dev","password":"Demo-Passw0rd!"}' \
+  | jq -r .accessToken)
+```
+
+Successful responses include `accessToken`, `tokenType` (`Bearer`),
+`expiresIn` (seconds), and `user` (`id`, `name`, `email`). Headers include
+`Cache-Control: no-store`.
+
+| Status | When |
+|---|---|
+| `201` | Register succeeded (session issued) |
+| `200` | Login succeeded |
+| `400` | Validation failure (register) or blank email/password (login) |
+| `401` | Login: invalid email or password (generic detail) |
+| `409` | Register: email already taken (detail does not echo the email) |
+
+Use the token on protected writes:
+
+```bash
+curl -sS -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"nationalNumber":25}' \
+  http://localhost:8080/api/v1/collection
+```
+
+Local runs and Compose both require `JWT_SECRET` (≥ 32 bytes). Generate one
+with `openssl rand -base64 48` and put it in your uncommitted `.env` (see
+`.env.example`).
 
 ### List
 
@@ -166,17 +235,28 @@ default `9`, max `20`). Every collection response that returns a local record
 (import, list item, get, update) includes an optimistic-lock **`version`**
 (integer ≥ 0; `0` after import/seed; increments on each successful update).
 
-> **Temporary exception to constitution VI:** write routes (`POST` import,
-> `PUT` update, `DELETE`) are **public** and the store is **global** (one
-> shared collection) until feature **006** adds JWT and per-user scoping. Do
-> not treat this as the final security model.
+**Reads** (`GET`) are public. **Writes** (`POST` / `PUT` / `DELETE`) require
+`Authorization: Bearer $TOKEN` (see [Authentication](#authentication)). Missing
+or invalid tokens → **401**; the collection store remains a single shared
+portfolio (per-user scoping is out of scope for this feature).
+
+Obtain a token first (demo credential — not a secret):
+
+```bash
+TOKEN=$(curl -sS -X POST http://localhost:8080/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"demo@pokefolio.dev","password":"Demo-Passw0rd!"}' \
+  | jq -r .accessToken)
+```
 
 #### Import
 
 `POST /api/v1/collection` with JSON body `{"nationalNumber": n}` (`n` ≥ 1).
+Requires Bearer JWT.
 
 ```bash
 curl -sS -D - -o /tmp/collection-import.json \
+  -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"nationalNumber":25}' \
   http://localhost:8080/api/v1/collection
@@ -189,6 +269,8 @@ local record with **`version`: 0** (catalog snapshot; `localizedName` /
 | Status | When |
 |---|---|
 | `400` | Missing/invalid body (`nationalNumber`), or unknown JSON property |
+| `401` | Missing or invalid access token |
+| `403` | Authenticated but not allowed |
 | `404` | Pokémon not found in the **catalog** |
 | `409` | National number already in the local collection (`type`: `urn:problem-type:conflict`) |
 | `502` | Upstream catalog unavailable or timed out |
@@ -224,16 +306,17 @@ curl -sS http://localhost:8080/api/v1/collection/1 | jq .
 #### Update proprietary fields
 
 `PUT /api/v1/collection/{nationalNumber}` with `Content-Type: application/json`.
-The body **must** include all four properties (omit → 400); explicit `null`
-clears text fields; `tags: []` clears tags (`tags: null` → 400). Send
-`version` from the last GET.
+Requires Bearer JWT. The body **must** include all four properties (omit →
+400); explicit `null` clears text fields; `tags: []` clears tags
+(`tags: null` → 400). Send `version` from the last GET.
 
 ```bash
-# read current version
+# read current version (public GET — no token required)
 VERSION=$(curl -sS http://localhost:8080/api/v1/collection/1 | jq -r .version)
 
 curl -sS -D - -o /tmp/collection-update.json \
   -X PUT \
+  -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d "{\"localizedName\":\"Bulbizarre\",\"location\":\"Pallet Town garden\",\"tags\":[\"garden\",\"notes\"],\"version\":${VERSION}}" \
   http://localhost:8080/api/v1/collection/1
@@ -247,7 +330,9 @@ Clear proprietary fields:
 
 ```bash
 VERSION=$(curl -sS http://localhost:8080/api/v1/collection/1 | jq -r .version)
-curl -sS -X PUT -H 'Content-Type: application/json' \
+curl -sS -X PUT \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
   -d "{\"localizedName\":null,\"location\":null,\"tags\":[],\"version\":${VERSION}}" \
   http://localhost:8080/api/v1/collection/1 | jq '{localizedName,location,tags,version}'
 ```
@@ -255,15 +340,19 @@ curl -sS -X PUT -H 'Content-Type: application/json' \
 | Status | When |
 |---|---|
 | `400` | Missing property, wrong types, limits, blank tag, unknown/read-only property (detail names the field, e.g. `Unknown or read-only property 'name'`, `Invalid or missing value for property 'version'`) |
+| `401` | Missing or invalid access token |
+| `403` | Authenticated but not allowed |
 | `404` | Not in the **local** collection (same wording as GET) |
 | `409` | Stale `version` (`type`: `urn:problem-type:stale-version`; detail: `Pokémon {n} was modified by another request; reload and retry`) — distinct from duplicate-import `conflict` |
 | `415` | Non-JSON `Content-Type` |
 
-Stale-version example (reuse an old token after a successful update):
+Stale-version example (reuse an old concurrency `version` after a successful
+update — not the JWT):
 
 ```bash
 curl -sS -D - -o /tmp/collection-stale.json \
   -X PUT \
+  -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"localizedName":"X","location":null,"tags":[],"version":0}' \
   http://localhost:8080/api/v1/collection/1
@@ -275,6 +364,7 @@ Unknown / read-only snapshot field → **400**:
 VERSION=$(curl -sS http://localhost:8080/api/v1/collection/1 | jq -r .version)
 curl -sS -D - -o /tmp/collection-unknown.json \
   -X PUT \
+  -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d "{\"localizedName\":null,\"location\":null,\"tags\":[],\"version\":${VERSION},\"name\":\"Hack\"}" \
   http://localhost:8080/api/v1/collection/1
@@ -285,6 +375,7 @@ Non-JSON → **415**:
 ```bash
 curl -sS -D - -o /tmp/collection-415.json \
   -X PUT \
+  -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: text/plain' \
   -d 'nope' \
   http://localhost:8080/api/v1/collection/1
@@ -293,15 +384,21 @@ curl -sS -D - -o /tmp/collection-415.json \
 #### Delete a local record
 
 `DELETE /api/v1/collection/{nationalNumber}` — removes the local row only
-(catalog untouched). Success: **204 No Content** (empty body).
+(catalog untouched). Requires Bearer JWT. Success: **204 No Content** (empty
+body).
 
 ```bash
-curl -sS -D - -o /dev/null -X DELETE http://localhost:8080/api/v1/collection/25
+curl -sS -D - -o /dev/null \
+  -X DELETE \
+  -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8080/api/v1/collection/25
 ```
 
 | Status | When |
 |---|---|
 | `400` | Invalid `nationalNumber` |
+| `401` | Missing or invalid access token |
+| `403` | Authenticated but not allowed |
 | `404` | Not in the **local** collection (same wording as GET) |
 
 #### Seeded demo rows
@@ -319,7 +416,7 @@ Errors use RFC 7807 `application/problem+json`.
 
 Nginx at http://localhost:3000 proxies `/api/` unchanged (same paths).
 
-OpenAPI: [Swagger UI](http://localhost:8080/swagger-ui/index.html) · raw [`/v3/api-docs`](http://localhost:8080/v3/api-docs) (paths `/api/v1/pokemon`, `/api/v1/pokemon/{id}`, and `/api/v1/collection`).
+OpenAPI: [Swagger UI](http://localhost:8080/swagger-ui/index.html) · raw [`/v3/api-docs`](http://localhost:8080/v3/api-docs) (paths `/api/v1/auth/*`, `/api/v1/pokemon`, `/api/v1/pokemon/{id}`, and `/api/v1/collection`; collection writes document `bearerAuth`).
 
 ## Configuration
 
@@ -327,6 +424,13 @@ OpenAPI: [Swagger UI](http://localhost:8080/swagger-ui/index.html) · raw [`/v3/
 |---|---|---|
 | `POSTGRES_*` | see `.env.example` | Database (required in Compose) |
 | `POKEAPI_BASE_URL` | `https://pokeapi.co/api/v2` | PokeAPI base for the catalog client |
+| `JWT_SECRET` | _(none — required)_ | HMAC secret for access tokens (≥ 32 bytes; Compose fails if unset) |
+
+Generate a local secret (do not commit it):
+
+```bash
+openssl rand -base64 48
+```
 
 Catalog responses are cached in memory with **Caffeine** (default TTL **24h**, configurable via `pokemonapp.pokeapi.cache.*` in `application.yml`). Failures are never cached.
 
@@ -334,6 +438,8 @@ Catalog responses are cached in memory with **Caffeine** (default TTL **24h**, c
 
 ```bash
 cp .env.example .env
+# set JWT_SECRET in .env (≥ 32 bytes; never commit the real value), e.g. paste:
+openssl rand -base64 48
 docker compose up -d postgres
 
 cd backend

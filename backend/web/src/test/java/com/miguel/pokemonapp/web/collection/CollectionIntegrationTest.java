@@ -9,7 +9,9 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.miguel.pokemonapp.infrastructure.security.JwtAccessTokenIssuer;
 import com.miguel.pokemonapp.support.PostgresTestcontainersConfiguration;
+import com.miguel.pokemonapp.web.support.AuthTestSupport;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -53,6 +56,9 @@ class CollectionIntegrationTest {
 
   @Autowired private RestTestClient restClient;
   @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired private JwtAccessTokenIssuer jwtAccessTokenIssuer;
+
+  private String demoAuth;
   @Autowired private Environment environment;
 
   @DynamicPropertySource
@@ -69,6 +75,7 @@ class CollectionIntegrationTest {
   void resetState() {
     WIRE_MOCK.resetAll();
     CollectionSeedReset.restore(jdbcTemplate);
+    demoAuth = AuthTestSupport.bearerForDemoUser(jwtAccessTokenIssuer, jdbcTemplate);
   }
 
   @Test
@@ -136,6 +143,7 @@ class CollectionIntegrationTest {
         restClient
             .post()
             .uri("/api/v1/collection")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body("{\"nationalNumber\":25}")
             .exchange()
@@ -174,6 +182,7 @@ class CollectionIntegrationTest {
         restClient
             .post()
             .uri("/api/v1/collection")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body("{\"nationalNumber\":25}")
             .exchange()
@@ -220,6 +229,7 @@ class CollectionIntegrationTest {
         restClient
             .post()
             .uri("/api/v1/collection")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body("{\"nationalNumber\":1}")
             .exchange()
@@ -247,6 +257,7 @@ class CollectionIntegrationTest {
         restClient
             .post()
             .uri("/api/v1/collection")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body("{\"nationalNumber\":9999}")
             .exchange()
@@ -278,6 +289,7 @@ class CollectionIntegrationTest {
         restClient
             .post()
             .uri("/api/v1/collection")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body("{\"nationalNumber\":9998}")
             .exchange()

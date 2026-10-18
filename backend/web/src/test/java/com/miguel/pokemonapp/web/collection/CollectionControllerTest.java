@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -24,6 +25,7 @@ import com.miguel.pokemonapp.domain.page.Page;
 import com.miguel.pokemonapp.domain.page.PageRequest;
 import com.miguel.pokemonapp.domain.pokemon.LocalPokemon;
 import com.miguel.pokemonapp.domain.pokemon.Tags;
+import com.miguel.pokemonapp.web.support.ImportSecurityTestConfig;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -36,6 +38,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(CollectionController.class)
+@ImportSecurityTestConfig
 class CollectionControllerTest {
 
   private static final Instant SYNCED_AT = Instant.parse("2026-01-01T00:00:00Z");
@@ -69,6 +72,7 @@ class CollectionControllerTest {
         mockMvc
             .perform(
                 post("/api/v1/collection")
+                    .with(jwt())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"nationalNumber\":1}"))
             .andExpect(status().isCreated())
@@ -152,6 +156,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             put("/api/v1/collection/1")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_PUT_BODY))
         .andExpect(status().isOk())
@@ -180,6 +185,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             put("/api/v1/collection/1")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
@@ -206,6 +212,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             put("/api/v1/collection/1")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
@@ -223,6 +230,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             put("/api/v1/collection/1")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
@@ -241,6 +249,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             put("/api/v1/collection/1")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
@@ -259,6 +268,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             put("/api/v1/collection/1")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
@@ -278,6 +288,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             put("/api/v1/collection/1")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
@@ -296,7 +307,10 @@ class CollectionControllerTest {
   void updateRejectsNonJsonContentType() throws Exception {
     mockMvc
         .perform(
-            put("/api/v1/collection/1").contentType(MediaType.TEXT_PLAIN).content(VALID_PUT_BODY))
+            put("/api/v1/collection/1")
+                .with(jwt())
+                .contentType(MediaType.TEXT_PLAIN)
+                .content(VALID_PUT_BODY))
         .andExpect(status().isUnsupportedMediaType());
   }
 
@@ -305,6 +319,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             put("/api/v1/collection/0")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_PUT_BODY))
         .andExpect(status().isBadRequest());
@@ -312,7 +327,7 @@ class CollectionControllerTest {
 
   @Test
   void deleteReturnsNoContent() throws Exception {
-    mockMvc.perform(delete("/api/v1/collection/1")).andExpect(status().isNoContent());
+    mockMvc.perform(delete("/api/v1/collection/1").with(jwt())).andExpect(status().isNoContent());
 
     verify(deleteLocalPokemonUseCase).execute(1);
   }
@@ -322,6 +337,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             post("/api/v1/collection")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"nationalNumber\":1,\"extra\":true}"))
         .andExpect(status().isBadRequest());
@@ -330,7 +346,11 @@ class CollectionControllerTest {
   @Test
   void rejectsMissingNationalNumber() throws Exception {
     mockMvc
-        .perform(post("/api/v1/collection").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .perform(
+            post("/api/v1/collection")
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
         .andExpect(status().isBadRequest());
   }
 
@@ -339,6 +359,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             post("/api/v1/collection")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"nationalNumber\":0}"))
         .andExpect(status().isBadRequest());
@@ -349,6 +370,7 @@ class CollectionControllerTest {
     mockMvc
         .perform(
             post("/api/v1/collection")
+                .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"nationalNumber\":\"abc\"}"))
         .andExpect(status().isBadRequest());
@@ -357,7 +379,11 @@ class CollectionControllerTest {
   @Test
   void rejectsMalformedJson() throws Exception {
     mockMvc
-        .perform(post("/api/v1/collection").contentType(MediaType.APPLICATION_JSON).content("{"))
+        .perform(
+            post("/api/v1/collection")
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{"))
         .andExpect(status().isBadRequest());
   }
 

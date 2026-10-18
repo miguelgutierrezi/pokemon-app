@@ -7,7 +7,9 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.miguel.pokemonapp.infrastructure.security.JwtAccessTokenIssuer;
 import com.miguel.pokemonapp.support.PostgresTestcontainersConfiguration;
+import com.miguel.pokemonapp.web.support.AuthTestSupport;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -21,6 +23,7 @@ import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTe
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -46,6 +49,9 @@ class CollectionUpdateIntegrationTest {
 
   @Autowired private RestTestClient restClient;
   @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired private JwtAccessTokenIssuer jwtAccessTokenIssuer;
+
+  private String demoAuth;
 
   @DynamicPropertySource
   static void pokeApiBaseUrl(DynamicPropertyRegistry registry) {
@@ -61,6 +67,7 @@ class CollectionUpdateIntegrationTest {
   void resetState() {
     WIRE_MOCK.resetAll();
     CollectionSeedReset.restore(jdbcTemplate);
+    demoAuth = AuthTestSupport.bearerForDemoUser(jwtAccessTokenIssuer, jdbcTemplate);
   }
 
   @Test
@@ -73,6 +80,7 @@ class CollectionUpdateIntegrationTest {
         restClient
             .put()
             .uri("/api/v1/collection/1")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 """
@@ -121,6 +129,7 @@ class CollectionUpdateIntegrationTest {
     restClient
         .put()
         .uri("/api/v1/collection/1")
+        .header(HttpHeaders.AUTHORIZATION, demoAuth)
         .contentType(MediaType.APPLICATION_JSON)
         .body(
             """
@@ -144,6 +153,7 @@ class CollectionUpdateIntegrationTest {
         restClient
             .put()
             .uri("/api/v1/collection/1")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 """
@@ -182,6 +192,7 @@ class CollectionUpdateIntegrationTest {
     restClient
         .put()
         .uri("/api/v1/collection/1")
+        .header(HttpHeaders.AUTHORIZATION, demoAuth)
         .contentType(MediaType.APPLICATION_JSON)
         .body(
             """
@@ -217,6 +228,7 @@ class CollectionUpdateIntegrationTest {
         restClient
             .put()
             .uri("/api/v1/collection/1")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 """
@@ -246,6 +258,7 @@ class CollectionUpdateIntegrationTest {
         restClient
             .put()
             .uri("/api/v1/collection/1")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 """
@@ -279,6 +292,7 @@ class CollectionUpdateIntegrationTest {
         restClient
             .put()
             .uri("/api/v1/collection/1")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 """
@@ -305,6 +319,7 @@ class CollectionUpdateIntegrationTest {
         restClient
             .put()
             .uri("/api/v1/collection/1")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 """
@@ -330,6 +345,7 @@ class CollectionUpdateIntegrationTest {
         restClient
             .put()
             .uri("/api/v1/collection/1")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 """
@@ -358,6 +374,7 @@ class CollectionUpdateIntegrationTest {
         restClient
             .put()
             .uri("/api/v1/collection/150")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 """
@@ -385,6 +402,7 @@ class CollectionUpdateIntegrationTest {
         restClient
             .delete()
             .uri("/api/v1/collection/150")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .exchange()
             .expectStatus()
             .isNotFound()
@@ -403,7 +421,13 @@ class CollectionUpdateIntegrationTest {
   void deleteSeedIvysaurThenGet404ThenReimport201() {
     long ivysaurId = recordId(2);
 
-    restClient.delete().uri("/api/v1/collection/2").exchange().expectStatus().isNoContent();
+    restClient
+        .delete()
+        .uri("/api/v1/collection/2")
+        .header(HttpHeaders.AUTHORIZATION, demoAuth)
+        .exchange()
+        .expectStatus()
+        .isNoContent();
 
     restClient
         .get()
@@ -427,6 +451,7 @@ class CollectionUpdateIntegrationTest {
         restClient
             .post()
             .uri("/api/v1/collection")
+            .header(HttpHeaders.AUTHORIZATION, demoAuth)
             .contentType(MediaType.APPLICATION_JSON)
             .body("{\"nationalNumber\":2}")
             .exchange()

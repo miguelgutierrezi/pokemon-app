@@ -51,4 +51,15 @@ class ArchitectureTest {
               "com.miguel.pokemonapp.infrastructure..",
               "com.miguel.pokemonapp.web..")
           .allowEmptyShould(true);
+
+  @ArchTest
+  static final ArchRule domainAndApplicationMustNotDependOnSpringSecurity =
+      noClasses()
+          .that()
+          .resideInAnyPackage(
+              "com.miguel.pokemonapp.domain..", "com.miguel.pokemonapp.application..")
+          .should()
+          .dependOnClassesThat()
+          .resideInAPackage("org.springframework.security..")
+          .allowEmptyShould(true);
 }
