@@ -257,14 +257,14 @@ WireMock only where re-import needs catalog.
 
 ## Phase 6: Polish
 
-- [ ] T014 [HU04] Update root `README.md` — document
+- [x] T014 [HU04] Update root `README.md` — document
   `PUT` / `DELETE /api/v1/collection/{n}`, additive `version` on collection
   responses, 400/404/409 (`conflict` vs `stale-version`)/415, temporary
   public write until 006; no new env keys. Run every new README command
   before marking done. Coverage: N/A.
   ⏸ Review — `docs: document hu04 local update delete in readme`
 
-- [ ] T015 [HU04] Run `specs/005-hu04-local-update/quickstart.md` end to end
+- [x] T015 [HU04] Run `specs/005-hu04-local-update/quickstart.md` end to end
   (or record deviations and fix). Confirm SC-001–SC-004 via IT and/or live
   curls; **SC-003** (≤ 200 ms) is a **manual** measurement recorded in
   `quickstart.md` (no automated latency assert). Coverage: validation run.
