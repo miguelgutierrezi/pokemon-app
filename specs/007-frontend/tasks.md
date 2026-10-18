@@ -187,33 +187,33 @@ with `vi.mock` / mocked `fetch`; no MSW.
 **Independent Test**: Pure unit tests for sanitiser + session; provider
 test with RTL.
 
-- [ ] T009 RED: write
+- [x] T009 RED: write
   `frontend/src/lib/return-path.test.ts` — accept `/`, `/pokemon/1`,
   `/collection?page=2`; reject `//evil`, absolute URLs, empty → `/`.
   Confirm fail. Show failing output. Test file only.
   ⏸ Review — `test(frontend): expect return path sanitiser (red)`
 
-- [ ] T010 GREEN: implement `frontend/src/lib/return-path.ts`. T009 green;
+- [x] T010 GREEN: implement `frontend/src/lib/return-path.ts`. T009 green;
   full frontend gate green.
   ⏸ Review — `feat(frontend): sanitizeReturnPath (green)`
 
-- [ ] T011 RED: write `frontend/src/lib/session.test.ts` — persist
+- [x] T011 RED: write `frontend/src/lib/session.test.ts` — persist
   `{ accessToken, expiresAt, user }`; clear corrupt/expired on load;
   logout clears; `storage` event sync behaviour as research R4. Confirm
   fail. Show failing output. Test file only.
   ⏸ Review — `test(frontend): expect session store (red)`
 
-- [ ] T012 GREEN: implement `frontend/src/lib/session.ts`. T011 green;
+- [x] T012 GREEN: implement `frontend/src/lib/session.ts`. T011 green;
   full frontend gate green.
   ⏸ Review — `feat(frontend): pokefolio.session store (green)`
 
-- [ ] T013 RED: write
+- [x] T013 RED: write
   `frontend/src/features/auth/AuthProvider.test.tsx` — provides signed-in /
   signed-out state from session; login/logout updates consumers. Confirm
   fail. Show failing output. Test file only.
   ⏸ Review — `test(frontend): expect AuthProvider (red)`
 
-- [ ] T014 GREEN: implement
+- [x] T014 GREEN: implement
   `frontend/src/features/auth/AuthProvider.tsx` (and minimal hooks/context
   exports under `frontend/src/features/auth/`). T013 green; full gate
   green.
