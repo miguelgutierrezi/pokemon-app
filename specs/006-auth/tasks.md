@@ -285,7 +285,7 @@ Must land before AuthController is pushed.
 
 **Independent Test**: `GlobalExceptionHandlerTest` green.
 
-- [ ] T014 [AUTH] RED: extend
+- [x] T014 [AUTH] RED: extend
   `backend/web/src/test/java/com/miguel/pokemonapp/web/error/GlobalExceptionHandlerTest.java`
   — `InvalidCredentialsException` → **401**
   `urn:problem-type:unauthorized`, detail exactly
@@ -294,7 +294,7 @@ Must land before AuthController is pushed.
   leaks. Confirm fail. Do not push RED. Coverage: **web**.
   ⏸ Review — `test(web): expect auth problem advice (red)`
 
-- [ ] T015 [AUTH] GREEN: extend
+- [x] T015 [AUTH] GREEN: extend
   `backend/web/src/main/java/com/miguel/pokemonapp/web/error/GlobalExceptionHandler.java`
   for those exceptions. Advice tests pass. Coverage: **web**.
   ⏸ Review — `feat(web): auth conflict and unauthorized advice (green)`

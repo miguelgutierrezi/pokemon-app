@@ -1,7 +1,9 @@
 package com.miguel.pokemonapp.web.error;
 
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
+import com.miguel.pokemonapp.application.DuplicateEmailException;
 import com.miguel.pokemonapp.application.DuplicateLocalPokemonException;
+import com.miguel.pokemonapp.application.InvalidCredentialsException;
 import com.miguel.pokemonapp.application.LocalPokemonNotFoundException;
 import com.miguel.pokemonapp.application.PokemonNotFoundException;
 import com.miguel.pokemonapp.application.StaleLocalPokemonException;
@@ -43,6 +45,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       URI.create("urn:problem-type:unsupported-media-type");
   private static final URI BAD_GATEWAY_TYPE = URI.create("urn:problem-type:bad-gateway");
   private static final URI INTERNAL_ERROR_TYPE = URI.create("urn:problem-type:internal");
+
+  /** Shared with the security entry point for missing/invalid Bearer tokens. */
+  public static final URI UNAUTHORIZED_TYPE = URI.create("urn:problem-type:unauthorized");
 
   @Override
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -143,6 +148,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         HttpStatus.CONFLICT,
         STALE_VERSION_TYPE,
         "Pokémon " + ex.nationalNumber() + " was modified by another request; reload and retry");
+  }
+
+  @ExceptionHandler(InvalidCredentialsException.class)
+  ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
+    return problem(HttpStatus.UNAUTHORIZED, UNAUTHORIZED_TYPE, InvalidCredentialsException.DETAIL);
+  }
+
+  @ExceptionHandler(DuplicateEmailException.class)
+  ProblemDetail handleDuplicateEmail(DuplicateEmailException ex) {
+    return problem(HttpStatus.CONFLICT, CONFLICT_TYPE, "An account with this email already exists");
   }
 
   @ExceptionHandler(CatalogUnavailableException.class)
