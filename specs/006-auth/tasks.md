@@ -313,7 +313,7 @@ only.
 **Independent Test**: `@WebMvcTest(AuthController)` (security starters not
 on classpath yet).
 
-- [ ] T016 [AUTH] RED: write
+- [x] T016 [AUTH] RED: write
   `backend/web/src/test/java/com/miguel/pokemonapp/web/auth/AuthControllerTest.java`
   — register happy → **201** session shape; password `"ñ"×40` → **400**
   naming `password`; register `"Ash@Pokefolio.dev"` → **201** with
@@ -323,7 +323,7 @@ on classpath yet).
   Do not push RED. Coverage: **web**.
   ⏸ Review — `test(web): expect auth controller register login (red)`
 
-- [ ] T017 [AUTH] GREEN: implement
+- [x] T017 [AUTH] GREEN: implement
   `backend/web/src/main/java/com/miguel/pokemonapp/web/auth/AuthController.java`,
   register/login request DTOs + response DTO,
   `@ValidEmail` (+ validator delegating to `Email.isValid`),
