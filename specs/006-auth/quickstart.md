@@ -99,11 +99,14 @@ Expected: **401**; `type` `urn:problem-type:unauthorized`;
 
 ## 7. Stale / expired Bearer on public GET → 200
 
+Pagination is **1-based** (`page` default `1`); `page=0` → **400**. There is
+no `limit` query parameter — use `size`.
+
 ```bash
-curl -sS -i 'http://localhost:8080/api/v1/pokemon?limit=1' \
+curl -sS -i 'http://localhost:8080/api/v1/pokemon?page=1&size=1' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.e30.invalid'
 
-curl -sS -i 'http://localhost:8080/api/v1/collection?page=0&size=5' \
+curl -sS -i 'http://localhost:8080/api/v1/collection?page=1&size=5' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.e30.invalid'
 ```
 
@@ -134,3 +137,23 @@ curl -sS -i -X POST 'http://localhost:8080/api/v1/auth/register' \
 
 Expected: **201** with AuthSession shape; second register same email
 (any casing) → **409** `urn:problem-type:conflict`.
+
+## Results (2026-10-17)
+
+Manual run against `docker compose` with `JWT_SECRET` in local `.env`:
+
+| Check | Result |
+|-------|--------|
+| Flyway | **V5** applied (`app_user` + demo seed) |
+| Demo login | **200** in **0.13 s** (SC-004 ≤ 1 s); `Cache-Control: no-store`; password absent from body |
+| Import `#25` | **201** (0.41 s) |
+| PUT `#25` | **200**; `version` **0 → 1** |
+| DELETE `#25` | **204**; subsequent GET → **404** |
+| POST without token | **401** + `WWW-Authenticate: Bearer` + clean `application/problem+json` |
+| Stale Bearer on public GETs (§7) | **200** |
+| `/api/v1/does-not-exist` | **401** anonymous / **403** authenticated |
+| Register | **201**; uppercase duplicate → **409** without echoing the email |
+| Login via nginx `:3000` proxy | **200** |
+| Generated-password log line | None |
+| Swagger UI | Authorize + padlocks only on collection **POST/PUT/DELETE**; empty browser console |
+| Compose with empty `JWT_SECRET` | Fails fast |

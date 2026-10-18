@@ -475,7 +475,7 @@ action; README auth section; live quickstart validation.
 **CI note**: CI does **not** start the backend (frontend smoke only) — **no
 CI throwaway-secret step**; no `ci.yml` change required for `JWT_SECRET`.
 
-- [ ] T024 [AUTH] Update `docker-compose.yml` backend env with
+- [x] T024 [AUTH] Update `docker-compose.yml` backend env with
   `JWT_SECRET: ${JWT_SECRET:?}` (fail if unset). Update `.env.example`
   with `JWT_SECRET=` placeholder and `openssl rand -base64 48` hint.
   **No CI workflow change** (backend is not started in CI).
@@ -490,7 +490,7 @@ CI throwaway-secret step**; no `ci.yml` change required for `JWT_SECRET`.
   Coverage: delivery.
   ⏸ Review — `build: require JWT_SECRET in compose and env example`
 
-- [ ] T025 [AUTH] Update root `README.md` — auth section: register/login
+- [x] T025 [AUTH] Update root `README.md` — auth section: register/login
   curls, demo user `demo@pokefolio.dev` + plaintext demo password labelled
   **demo credential** (not a production secret), protected write example
   with `Authorization: Bearer …`, `JWT_SECRET` requirement, note that
@@ -499,7 +499,7 @@ CI throwaway-secret step**; no `ci.yml` change required for `JWT_SECRET`.
   T026 covers them). Coverage: docs.
   ⏸ Review — `docs: document auth api and demo credentials in readme`
 
-- [ ] T026 [AUTH] Run `specs/006-auth/quickstart.md` end to end against the
+- [x] T026 [AUTH] Run `specs/006-auth/quickstart.md` end to end against the
   real stack (`docker compose` with `JWT_SECRET` in local `.env`): login
   demo → import → PUT → DELETE; no-token **401**; stale Bearer on GET →
   **200**; optional deny-by-default / register checks. Record SC-004 (demo
