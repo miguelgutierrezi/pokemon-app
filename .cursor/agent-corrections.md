@@ -4,7 +4,7 @@ Log of user corrections for the agent to apply in future sessions. Maintained
 by the agent per `.cursor/rules/agent-corrections.mdc`.
 
 ## 2026-10-16 — Corrections log language
-- **Source**: user
+- **Source**: Miguel's review
 - **Context**: The first version of the agent-corrections rule and log was
   written in Spanish.
 - **Correction**: Always write `.cursor/rules/agent-corrections.mdc` and
@@ -16,7 +16,7 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   binding project docs, and entries had no origin field.
 - **Correction**: (1) Corrections never override the constitution or the
   feature's spec/plan/tasks — on conflict, stop and ask. (2) Every entry
-  must include `Source`: `user` or `Miguel's review`.
+  must include `Source`: `Miguel's review` (never `user` or a tool name).
 
 ## 2026-10-16 — Maven module naming and package-info accuracy (T002–T003)
 - **Source**: Miguel's review
@@ -609,7 +609,7 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   parent scalars will dirty the entity (avoids a double bump).
 
 ## 2026-10-17 — Optimistic update via compare-and-set UPDATE (supersedes the force-increment entry above)
-- **Source**: Claude Code review, validated by Miguel (implemented by Claude Code at Miguel's request)
+- **Source**: Miguel's review
 - **Context**: The probe → detach → `PESSIMISTIC_FORCE_INCREMENT` re-load path compared the
   version on the probe but applied changes to the re-loaded row; another update committing
   between the two loads would be overwritten (lost update on tags-only changes).
@@ -646,7 +646,7 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `"version": "abc"`) with the same detail shape.
 
 ## 2026-10-17 — Mark completed tasks in tasks.md
-- **Source**: user
+- **Source**: Miguel's review
 - **Context**: After implementing 006-auth T001/T002, the agent stopped for
   review without checking off the tasks in `specs/006-auth/tasks.md`.
 - **Correction**: When a Spec Kit task is finished (RED or GREEN) and ready
@@ -654,7 +654,7 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `tasks.md` in the same turn. Do not leave completed work unchecked.
 
 ## 2026-10-17 — Maven module tests with -am
-- **Source**: user
+- **Source**: Miguel's review
 - **Context**: `./mvnw -B -pl application test` used a stale
   `pokemonapp-domain` jar from `~/.m2`, so RED compile errors incorrectly
   included `UserAccount` as missing.
@@ -665,7 +665,7 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   cache jars for sibling modules.
 
 ## 2026-10-17 — Vitest console guard: cleanup before collecting spies
-- **Source**: user
+- **Source**: Miguel's review
 - **Context**: 007-frontend T003 — `afterEach` checked `console.warn` /
   `console.error` spies before `cleanup()`, so React/Radix warnings that
   fire on unmount were missed.
@@ -676,3 +676,13 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   must use `defineConfig(({ mode }) => …)` + `loadEnv(mode, process.cwd(),
   '')` so `VITE_API_PROXY_TARGET` is read from `frontend/.env`, not only
   `process.env`.
+
+## 2026-10-17 — Source in agent-corrections is always Miguel's review
+- **Source**: Miguel's review
+- **Context**: Agent logged T003/setup and other entries with
+  `Source: user`, against the project rule that Source is always
+  Miguel's review.
+- **Correction**: Every new (and corrected) entry in
+  `.cursor/agent-corrections.md` MUST use
+  `**Source**: Miguel's review`. Never `user`, never a tool name.
+  The rule file `.cursor/rules/agent-corrections.mdc` matches this.
