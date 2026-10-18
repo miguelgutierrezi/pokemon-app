@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -16,6 +16,18 @@ vi.mock('@/api/pokemon', () => ({
     totalElements: 0,
     totalPages: 0,
   }),
+}))
+
+vi.mock('@/api/collection', () => ({
+  listCollection: vi.fn().mockResolvedValue({
+    content: [],
+    page: 1,
+    size: 9,
+    totalElements: 0,
+    totalPages: 0,
+  }),
+  getLocalPokemonById: vi.fn(),
+  importPokemon: vi.fn(),
 }))
 
 const authResponse: AuthResponse = {
@@ -96,10 +108,13 @@ describe('AppLayout', () => {
     renderAt('/collection')
 
     expect(screen.getByRole('button', { name: 'Logout' })).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Collection' }),
-    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Collection' }),
+      ).toBeInTheDocument()
+    })
 
+    fetchSpy.mockClear()
     await user.click(screen.getByRole('button', { name: 'Logout' }))
 
     expect(localStorage.getItem(SESSION_KEY)).toBeNull()
