@@ -663,3 +663,16 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `./mvnw -B -pl application -am test`,
   `./mvnw -B -pl domain -am verify`). Do not rely on stale local Maven
   cache jars for sibling modules.
+
+## 2026-10-17 — Vitest console guard: cleanup before collecting spies
+- **Source**: user
+- **Context**: 007-frontend T003 — `afterEach` checked `console.warn` /
+  `console.error` spies before `cleanup()`, so React/Radix warnings that
+  fire on unmount were missed.
+- **Correction**: In `frontend/src/test/setup.ts` `afterEach`: call
+  `cleanup()` **first** (unmount while spies are still active), then
+  collect spy call messages, then `vi.restoreAllMocks()` in a `finally`
+  block, then throw if anything was collected. Vite `/api` proxy target
+  must use `defineConfig(({ mode }) => …)` + `loadEnv(mode, process.cwd(),
+  '')` so `VITE_API_PROXY_TARGET` is read from `frontend/.env`, not only
+  `process.env`.
