@@ -157,7 +157,7 @@ protected writes attach Bearer only when session valid.
 **Independent Test**: Unit tests for parse + field + auth header policy
 with `vi.mock` / mocked `fetch`; no MSW.
 
-- [ ] T007 RED: write
+- [x] T007 RED: write
   `frontend/src/api/api-error.test.ts` and
   `frontend/src/api/client.test.ts` — cover problem+json → `ApiError`;
   field from `parameter 'password'` and `property 'version'`; no field;
@@ -167,7 +167,7 @@ with `vi.mock` / mocked `fetch`; no MSW.
   push. Test files only.
   ⏸ Review — `test(frontend): expect api error client parsing (red)`
 
-- [ ] T008 GREEN: implement `frontend/src/api/api-error.ts`,
+- [x] T008 GREEN: implement `frontend/src/api/api-error.ts`,
   `frontend/src/api/types.ts` (DTO mirrors from data-model.md),
   `frontend/src/api/client.ts`, and thin endpoint modules
   `frontend/src/api/pokemon.ts`, `frontend/src/api/collection.ts`,
