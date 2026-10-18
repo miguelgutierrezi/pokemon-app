@@ -1,4 +1,5 @@
 import type { ApiClient } from '@/api/client'
+import { createApiClient } from '@/api/client'
 import type {
   ImportPokemonRequest,
   LocalPokemon,
@@ -6,6 +7,8 @@ import type {
   PageQuery,
   UpdateLocalPokemonRequest,
 } from '@/api/types'
+
+const publicClient = createApiClient({ getToken: () => null })
 
 function pageQuery(query: PageQuery): string {
   const params = new URLSearchParams({
@@ -32,6 +35,14 @@ export function getLocalPokemon(
   signal?: AbortSignal,
 ): Promise<LocalPokemon> {
   return client.request<LocalPokemon>(`/api/v1/collection/${id}`, { signal })
+}
+
+/** Collection status helper — public GET (404 = not saved). */
+export function getLocalPokemonById(
+  id: number,
+  signal?: AbortSignal,
+): Promise<LocalPokemon> {
+  return getLocalPokemon(publicClient, id, signal)
 }
 
 export function importPokemon(

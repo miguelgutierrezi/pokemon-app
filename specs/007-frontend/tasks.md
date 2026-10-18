@@ -354,7 +354,7 @@ saved
 **Independent Test**: Mock pokemon + collection GETs → not-saved vs saved
 copy; catalog 404; 502+retry.
 
-- [ ] T023 [HU02] RED: write
+- [x] T023 [HU02] RED: write
   `frontend/src/pages/PokemonDetailPage.test.tsx` — success detail
   (stats+total, flavor, **types as badges**, evolution sequence vs list
   rule); abilities no descriptions; collection **404** → **Add to
@@ -363,7 +363,7 @@ copy; catalog 404; 502+retry.
   Confirm fail. Show failing output. Test file only.
   ⏸ Review — `test(frontend): expect pokemon detail states (red)`
 
-- [ ] T024 [HU02] GREEN: implement
+- [x] T024 [HU02] GREEN: implement
   `frontend/src/features/pokemon/` +
   `frontend/src/pages/PokemonDetailPage.tsx`; route `/pokemon/:id`;
   primary image with `width`/`height` and `loading="lazy"`. Figma

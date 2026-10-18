@@ -36,6 +36,12 @@
   --color-nav-muted: var(--nav-muted);
   --color-surface: var(--surface);
   --color-overlay: var(--overlay);
+  --color-type-grass: var(--type-grass);
+  --color-type-grass-foreground: var(--type-grass-foreground);
+  --color-type-poison: var(--type-poison);
+  --color-type-poison-foreground: var(--type-poison-foreground);
+  --color-type-normal: var(--type-normal);
+  --color-type-normal-foreground: var(--type-normal-foreground);
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -103,6 +109,12 @@
   --nav-muted: var(--pokefolio-muted-soft);
   --surface: var(--pokefolio-surface);
   --overlay: var(--pokefolio-overlay);
+  --type-grass: #edf4ed;
+  --type-grass-foreground: #416a43;
+  --type-poison: #f2edf5;
+  --type-poison-foreground: #785288;
+  --type-normal: #eef1f3;
+  --type-normal-foreground: #626d75;
 
   /* Radii: chips 6 / buttons 10 / panels 12 — theme radii set in @theme */
   --radius: 0.625rem;

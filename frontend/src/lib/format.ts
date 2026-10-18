@@ -65,3 +65,28 @@ export function formatRecordRange(args: {
   const endLabel = formatNationalNumber(end).slice(1)
   return `${startLabel}–${endLabel} of ${args.totalElements.toLocaleString()}`
 }
+
+export function formatFlavorSource(version: string): string {
+  return `Pokémon ${formatSlug(version)} · via PokéAPI`
+}
+
+export function formatEvolutionEdgeLabel(edge: {
+  trigger: string
+  minLevel: number | null
+  itemSlug: string | null
+}): string {
+  if (edge.minLevel != null) {
+    return `Lv. ${edge.minLevel}`
+  }
+  if (edge.itemSlug) {
+    return formatSlug(edge.itemSlug)
+  }
+  return formatSlug(edge.trigger)
+}
+
+export function formatOptionalText(value: string | null | undefined): string {
+  if (value == null || value.trim() === '') {
+    return '—'
+  }
+  return value
+}

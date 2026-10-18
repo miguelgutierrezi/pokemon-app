@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 
 import type { PokemonSummary } from '@/api/types'
 import { Badge } from '@/components/ui/badge'
@@ -14,10 +14,15 @@ import {
 const SPRITE_SIZE = 116
 
 export function PokemonCard({ pokemon }: { pokemon: PokemonSummary }) {
+  const location = useLocation()
+
   return (
     <Card className="rounded-md border-border py-0 shadow-none transition-colors hover:border-primary/40">
       <Link
         to={`/pokemon/${pokemon.nationalNumber}`}
+        state={{
+          from: { pathname: location.pathname, search: location.search },
+        }}
         className="block h-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         aria-label={pokemon.name}
       >

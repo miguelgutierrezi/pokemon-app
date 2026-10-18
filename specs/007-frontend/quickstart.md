@@ -128,7 +128,13 @@ Expected: `POST /api/v1/collection` with `Authorization: Bearer …` →
 1. DevTools device toolbar ~375px — compare to **mobile** frames; catalog
    **1** column; no horizontal overflow of primary content.
 2. Widen — **2** then **3** columns.
-3. Re-check Console: **zero** warnings/errors on every screen visited.
+3. Re-check Console for **SC-006**: **zero** application warnings/errors
+   on every screen visited (`console.*`, React/Radix warnings).
+4. **Accepted (not app errors):** Chrome network-level
+   **“Failed to load resource”** lines for **expected** HTTP responses —
+   detail not-saved **404**, login **401**, duplicate import **409**,
+   stale edit **409**. Do not fail the console check for those browser
+   logs (research R9 / SC-006).
 
 ## 11. Register smoke (optional) — Register [5-921](https://www.figma.com/design/XfY2LFLQuycRZge36S1zey/PokeApp?node-id=5-921) / [5-1019](https://www.figma.com/design/XfY2LFLQuycRZge36S1zey/PokeApp?node-id=5-1019)
 

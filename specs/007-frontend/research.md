@@ -278,12 +278,31 @@ In `vite.config.ts` `server.proxy`:
 - StrictMode on; unique list keys; no controlled↔uncontrolled flips;
   no RR future-flag warnings (RR 8 data router).
 
+### SC-006 — what “zero console warnings/errors” means
+
+SC-006 covers **application** console output: `console.*` from our code,
+React/Radix/library warnings, and the Vitest suite’s
+`console.warn` / `console.error` guard. It does **not** treat Chrome’s
+network-panel / DevTools **“Failed to load resource”** lines for
+**expected** HTTP responses as app errors. Those browser network logs are
+accepted when the status is part of the product contract, including:
+
+| Expected response | Typical trigger |
+|---|---|
+| **404** | Detail not-saved `GET /api/v1/collection/{id}` |
+| **401** | Login failure / unauthorized protected write |
+| **409** | Duplicate import; stale collection edit |
+
+See [quickstart.md](./quickstart.md) §10 for the manual console check
+wording.
+
 ### Alternatives rejected
 
 | Alternative | Why rejected |
 |---|---|
 | Toast-only errors without live region | Weaker a11y for async failures |
 | Unstyled confirm `window.confirm` | No title/description; a11y/console risk |
+| Fail SC-006 on Chrome “Failed to load resource” for expected 404/401/409 | Those are browser network logs, not application errors |
 
 ---
 

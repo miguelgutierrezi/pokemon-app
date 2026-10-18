@@ -38,3 +38,11 @@ export function getPokemon(
 ): Promise<PokemonDetail> {
   return client.request<PokemonDetail>(`/api/v1/pokemon/${id}`, { signal })
 }
+
+/** Catalog detail helper — public GET, optional AbortSignal. */
+export function getPokemonById(
+  id: number,
+  signal?: AbortSignal,
+): Promise<PokemonDetail> {
+  return getPokemon(publicClient, id, signal)
+}
