@@ -8,6 +8,16 @@ import { AppProviders } from '@/app/providers'
 import { routerConfig } from '@/app/routes'
 import { SESSION_KEY, save } from '@/lib/session'
 
+vi.mock('@/api/pokemon', () => ({
+  listPokemon: vi.fn().mockResolvedValue({
+    content: [],
+    page: 1,
+    size: 9,
+    totalElements: 0,
+    totalPages: 0,
+  }),
+}))
+
 const authResponse: AuthResponse = {
   accessToken: 'layout-token',
   tokenType: 'Bearer',
@@ -53,7 +63,7 @@ describe('AppLayout', () => {
     const router = renderAt('/')
     const catalogHeading = screen.getByRole('heading', {
       level: 1,
-      name: 'Pokémon catalog',
+      name: 'The Pokémon catalog',
     })
     expect(catalogHeading).toHaveFocus()
 

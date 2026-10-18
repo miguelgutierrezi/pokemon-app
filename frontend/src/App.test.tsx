@@ -1,14 +1,26 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('@/api/pokemon', () => ({
+  listPokemon: vi.fn().mockResolvedValue({
+    content: [],
+    page: 1,
+    size: 9,
+    totalElements: 0,
+    totalPages: 0,
+  }),
+}))
 
 import App from '@/App'
 
 describe('App', () => {
-  it('boots the catalog route under the app shell', () => {
+  it('boots the catalog route under the app shell', async () => {
     render(<App />)
 
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Pokémon catalog' }),
-    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'The Pokémon catalog' }),
+      ).toBeInTheDocument()
+    })
   })
 })
