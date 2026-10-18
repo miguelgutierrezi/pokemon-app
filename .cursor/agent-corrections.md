@@ -732,3 +732,32 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
 - **Context**: CatalogPage used duck-typed status extraction on errors.
 - **Correction**: Prefer `error instanceof ApiError ? error.status : null`
   (or equivalent) over duck-typing `{ status?: number }` on unknown errors.
+
+## 2026-10-18 — Collection details card: shared-collection copy (R11 #1)
+- **Source**: Miguel's review
+- **Context**: T024 CollectionDetailsCard used Figma “your account /
+  private” wording against spec R11 conflict 1.
+- **Correction**: Title **Collection details**; footnote **Stored in the
+  shared collection on the server.** Never “your account” / “private”
+  on that card.
+
+## 2026-10-18 — Evolution branching: Evolves-into grid, not sibling arrows
+- **Source**: Miguel's review
+- **Context**: T024 branching evolutions used vertical connectors between
+  siblings (Eevee-style).
+- **Correction**: Linear chains stay a sequence with Lv./trigger
+  connectors. When a node has **more than one** child: parent card +
+  **Evolves into** heading + responsive grid (1/2/3 cols); each child
+  card shows its own condition (formatted trigger/minLevel/item) inside
+  the card — no vertical arrows between siblings. Keep linear +
+  branching (Eevee) tests.
+
+## 2026-10-18 — SC-006 excludes Chrome expected-HTTP network logs
+- **Source**: Miguel's review
+- **Context**: Manual console checks could be misread as failing on
+  Chrome “Failed to load resource” for expected 404/401/409.
+- **Correction**: SC-006 covers application console output
+  (`console.*`, React/Radix warnings). Chrome network-level “Failed to
+  load resource” for expected HTTP (detail not-saved 404, login 401,
+  duplicate 409, stale 409) are browser logs, not app errors — document
+  in research R9 and quickstart §10 as accepted.
