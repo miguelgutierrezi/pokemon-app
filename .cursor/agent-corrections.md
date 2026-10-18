@@ -686,3 +686,49 @@ by the agent per `.cursor/rules/agent-corrections.mdc`.
   `.cursor/agent-corrections.md` MUST use
   `**Source**: Miguel's review`. Never `user`, never a tool name.
   The rule file `.cursor/rules/agent-corrections.mdc` matches this.
+
+## 2026-10-18 — Post-review fixes must be logged in agent-corrections
+- **Source**: Miguel's review
+- **Context**: T022 fixes were implemented in code, but only one item
+  (beyond-last 400) was appended to `.cursor/agent-corrections.md`.
+- **Correction**: When Miguel gives post-review fixes (numbered lists,
+  “T0xx fixes”, polish after GREEN), log **every** durable rule from
+  that list in `.cursor/agent-corrections.md` in the same turn as the
+  code changes. Implementing alone is not enough. Rule file
+  `.cursor/rules/agent-corrections.mdc` item 11 matches this.
+
+## 2026-10-18 — Paginated list beyond-last is API 400, not empty 200
+- **Source**: Miguel's review
+- **Context**: T022 catalog treated beyond-last as an empty 200 page;
+  the real API returns 400 with detail `page N is beyond last page M`.
+- **Correction**: For catalog and collection lists, treat
+  `ApiError` with status 400 when `page > 1` as the beyond-last UI
+  state (empty + link to page 1). Never show it as a generic error.
+  Tests must mock the 400 contract, not an empty 200.
+
+## 2026-10-18 — Custom font-size tokens via extendTailwindMerge
+- **Source**: Miguel's review
+- **Context**: T022 — default `twMerge` treated custom `text-*` size
+  tokens as text-color and dropped them next to `text-foreground`.
+- **Correction**: Use `extendTailwindMerge` so custom font-size tokens
+  (`label`, `caption`, `body-sm`, `body`, `title`, `display`, `hero`)
+  live in the `font-size` group. Keep a `utils.test.ts` contract:
+  `cn('text-display','text-foreground')` keeps both;
+  `cn('text-xs','text-caption')` keeps only `text-caption`. PageHeading
+  stays `text-display`; ability badges stay `text-caption`.
+
+## 2026-10-18 — Figma catalog polish: assets, intro, H, pixelated sprites
+- **Source**: Miguel's review
+- **Context**: T022 catalog UI drifted from Figma 8-3955 / 8-4385.
+- **Correction**: Match those frames: intro with large total count +
+  “Pokémon · all generations” + Poké Ball archive diagram downloaded
+  into `src/assets` (no temporary Figma MCP URLs). Records bar
+  `0001–0009 of N` + “H = Hidden ability” legend (visible `H` with
+  accessible “Hidden ability”, e.g. sr-only). Larger sprites with
+  `image-rendering: pixelated`.
+
+## 2026-10-18 — Prefer instanceof ApiError for HTTP status
+- **Source**: Miguel's review
+- **Context**: CatalogPage used duck-typed status extraction on errors.
+- **Correction**: Prefer `error instanceof ApiError ? error.status : null`
+  (or equivalent) over duck-typing `{ status?: number }` on unknown errors.

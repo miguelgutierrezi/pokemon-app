@@ -28,6 +28,10 @@ instruction that should persist):
 10. Compile with deprecation warnings on
     (`-Dmaven.compiler.showDeprecation=true`). Never use APIs deprecated in
     the project's Spring 7 / Jackson 3 versions.
+11. Post-review **fixes** (numbered lists, “T0xx fixes”, polish after GREEN)
+    are corrections: log **every** durable rule from that list in
+    `.cursor/agent-corrections.md` in the same turn as the code changes.
+    Implementing the code alone is not enough.
 
 Entry format:
 
