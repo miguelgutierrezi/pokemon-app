@@ -27,7 +27,11 @@ flowchart LR
 
 **Coverage:** JaCoCo enforces **≥ 80% line coverage per module** on `verify` (each module must cover its own code). After `./mvnw -B -pl web -am verify`, an optional aggregate HTML report is at `backend/web/target/site/jacoco-aggregate/index.html` (visibility only — not a gate). Only `PokemonApplication` is excluded (bootstrap `main` is never run by tests).
 
-Frontend: Vite + React 19 + TypeScript + Tailwind v4 under `frontend/`. Nginx serves the SPA and proxies `/api/` to the backend without rewriting the path. Catalog UI coming in **007**.
+Frontend: Vite + React 19 + TypeScript + Tailwind v4 under `frontend/`.
+Nginx (Compose UI on **:3000**) serves the SPA and proxies `/api/` to the
+backend without rewriting the path. UI source of truth:
+[Figma — PokeApp](https://www.figma.com/design/XfY2LFLQuycRZge36S1zey/PokeApp)
+(spec wins for shared-collection copy and auth redirects).
 
 ## Prerequisites
 
@@ -455,7 +459,43 @@ npm ci
 npm run dev
 ```
 
-Backend: http://localhost:8080 — Frontend Vite: http://localhost:5173.
+Backend: http://localhost:8080 — Frontend Vite: http://localhost:5173
+(proxies `/api` → `VITE_API_PROXY_TARGET`, default `http://localhost:8080`).
+
+### Frontend (007)
+
+| Script | Purpose |
+|---|---|
+| `npm run dev` | Vite dev server + `/api` proxy |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc -b --noEmit` |
+| `npm test` | Vitest (fails on `console.warn` / `console.error`) |
+| `npm run build` | Production build to `frontend/dist` |
+| `npm run preview` | Preview the production build |
+
+**Proxy:** set `VITE_API_PROXY_TARGET` in `frontend/.env` (or the shell) when
+the API is not on `localhost:8080`. Compose UI remains http://localhost:3000.
+
+**Demo credential (not a secret):** `demo@pokefolio.dev` / `Demo-Passw0rd!`
+
+**Routes**
+
+| Path | Screen |
+|---|---|
+| `/` | Catalog (paginated) |
+| `/pokemon/:id` | Pokémon detail + import |
+| `/collection` | Shared collection list |
+| `/collection/:id` | Edit local record |
+| `/login` | Sign in (`?redirect=` sanitised; `?reason=expired`) |
+| `/register` | Create account |
+
+Collection data is a **shared collection** on the server (not a private
+“my collection” / per-account vault in the UI copy).
+
+**Browser network log (SC-006):** the empty-console bar covers application
+`console.*` and React/Radix warnings. Expected HTTP failures in the
+Network panel (e.g. 401 / 404 / 409) are out of scope for SC-006 — see
+`specs/007-frontend/research.md` (R9) and `quickstart.md` §10.
 
 ## Tests
 
