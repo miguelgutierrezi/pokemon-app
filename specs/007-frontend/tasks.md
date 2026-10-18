@@ -392,7 +392,7 @@ Demo hint is **spec wins** (frames omit it).
 **Independent Test**: Form validation + mocked auth API; redirect
 sanitised; signed-in bypass.
 
-- [ ] T025 [AUTH] RED: write
+- [x] T025 [AUTH] RED: write
   `frontend/src/pages/LoginPage.test.tsx` — demo credential hint;
   `reason=expired` shows **Your session expired** above the form;
   success → sanitised redirect; **Invalid email or password**; link to
@@ -401,14 +401,14 @@ sanitised; signed-in bypass.
   only.
   ⏸ Review — `test(frontend): expect login page (red)`
 
-- [ ] T026 [AUTH] GREEN: add shadcn `input`, `label` (IX). Implement
+- [x] T026 [AUTH] GREEN: add shadcn `input`, `label` (IX). Implement
   `frontend/src/features/auth/` login form +
   `frontend/src/pages/LoginPage.tsx`; route `/login` including
   **Your session expired** when `reason=expired`. T025 green; full gate
   green.
   ⏸ Review — `feat(frontend): login page (green)`
 
-- [ ] T027 [AUTH] RED: write
+- [x] T027 [AUTH] RED: write
   `frontend/src/pages/RegisterPage.test.tsx` — valid register → session +
   redirect; **400** field inline; **409** account exists; client password
   8 chars / 72 UTF-8 bytes; when already signed in → redirect to
@@ -416,7 +416,7 @@ sanitised; signed-in bypass.
   file only.
   ⏸ Review — `test(frontend): expect register page (red)`
 
-- [ ] T028 [AUTH] GREEN: implement register form +
+- [x] T028 [AUTH] GREEN: implement register form +
   `frontend/src/pages/RegisterPage.tsx`; route `/register`. T027 green;
   full gate green.
   ⏸ Review — `feat(frontend): register page (green)`
