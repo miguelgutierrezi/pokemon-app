@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info:
+  title: Pokémon App — Authentication API (TR-API-AUTH)
+  version: 0.1.0
+  description: |
+    Registration and login issuing HS256 JWT bearer tokens.
+    Collection write routes (documented in 004/005 contracts) require this
+    scheme; catalog and collection GETs remain public and ignore Bearer
+    credentials. Errors are RFC 7807 Problem Details.
+servers:
+  - url: http://localhost:8080
+    description: Backend direct
+  - url: http://localhost:3000
+    description: Via UI proxy (path unchanged)
+tags:
+  - name: Auth
+    description: Register and login
+paths:
+  /api/v1/auth/register:
+    post:
+      operationId: registerUser
+      summary: Create account and return an immediate session token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+            example:
+              name: Ash Ketchum
+              email: ash@example.com
+              password: Pikachu123!
+      responses:
+        "201":
+          description: Account created; session issued (same shape as login)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "400":
+          description: |
+            Missing required property, wrong types, validation failure
+            (name/email/password rules), or unknown property.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "409":
+          description: Email already registered (case-insensitive)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+              example:
+                type: urn:problem-type:conflict
+                title: Conflict
+                status: 409
+                detail: Email is already registered
+                instance: /api/v1/auth/register
+
+  /api/v1/auth/login:
+    post:
+      operationId: loginUser
+      summary: Authenticate and return a session token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            example:
+              email: demo@pokefolio.dev
+              password: Demo-Passw0rd!
+      responses:
+        "200":
+          description: Authenticated session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "400":
+          description: |
+            Missing/blank email or password, or unknown property.
+            Registration password length/format rules do not apply.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "401":
+          description: Invalid email or password (generic; no enumeration)
+          headers:
+            WWW-Authenticate:
+              schema:
+                type: string
+                example: Bearer
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+              example:
+                type: urn:problem-type:unauthorized
+                title: Unauthorized
+                status: 401
+                detail: Invalid email or password
+                instance: /api/v1/auth/login
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        HS256 JWT from register or login. Required on
+        POST /api/v1/collection and PUT|DELETE
+        /api/v1/collection/{nationalNumber}. Ignored on public GETs.
+
+  schemas:
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Trimmed; blank after trim rejected
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: |
+            Normalised (trim + lowercase) then validated via domain
+            `Email.isValid` / edge `@ValidEmail` — not raw `@Pattern`
+            (see data-model.md). Unique case-insensitively.
+        password:
+          type: string
+          minLength: 8
+          description: |
+            Min 8 characters; max 72 UTF-8 bytes via custom
+            `@MaxUtf8Bytes(72)` (BV `@Size` counts chars, not bytes —
+            e.g. 40× "ñ" = 40 chars / 80 bytes → 400).
+
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          description: Non-blank; normalised trim + lowercase on server
+        password:
+          type: string
+          description: Non-blank only — no register length/format rules
+
+    AuthSessionResponse:
+      type: object
+      required: [accessToken, tokenType, expiresIn, user]
+      properties:
+        accessToken:
+          type: string
+          description: JWT compact serialization
+        tokenType:
+          type: string
+          enum: [Bearer]
+        expiresIn:
+          type: integer
+          format: int64
+          description: Seconds until expiry (from configured Duration)
+          example: 3600
+        user:
+          $ref: "#/components/schemas/UserProfile"
+
+    UserProfile:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    ProblemDetail:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type:
+          type: string
+          format: uri
+          examples:
+            - urn:problem-type:bad-request
+            - urn:problem-type:unauthorized
+            - urn:problem-type:forbidden
+            - urn:problem-type:conflict
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
