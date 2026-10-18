@@ -10,11 +10,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.miguel.pokemonapp.application.CatalogUnavailableException;
+import com.miguel.pokemonapp.application.DuplicateEmailException;
 import com.miguel.pokemonapp.application.DuplicateLocalPokemonException;
+import com.miguel.pokemonapp.application.InvalidCredentialsException;
 import com.miguel.pokemonapp.application.LocalPokemonNotFoundException;
 import com.miguel.pokemonapp.application.PokemonNotFoundException;
 import com.miguel.pokemonapp.application.StaleLocalPokemonException;
@@ -33,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -214,6 +218,50 @@ class GlobalExceptionHandlerTest {
             .getResponse()
             .getContentAsString();
 
+    assertNoLeak(body);
+  }
+
+  @Test
+  void invalidCredentialsReturnsUnauthorizedProblemWithoutWwwAuthenticate() throws Exception {
+    when(importPokemonUseCase.execute(25)).thenThrow(new InvalidCredentialsException());
+
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    post("/api/v1/collection")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nationalNumber\":25}")),
+                401)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:unauthorized"))
+            .andExpect(jsonPath("$.title").value("Unauthorized"))
+            .andExpect(jsonPath("$.detail").value("Invalid email or password"))
+            .andExpect(header().doesNotExist(HttpHeaders.WWW_AUTHENTICATE))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertNoLeak(body);
+  }
+
+  @Test
+  void duplicateEmailReturnsConflictProblemWithoutEchoingEmail() throws Exception {
+    String email = "ash@pokefolio.dev";
+    when(importPokemonUseCase.execute(25)).thenThrow(new DuplicateEmailException(email));
+
+    String body =
+        expectProblem(
+                mockMvc.perform(
+                    post("/api/v1/collection")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nationalNumber\":25}")),
+                409)
+            .andExpect(jsonPath("$.type").value("urn:problem-type:conflict"))
+            .andExpect(jsonPath("$.detail").value("An account with this email already exists"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertThat(body).doesNotContain(email).doesNotContain("Email is already registered");
     assertNoLeak(body);
   }
 
@@ -622,6 +670,8 @@ class GlobalExceptionHandlerTest {
         .doesNotContain("CatalogUnavailableException")
         .doesNotContain("PokemonNotFoundException")
         .doesNotContain("DuplicateLocalPokemonException")
+        .doesNotContain("DuplicateEmailException")
+        .doesNotContain("InvalidCredentialsException")
         .doesNotContain("LocalPokemonNotFoundException")
         .doesNotContain("StaleLocalPokemonException")
         .doesNotContain("MethodArgumentNotValidException")
