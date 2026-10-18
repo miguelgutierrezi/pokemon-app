@@ -1,4 +1,5 @@
 import { BookmarkPlus, CheckCircle2 } from 'lucide-react'
+import type { Ref } from 'react'
 import { Link } from 'react-router'
 
 import type { LocalPokemon, PokemonDetail } from '@/api/types'
@@ -20,6 +21,7 @@ export type DetailHeroProps = {
   saved: LocalPokemon | null
   statusUnavailable: boolean
   onAddToCollection: () => void
+  addButtonRef?: Ref<HTMLButtonElement>
 }
 
 export function DetailHero({
@@ -27,6 +29,7 @@ export function DetailHero({
   saved,
   statusUnavailable,
   onAddToCollection,
+  addButtonRef,
 }: DetailHeroProps) {
   const specimen = formatNationalNumber(pokemon.nationalNumber).slice(1)
 
@@ -121,6 +124,7 @@ export function DetailHero({
           ) : (
             <>
               <Button
+                ref={addButtonRef}
                 type="button"
                 className="h-[52px] w-full rounded-md text-body font-semibold"
                 disabled={statusUnavailable}

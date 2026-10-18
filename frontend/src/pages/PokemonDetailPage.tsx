@@ -1,10 +1,17 @@
 import { ArrowLeft } from 'lucide-react'
+import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 import { ApiError } from '@/api/api-error'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { authLinkWithRedirect } from '@/features/auth/auth-redirect'
 import { useAuth } from '@/features/auth/useAuth'
+import {
+  ImportDialog,
+  type ImportDialogStep,
+} from '@/features/collection/ImportDialog'
+import { useImportPokemon } from '@/features/collection/useImportPokemon'
 import { AbilitiesPanel } from '@/features/pokemon/AbilitiesPanel'
 import { CollectionDetailsCard } from '@/features/pokemon/CollectionDetailsCard'
 import { DetailHero } from '@/features/pokemon/DetailHero'
@@ -13,7 +20,6 @@ import { parsePokemonId } from '@/features/pokemon/parse-pokemon-id'
 import { StatsPanel } from '@/features/pokemon/StatsPanel'
 import { useCatalogPokemon } from '@/features/pokemon/useCatalogPokemon'
 import { useLocalPokemonStatus } from '@/features/pokemon/useLocalPokemonStatus'
-import { sanitizeReturnPath } from '@/lib/return-path'
 
 export type PokemonDetailPageProps = {
   onAddToCollection?: () => void
@@ -53,20 +59,69 @@ export function PokemonDetailPage({
 
   const catalog = useCatalogPokemon(id)
   const localStatus = useLocalPokemonStatus(id)
+  const importPokemon = useImportPokemon()
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogStep, setDialogStep] = useState<ImportDialogStep>('confirm')
+  const [errorDetail, setErrorDetail] = useState<string | null>(null)
+  const addButtonRef = useRef<HTMLButtonElement | null>(null)
 
   const crumb = breadcrumbFrom(location.state)
+
+  const closeDialog = () => {
+    setDialogOpen(false)
+    setDialogStep('confirm')
+    setErrorDetail(null)
+    queueMicrotask(() => {
+      addButtonRef.current?.focus()
+    })
+  }
+
+  const runImport = () => {
+    if (id == null) {
+      return
+    }
+    setDialogStep('progress')
+    setErrorDetail(null)
+    importPokemon.mutate(
+      { nationalNumber: id },
+      {
+        onSuccess: () => {
+          setDialogStep('success')
+        },
+        onError: (error) => {
+          if (error instanceof ApiError && error.status === 401) {
+            setDialogOpen(false)
+            setDialogStep('confirm')
+            setErrorDetail(null)
+            return
+          }
+          if (error instanceof ApiError && error.status === 409) {
+            setDialogStep('duplicate')
+            return
+          }
+          setErrorDetail(
+            error instanceof ApiError
+              ? error.detail
+              : 'Unexpected error. Try again.',
+          )
+          setDialogStep('error')
+        },
+      },
+    )
+  }
 
   const handleAddToCollection =
     onAddToCollection ??
     (() => {
       if (!isAuthenticated) {
-        const returnTo = sanitizeReturnPath(
-          `${location.pathname}${location.search}`,
-        )
-        void navigate('/login', { state: { from: returnTo } })
+        const returnTo = `${location.pathname}${location.search}`
+        void navigate(authLinkWithRedirect('/login', returnTo))
         return
       }
-      // Import dialogs land in HU-03.
+      setDialogStep('confirm')
+      setErrorDetail(null)
+      setDialogOpen(true)
     })
 
   if (id == null) {
@@ -213,6 +268,7 @@ export function PokemonDetailPage({
           saved={localStatus.saved}
           statusUnavailable={localStatus.statusUnavailable}
           onAddToCollection={handleAddToCollection}
+          addButtonRef={addButtonRef}
         />
 
         {localStatus.saved ? (
@@ -226,6 +282,22 @@ export function PokemonDetailPage({
 
         <EvolutionChain root={pokemon.evolution} />
       </div>
+
+      <ImportDialog
+        open={dialogOpen}
+        step={dialogStep}
+        pokemon={pokemon}
+        errorDetail={errorDetail}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeDialog()
+            return
+          }
+          setDialogOpen(true)
+        }}
+        onConfirm={runImport}
+        onRetry={runImport}
+      />
     </div>
   )
 }

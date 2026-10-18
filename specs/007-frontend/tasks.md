@@ -450,7 +450,7 @@ success
 **Independent Test**: Mock mutation states through dialogs; signed-out
 navigates to `/login?redirect=…`.
 
-- [ ] T029 [HU03] RED: write
+- [x] T029 [HU03] RED: write
   `frontend/src/features/pokemon/ImportFlow.test.tsx` (or
   `frontend/src/pages/PokemonDetailPage.import.test.tsx`) — signed-out →
   login redirect; signed-in confirm → progress → success link; **409**
@@ -458,7 +458,7 @@ navigates to `/login?redirect=…`.
   output. Test file only.
   ⏸ Review — `test(frontend): expect import dialogs flow (red)`
 
-- [ ] T030 [HU03] GREEN: add shadcn `alert-dialog` (IX). Implement import
+- [x] T030 [HU03] GREEN: add shadcn `alert-dialog` (IX). Implement import
   dialogs under `frontend/src/features/pokemon/` wired from detail page;
   invalidate collection queries on success. T029 green; full gate green.
   ⏸ Review — `feat(frontend): import dialogs HU-03 (green)`
