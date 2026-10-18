@@ -22,6 +22,11 @@ pokemonapp:
       ttl: 24h
       id-max-size: 2048
       list-max-size: 256
+  security:
+    jwt:
+      # Empty fallback only so missing JWT_SECRET fails with JwtProperties' clear message.
+      secret: ${JWT_SECRET:}
+      expiry: 1h
 
 management:
   endpoints:

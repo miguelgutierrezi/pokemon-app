@@ -90,6 +90,16 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <!-- Non-production HS256 secret for @SpringBootTest / unit tests (≥ 32 UTF-8 bytes). -->
+            <pokemonapp.security.jwt.secret>pokemonapp-test-jwt-secret-not-for-prod!!</pokemonapp.security.jwt.secret>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <executions>

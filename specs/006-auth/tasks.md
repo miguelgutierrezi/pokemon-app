@@ -245,7 +245,7 @@ secret via Maven surefire/failsafe **system properties** (not a test
 **Independent Test**: `ApplicationContextRunner` fail-fast + happy path;
 full verify with system props.
 
-- [ ] T012 [AUTH] RED: write
+- [x] T012 [AUTH] RED: write
   `backend/web/src/test/java/com/miguel/pokemonapp/web/config/JwtPropertiesValidationTest.java`
   using **`ApplicationContextRunner`** with **explicit** properties —
   missing secret → context fails; secret UTF-8 length &lt; 32 → fails; valid
@@ -253,7 +253,7 @@ full verify with system props.
   Coverage: **web**.
   ⏸ Review — `test(web): expect jwt secret fail-fast (red)`
 
-- [ ] T013 [AUTH] GREEN: add
+- [x] T013 [AUTH] GREEN: add
   `backend/web/src/main/java/com/miguel/pokemonapp/web/config/JwtProperties.java`
   (validated) and config class that binds
   `pokemonapp.security.jwt.secret: ${JWT_SECRET}` /
