@@ -12,12 +12,15 @@ import { SESSION_KEY } from '@/lib/session'
 vi.mock('@/api/collection', () => ({
   listCollection: vi.fn(),
   getLocalPokemonById: vi.fn(),
+  updateLocalPokemon: vi.fn(),
+  deleteLocalPokemon: vi.fn(),
   importPokemon: vi.fn(),
 }))
 
-import { listCollection } from '@/api/collection'
+import { getLocalPokemonById, listCollection } from '@/api/collection'
 
 const listCollectionMock = vi.mocked(listCollection)
+const getLocalPokemonByIdMock = vi.mocked(getLocalPokemonById)
 
 function localPokemon(overrides: Partial<LocalPokemon> = {}): LocalPokemon {
   return {
@@ -91,7 +94,11 @@ function renderCollection(initialEntry = '/collection') {
 describe('CollectionPage', () => {
   beforeEach(() => {
     listCollectionMock.mockReset()
+    getLocalPokemonByIdMock.mockReset()
     localStorage.clear()
+    getLocalPokemonByIdMock.mockImplementation(async (id) =>
+      localPokemon({ nationalNumber: id }),
+    )
   })
 
   it('loads /collection and ?page=N with size 9 and no Authorization', async () => {
