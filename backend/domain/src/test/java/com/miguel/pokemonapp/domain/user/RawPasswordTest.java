@@ -26,8 +26,7 @@ class RawPasswordTest {
 
   @Test
   void ofRejectsShorterThanMinCharacters() {
-    assertThatThrownBy(() -> RawPassword.of("short"))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> RawPassword.of("short")).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
@@ -55,7 +54,6 @@ class RawPasswordTest {
 
   @Test
   void ofRejectsNull() {
-    assertThatThrownBy(() -> RawPassword.of(null))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> RawPassword.of(null)).isInstanceOf(IllegalArgumentException.class);
   }
 }

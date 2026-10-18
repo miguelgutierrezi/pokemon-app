@@ -65,7 +65,6 @@ class EmailTest {
 
   @Test
   void ofRejectsInvalidWithIllegalArgumentException() {
-    assertThatThrownBy(() -> Email.of("not-an-email"))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> Email.of("not-an-email")).isInstanceOf(IllegalArgumentException.class);
   }
 }

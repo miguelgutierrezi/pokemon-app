@@ -77,7 +77,7 @@ checks max length + `PATTERN`; register password 8 chars / 72 UTF-8 bytes.
 **Independent Test**: `./mvnw -B -pl domain test` green; no Spring on domain
 classpath.
 
-- [ ] T001 [AUTH] RED: write
+- [x] T001 [AUTH] RED: write
   `backend/domain/src/test/java/com/miguel/pokemonapp/domain/user/EmailTest.java`,
   `PersonNameTest.java`, `RawPasswordTest.java`, `UserAccountTest.java` —
   `Email.isValid` / VO: trim+lowercase; max **254**; concrete
@@ -90,7 +90,7 @@ classpath.
   (types missing). Do not push RED. Coverage: **domain**.
   ⏸ Review — `test(domain): expect user account email name password vos (red)`
 
-- [ ] T002 [AUTH] GREEN: implement
+- [x] T002 [AUTH] GREEN: implement
   `backend/domain/src/main/java/com/miguel/pokemonapp/domain/user/Email.java`
   (`PATTERN`, `MAX_LENGTH`, `isValid(String raw)`, VO),
   `PersonName.java`, `RawPassword.java`, `UserAccount.java`. Domain tests

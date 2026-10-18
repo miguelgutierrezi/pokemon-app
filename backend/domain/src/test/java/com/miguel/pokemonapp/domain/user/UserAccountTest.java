@@ -45,8 +45,7 @@ class UserAccountTest {
 
   @Test
   void registerRejectsInvalidEmail() {
-    assertThatThrownBy(
-            () -> UserAccount.register("Ash", "not-an-email", OPAQUE_HASH, CREATED_AT))
+    assertThatThrownBy(() -> UserAccount.register("Ash", "not-an-email", OPAQUE_HASH, CREATED_AT))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -59,11 +58,9 @@ class UserAccountTest {
 
   @Test
   void registerRejectsBlankPasswordHash() {
-    assertThatThrownBy(
-            () -> UserAccount.register("Ash", "ash@pokefolio.dev", "  ", CREATED_AT))
+    assertThatThrownBy(() -> UserAccount.register("Ash", "ash@pokefolio.dev", "  ", CREATED_AT))
         .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(
-            () -> UserAccount.register("Ash", "ash@pokefolio.dev", null, CREATED_AT))
+    assertThatThrownBy(() -> UserAccount.register("Ash", "ash@pokefolio.dev", null, CREATED_AT))
         .isInstanceOf(IllegalArgumentException.class);
   }
 }

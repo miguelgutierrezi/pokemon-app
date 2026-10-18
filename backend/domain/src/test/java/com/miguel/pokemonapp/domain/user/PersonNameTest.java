@@ -27,17 +27,20 @@ class PersonNameTest {
 
   @Test
   void ofRejectsBlankAfterTrim() {
-    assertThatThrownBy(() -> PersonName.of("   "))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> PersonName.of(""))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> PersonName.of(null))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> PersonName.of("   ")).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> PersonName.of("")).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> PersonName.of(null)).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void ofRejectsLongerThanMaxAfterTrim() {
     assertThatThrownBy(() -> PersonName.of("x".repeat(PersonName.MAX_LENGTH + 1)))
         .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void canonicalConstructorRejectsBlankAndUntrimmed() {
+    assertThatThrownBy(() -> new PersonName("   ")).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> new PersonName(" Ash ")).isInstanceOf(IllegalArgumentException.class);
   }
 }
