@@ -232,9 +232,10 @@ tests in the same task); fail-on-unknown (incl. POST import); `"tags": null`
 **Independent Test**: `@SpringBootTest` + existing Postgres Testcontainers;
 WireMock only where re-import needs catalog.
 
-- [ ] T012 [HU04] RED: write acceptance IT coverage in
-  `backend/web/src/test/java/com/miguel/pokemonapp/web/collection/CollectionIntegrationTest.java`
-  (extend existing) — update seed Bulbasaur → **200**, `version` +1,
+- [x] T012 [HU04] RED: write acceptance IT coverage in
+  `backend/web/src/test/java/com/miguel/pokemonapp/web/collection/CollectionUpdateIntegrationTest.java`
+  (sibling of `CollectionIntegrationTest`; shared seed restore via
+  `CollectionSeedReset`) — update seed Bulbasaur → **200**, `version` +1,
   snapshot unchanged; **two sequential PUTs with the same `version`** →
   first **200**, second **409** `urn:problem-type:stale-version`, and
   stored proprietary values match the **first** request (no lost update;
@@ -242,16 +243,13 @@ WireMock only where re-import needs catalog.
   `location` **null** and `tags` **`[]`** clears those fields in the DB;
   read-only/unknown field → **400**; `"tags": null` → **400**; limits →
   **400**; missing → **404** local wording; DELETE → **204** then GET
-  **404** then re-import **201**. Confirm fail (or note if already green
-  — see T013). Do not push RED. Coverage: **web** IT.
-  ⏸ Review — `test(web): collection update delete IT (red)`
+  **404** then re-import **201**. Already green with no production changes
+  (see T013). Coverage: **web** IT.
+  ⏸ Review — `test(web): collection update delete IT`
 
-- [ ] T013 [HU04] GREEN: finish wiring/fixes so T012 passes.
-  **Acceptance note**: if T012 already passes with no production changes,
-  commit the IT as `test(web): collection update delete IT` and mark
-  **T013 skipped**. Otherwise full `./mvnw -B verify` green; prior ITs stay
-  green. Coverage: **web** IT.
-  ⏸ Review — `feat(web): collection update delete IT green` (or skipped)
+- [x] T013 [HU04] GREEN: **skipped** — T012 already green with no production
+  changes. Coverage: **web** IT.
+  ⏸ Review — `test(web): collection update delete IT` (T013 skipped)
 
 **Checkpoint**: Collection update/delete e2e green; prior ITs unchanged.
 

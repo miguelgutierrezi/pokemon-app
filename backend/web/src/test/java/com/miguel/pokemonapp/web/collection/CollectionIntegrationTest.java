@@ -68,7 +68,7 @@ class CollectionIntegrationTest {
   @BeforeEach
   void resetState() {
     WIRE_MOCK.resetAll();
-    jdbcTemplate.update("DELETE FROM pokemon_record WHERE national_number > 3");
+    CollectionSeedReset.restore(jdbcTemplate);
   }
 
   @Test
