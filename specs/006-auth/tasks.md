@@ -409,14 +409,14 @@ protected ops.
 
 **Independent Test**: ArchUnit + OpenApiDocs IT.
 
-- [ ] T020 [AUTH] Extend
+- [x] T020 [AUTH] Extend
   `backend/web/src/test/java/com/miguel/pokemonapp/architecture/ArchitectureTest.java`
   with a rule that domain and application must not depend on
   `org.springframework.security..` (alongside existing Spring/JPA/HTTP
   bans). Full verify green. Coverage: **web** (ArchUnit).
   ⏸ Review — `test(web): archunit ban spring security on domain application`
 
-- [ ] T021 [AUTH] RED: extend
+- [x] T021 [AUTH] RED: extend
   `backend/web/src/test/java/com/miguel/pokemonapp/web/OpenApiDocsIntegrationTest.java`
   — document `bearerAuth` (http/bearer/JWT); protected collection write
   operations declare security requirement; auth paths present; 401/403
@@ -424,7 +424,7 @@ protected ops.
   **web**.
   ⏸ Review — `test(web): expect openapi bearer security scheme (red)`
 
-- [ ] T022 [AUTH] GREEN: update
+- [x] T022 [AUTH] GREEN: update
   `backend/web/src/main/java/com/miguel/pokemonapp/web/config/OpenApiConfiguration.java`
   and collection/auth controller annotations (`@SecurityRequirement`,
   `@SecurityScheme` as needed). OpenAPI IT passes. Coverage: **web**.
